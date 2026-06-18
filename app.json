@@ -1,22 +1,31 @@
 {
   "expo": {
-    "name": "birlikte-satalim",
-    "slug": "birlikte-satalim",
+    "name": "Beraber Satalım",
+    "slug": "beraber-satalim",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "birliktesatalim",
+    "scheme": "berabersatalim",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.berabersatalim.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Yetki belgenizin fotoğrafını çekmek için kamera erişimi gereklidir.",
+        "NSPhotoLibraryUsageDescription": "Yetki belgenizi galeriden seçmek için galeri erişimi gereklidir."
+      }
     },
     "android": {
+      "package": "com.berabersatalim.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0A2540",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "permissions": [
+        "CAMERA"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -31,7 +40,7 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#F8F9FA"
         }
       ]
     ],
