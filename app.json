@@ -46,6 +46,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "264935b9-802f-4f3b-a79a-75677adaf202"
+      }
+    },
+    "owner": "baris_tuncer80"
   }
 }
