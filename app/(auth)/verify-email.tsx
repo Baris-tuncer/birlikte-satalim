@@ -44,8 +44,8 @@ export default function VerifyEmailScreen() {
     }
 
     pollRef.current = setInterval(async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session?.user?.email_confirmed_at) {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (!error && data.session?.user?.email_confirmed_at) {
         if (pollRef.current) clearInterval(pollRef.current);
         router.replace('/(auth)/license-upload');
       }
