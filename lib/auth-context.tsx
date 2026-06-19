@@ -176,12 +176,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Çıkış
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Hata olsa bile state'i sıfırla
+    }
     setState((prev) => ({
       ...prev,
       session: null,
       user: null,
       profile: null,
+      isLoading: false,
       isLoggedIn: false,
       emailVerified: false,
       licenseStatus: 'none',

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, Pressable, Animated, Easing } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Animated, Easing, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
@@ -38,7 +38,7 @@ export default function ApprovalPendingScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Icon */}
         <View style={styles.iconCircle}>
           <Ionicons name="time-outline" size={48} color={Colors.accent} />
@@ -100,10 +100,8 @@ export default function ApprovalPendingScreen() {
             </View>
           ))}
         </View>
-      </View>
 
-      {/* Sign Out Button */}
-      <View style={styles.bottomSection}>
+        {/* Sign Out Button */}
         <Pressable
           style={({ pressed }) => [
             styles.signOutButton,
@@ -114,7 +112,7 @@ export default function ApprovalPendingScreen() {
           <Ionicons name="log-out-outline" size={20} color={Colors.error} />
           <Text style={styles.signOutText}>Çıkış Yap</Text>
         </Pressable>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -124,11 +122,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  content: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing['5xl'],
+    paddingBottom: Spacing['3xl'],
   },
   // Icon
   iconCircle: {
