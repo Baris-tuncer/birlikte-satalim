@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import type { Match, MatchStatus } from '@/types';
@@ -50,13 +50,19 @@ export default function MatchCard({
   onAccept,
   onReject,
 }: MatchCardProps) {
-  const statusConfig = STATUS_CONFIG[match.status];
+  const statusConfig = STATUS_CONFIG[match.status] ?? STATUS_CONFIG.PENDING;
   const isTarget = match.target_id === currentUserId;
   const isPending = match.status === 'PENDING';
   const isAccepted = match.status === 'ACCEPTED';
 
   const matchTypeLabel =
     match.match_type === 'DEMAND' ? 'Talep Eşleşmesi' : 'İlan Eşleşmesi';
+
+  // Karşı tarafın bilgisi
+  const otherParty = isTarget ? match.requester : match.target;
+  const otherPartyRole = isTarget
+    ? (match.match_type === 'LISTING' ? 'Müşterisi Var' : 'Portföyünden Eşledi')
+    : (match.match_type === 'LISTING' ? 'İlan Sahibi' : 'Talep Sahibi');
 
   return (
     <View style={styles.card}>
@@ -90,22 +96,31 @@ export default function MatchCard({
         <Text style={styles.matchTypeText}>{matchTypeLabel}</Text>
       </View>
 
+      {/* Karşı taraf bilgisi */}
+      {otherParty?.name && (
+        <View style={styles.otherPartyRow}>
+          <Ionicons name="person-outline" size={14} color={Colors.text.secondary} />
+          <Text style={styles.otherPartyName}>{otherParty.name}</Text>
+          <Text style={styles.otherPartyRole}>({otherPartyRole})</Text>
+        </View>
+      )}
+
       {/* Listing or Demand brief info */}
       {match.listing && (
         <View style={styles.infoBox}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>
-              {TRANSACTION_LABELS[match.listing.transaction_type]} /{' '}
-              {PROPERTY_LABELS[match.listing.property_type]}
+              {TRANSACTION_LABELS[match.listing.transaction_type] ?? '—'} /{' '}
+              {PROPERTY_LABELS[match.listing.property_type] ?? '—'}
             </Text>
           </View>
           <Text style={styles.infoLocation}>
             {[match.listing.district, match.listing.neighborhood]
               .filter(Boolean)
-              .join(', ')}
+              .join(', ') || '—'}
           </Text>
           <Text style={styles.infoPrice}>
-            {formatPrice(match.listing.price)}
+            {formatPrice(match.listing?.price)}
           </Text>
         </View>
       )}
@@ -114,16 +129,16 @@ export default function MatchCard({
         <View style={styles.infoBox}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>
-              {TRANSACTION_LABELS[match.demand.transaction_type]} /{' '}
-              {PROPERTY_LABELS[match.demand.property_type]}
+              {TRANSACTION_LABELS[match.demand.transaction_type] ?? '—'} /{' '}
+              {PROPERTY_LABELS[match.demand.property_type] ?? '—'}
             </Text>
           </View>
           <Text style={styles.infoLocation}>
-            {[match.demand.district, ...match.demand.neighborhoods].join(', ')}
+            {[match.demand.district, ...(match.demand.neighborhoods ?? [])].join(', ') || '—'}
           </Text>
           <Text style={styles.infoPrice}>
-            {formatBudget(match.demand.min_budget)} –{' '}
-            {formatBudget(match.demand.max_budget)}
+            {formatBudget(match.demand?.min_budget)} –{' '}
+            {formatBudget(match.demand?.max_budget)}
           </Text>
         </View>
       )}
@@ -135,25 +150,49 @@ export default function MatchCard({
         </Text>
       ) : null}
 
-      {/* Accepted: show phone numbers */}
-      {isAccepted && (
-        <View style={styles.contactBox}>
-          <View style={styles.contactRow}>
-            <Ionicons name="call-outline" size={16} color={Colors.success} />
-            <Text style={styles.contactLabel}>İletişim Bilgileri</Text>
+      {/* Accepted: show phone numbers + action buttons */}
+      {isAccepted && (() => {
+        const otherPhone = otherParty?.phone;
+        const cleanPhone = otherPhone
+          ? otherPhone.replace(/\s/g, '').replace(/^\+90/, '90').replace(/^0/, '90')
+          : null;
+        return (
+          <View style={styles.contactBox}>
+            <View style={styles.contactRow}>
+              <Ionicons name="call-outline" size={16} color={Colors.success} />
+              <Text style={styles.contactLabel}>İletişim Bilgileri</Text>
+            </View>
+            {match.requester?.phone && (
+              <Text style={styles.contactPhone}>
+                Talep Eden: {match.requester.phone}
+              </Text>
+            )}
+            {match.target?.phone && (
+              <Text style={styles.contactPhone}>
+                İlan Sahibi: {match.target.phone}
+              </Text>
+            )}
+            {cleanPhone && (
+              <View style={styles.contactActions}>
+                <Pressable
+                  style={({ pressed }) => [styles.whatsappBtn, pressed && { opacity: 0.85 }]}
+                  onPress={() => Linking.openURL(`https://wa.me/${cleanPhone}?text=${encodeURIComponent('Merhaba, Beraber Satalım üzerinden eşleşmemiz hakkında iletişime geçiyorum.')}`)}
+                >
+                  <Ionicons name="logo-whatsapp" size={16} color="#fff" />
+                  <Text style={styles.whatsappBtnText}>WhatsApp</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [styles.callBtn, pressed && { opacity: 0.85 }]}
+                  onPress={() => Linking.openURL(`tel:${otherPhone}`)}
+                >
+                  <Ionicons name="call" size={16} color={Colors.primary} />
+                  <Text style={styles.callBtnText}>Ara</Text>
+                </Pressable>
+              </View>
+            )}
           </View>
-          {match.requester?.phone && (
-            <Text style={styles.contactPhone}>
-              Talep Eden: {match.requester.phone}
-            </Text>
-          )}
-          {match.target?.phone && (
-            <Text style={styles.contactPhone}>
-              İlan Sahibi: {match.target.phone}
-            </Text>
-          )}
-        </View>
-      )}
+        );
+      })()}
 
       {/* Accept / Reject buttons */}
       {isTarget && isPending && (
@@ -229,6 +268,21 @@ const styles = StyleSheet.create({
     ...Typography.headline,
     color: Colors.text.primary,
   },
+  otherPartyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  otherPartyName: {
+    ...Typography.subhead,
+    color: Colors.text.primary,
+    fontWeight: '600',
+  },
+  otherPartyRole: {
+    ...Typography.caption1,
+    color: Colors.text.tertiary,
+  },
   infoBox: {
     backgroundColor: Colors.primary + '06',
     borderRadius: Radius.sm,
@@ -284,6 +338,43 @@ const styles = StyleSheet.create({
     color: Colors.text.primary,
     fontWeight: '500',
     marginBottom: Spacing.xs,
+  },
+  contactActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  whatsappBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    backgroundColor: '#25D366',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.sm,
+  },
+  whatsappBtnText: {
+    ...Typography.caption1,
+    color: '#fff',
+    fontWeight: '600',
+  },
+  callBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.xs,
+    backgroundColor: Colors.primary + '0A',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.primary + '28',
+  },
+  callBtnText: {
+    ...Typography.caption1,
+    color: Colors.primary,
+    fontWeight: '600',
   },
   actionsRow: {
     flexDirection: 'row',

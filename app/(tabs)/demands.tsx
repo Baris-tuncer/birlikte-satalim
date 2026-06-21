@@ -13,21 +13,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows } from '@/constants/Theme';
-import DistrictFilter from '@/components/ui/DistrictFilter';
+import FilterBar from '@/components/ui/FilterBar';
 import DemandCard from '@/components/ui/DemandCard';
-import { useDemands, useMatchActions } from '@/lib/hooks';
+import { useDemands, useMatchActions, useUpdateDemand } from '@/lib/hooks';
 import { useAuth } from '@/lib/auth-context';
-import type { District, BuyerDemand } from '@/types';
+import type { BuyerDemand } from '@/types';
 
 export default function DemandPoolScreen() {
   const router = useRouter();
   const { profile } = useAuth();
-  const [selectedDistrict, setSelectedDistrict] = useState<District>('Hepsi');
+  const [selectedCity, setSelectedCity] = useState('İstanbul');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState('');
+  const [transactionType, setTransactionType] = useState('ALL');
+  const [propertyType, setPropertyType] = useState('ALL');
 
   const { data: demands, loading, refetch } = useDemands({
-    district: selectedDistrict,
+    city: selectedCity,
+    district: selectedDistrict || undefined,
+    neighborhood: selectedNeighborhood || undefined,
+    transaction_type: transactionType !== 'ALL' ? (transactionType as any) : undefined,
+    property_type: propertyType !== 'ALL' ? (propertyType as any) : undefined,
   });
   const { send: sendMatch } = useMatchActions();
+  const { update: updateDemandStatus } = useUpdateDemand();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -39,13 +48,27 @@ export default function DemandPoolScreen() {
 
   const currentUserId = profile?.id ?? (__DEV__ ? '1' : '');
 
+  const handleFilter = useCallback((filters: {
+    city: string;
+    district: string;
+    neighborhood: string;
+    transactionType: string;
+    propertyType: string;
+  }) => {
+    setSelectedCity(filters.city);
+    setSelectedDistrict(filters.district);
+    setSelectedNeighborhood(filters.neighborhood);
+    setTransactionType(filters.transactionType);
+    setPropertyType(filters.propertyType);
+  }, []);
+
   const handleMatch = useCallback((demandId: string) => {
     const demand = demands.find((d) => d.id === demandId);
     if (!demand) return;
 
     Alert.alert(
-      'Eşleşme Talebi',
-      'Bu talep için portföyünüzden bir ilan eşleştirilecek.',
+      'İlanım Var',
+      'Bu talebe uygun bir ilanınız olduğunu bildireceksiniz. Karşı taraf kabul ederse iletişim bilgileriniz paylaşılacak.',
       [
         { text: 'Vazgeç', style: 'cancel' },
         {
@@ -67,15 +90,28 @@ export default function DemandPoolScreen() {
     );
   }, [demands, sendMatch]);
 
+  const handleRemove = useCallback(async (demandId: string) => {
+    const { error } = await updateDemandStatus(demandId, { status: 'DELETED' });
+    if (error) {
+      Alert.alert('Hata', error);
+    } else {
+      refetch();
+    }
+  }, [updateDemandStatus, refetch]);
+
+  const currentUserName = profile?.name ?? '';
+
   const renderItem = useCallback(
     ({ item }: { item: BuyerDemand }) => (
       <DemandCard
         demand={item}
         onMatch={handleMatch}
+        onRemove={handleRemove}
         isOwnDemand={item.agent_id === currentUserId}
+        currentUserName={currentUserName}
       />
     ),
-    [handleMatch, currentUserId]
+    [handleMatch, handleRemove, currentUserId, currentUserName]
   );
 
   const keyExtractor = useCallback((item: BuyerDemand) => item.id, []);
@@ -104,9 +140,13 @@ export default function DemandPoolScreen() {
               </Pressable>
             </View>
 
-            <DistrictFilter
-              selected={selectedDistrict}
-              onSelect={setSelectedDistrict}
+            <FilterBar
+              selectedCity={selectedCity}
+              selectedDistrict={selectedDistrict}
+              selectedNeighborhood={selectedNeighborhood}
+              transactionType={transactionType}
+              propertyType={propertyType}
+              onApply={handleFilter}
             />
 
             <View style={styles.resultRow}>

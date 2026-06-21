@@ -1,7 +1,7 @@
 // ─── ENUM'LAR ─────────────────────────────────────────
 
 export type TransactionType = 'SALE' | 'RENT';
-export type PropertyType = 'RESIDENTIAL' | 'COMMERCIAL' | 'LAND';
+export type PropertyType = 'RESIDENTIAL' | 'COMMERCIAL' | 'LAND' | 'URBAN_RENEWAL';
 export type LicenseStatus = 'none' | 'pending' | 'approved' | 'rejected';
 export type ListingStatus = 'ACTIVE' | 'PAUSED' | 'SOLD' | 'RENTED' | 'DELETED';
 export type DemandStatus = 'ACTIVE' | 'FULFILLED' | 'EXPIRED' | 'DELETED';
@@ -21,6 +21,9 @@ export interface User {
   license_status: LicenseStatus;
   license_image_url: string | null;
   license_number: string | null;
+  expertise_city: string | null;
+  expertise_districts: string[];
+  expertise_neighborhoods: Record<string, string[]>;
   is_active: boolean;
   is_admin: boolean;
   created_at: string;
@@ -32,6 +35,7 @@ export interface User {
 export interface Listing {
   id: string;
   agent_id: string;
+  city: string;
   transaction_type: TransactionType;
   property_type: PropertyType;
   district: string;
@@ -41,11 +45,13 @@ export interface Listing {
   gross_area: number | null;
   floor: number | null;
   total_floors: number | null;
-  building_age: number | null;
+  building_age: string | null;
   has_parking: boolean | null;
   has_elevator: boolean | null;
   heating_type: string | null;
   price: number;
+  ada: string | null;
+  parsel: string | null;
   description: string | null;
   status: ListingStatus;
   created_at: string;
@@ -58,6 +64,7 @@ export interface Listing {
 export interface BuyerDemand {
   id: string;
   agent_id: string;
+  city: string;
   transaction_type: TransactionType;
   property_type: PropertyType;
   district: string;

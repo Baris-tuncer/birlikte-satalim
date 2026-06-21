@@ -3,6 +3,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Theme';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
@@ -27,17 +28,26 @@ function RootLayoutNav() {
   useEffect(() => {
     if (!isLoggedIn || !profile?.id) return;
 
-    registerForPushNotifications(profile.id);
-    clearBadgeCount();
+    try {
+      // Her açılışta sessiz kayıt — hata olursa profildeki butonla manual tetiklenebilir
+      registerForPushNotifications(profile.id, true).catch(() => {});
+      clearBadgeCount().catch(() => {});
 
-    notificationCleanup.current = addNotificationListeners({
-      onTap: (response) => {
-        const data = response.notification.request.content.data;
-        if (data?.matchId) {
-          router.push(`/match/${data.matchId}`);
-        }
-      },
-    });
+      notificationCleanup.current = addNotificationListeners({
+        onTap: (response) => {
+          const data = response.notification.request.content.data;
+          if (data?.matchId) {
+            router.push(`/match/${data.matchId}`);
+          } else if (data?.listingId && data?.type?.toString().includes('listing')) {
+            router.push(`/listing/${data.listingId}`);
+          } else if (data?.demandId && data?.type?.toString().includes('demand')) {
+            router.push(`/demand/${data.demandId}`);
+          }
+        },
+      });
+    } catch (e) {
+      console.error('Bildirim kurulum hatası:', e);
+    }
 
     return () => {
       notificationCleanup.current?.();
@@ -77,6 +87,7 @@ function RootLayoutNav() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: Colors.background },
+          animation: 'fade',
         }}
       >
         <Stack.Screen name="(auth)" />
@@ -87,6 +98,7 @@ function RootLayoutNav() {
         <Stack.Screen name="demand" />
         <Stack.Screen name="match" />
         <Stack.Screen name="matches" />
+        <Stack.Screen name="profile" />
         <Stack.Screen name="reset-password" />
         <Stack.Screen name="admin" />
       </Stack>
@@ -114,12 +126,14 @@ export default function RootLayout() {
   }
 
   return (
-    <AppErrorBoundary>
-      <AuthProvider>
-        <AnimatedSplash>
-          <RootLayoutNav />
-        </AnimatedSplash>
-      </AuthProvider>
-    </AppErrorBoundary>
+    <SafeAreaProvider>
+      <AppErrorBoundary>
+        <AuthProvider>
+          <AnimatedSplash>
+            <RootLayoutNav />
+          </AnimatedSplash>
+        </AuthProvider>
+      </AppErrorBoundary>
+    </SafeAreaProvider>
   );
 }

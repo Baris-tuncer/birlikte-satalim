@@ -13,21 +13,31 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows } from '@/constants/Theme';
-import DistrictFilter from '@/components/ui/DistrictFilter';
+import FilterBar from '@/components/ui/FilterBar';
 import ListingCard from '@/components/ui/ListingCard';
-import { useListings, useMatchActions } from '@/lib/hooks';
+import { useListings, useMatchActions, useUpdateListing } from '@/lib/hooks';
 import { useAuth } from '@/lib/auth-context';
-import type { District, Listing } from '@/types';
+import type { Listing } from '@/types';
 
 export default function ListingsScreen() {
   const router = useRouter();
   const { profile } = useAuth();
-  const [selectedDistrict, setSelectedDistrict] = useState<District>('Hepsi');
+
+  const [selectedCity, setSelectedCity] = useState('İstanbul');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState('');
+  const [transactionType, setTransactionType] = useState('ALL');
+  const [propertyType, setPropertyType] = useState('ALL');
 
   const { data: listings, loading, refetch } = useListings({
-    district: selectedDistrict,
+    city: selectedCity,
+    district: selectedDistrict || undefined,
+    neighborhood: selectedNeighborhood || undefined,
+    transaction_type: transactionType !== 'ALL' ? (transactionType as any) : undefined,
+    property_type: propertyType !== 'ALL' ? (propertyType as any) : undefined,
   });
   const { send: sendMatch } = useMatchActions();
+  const { update: updateListingStatus } = useUpdateListing();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -38,6 +48,20 @@ export default function ListingsScreen() {
   }, [refetch]);
 
   const currentUserId = profile?.id ?? (__DEV__ ? '1' : '');
+
+  const handleFilter = useCallback((filters: {
+    city: string;
+    district: string;
+    neighborhood: string;
+    transactionType: string;
+    propertyType: string;
+  }) => {
+    setSelectedCity(filters.city);
+    setSelectedDistrict(filters.district);
+    setSelectedNeighborhood(filters.neighborhood);
+    setTransactionType(filters.transactionType);
+    setPropertyType(filters.propertyType);
+  }, []);
 
   const handleMatch = useCallback((listingId: string) => {
     const listing = listings.find((l) => l.id === listingId);
@@ -67,15 +91,28 @@ export default function ListingsScreen() {
     );
   }, [listings, sendMatch]);
 
+  const handleRemove = useCallback(async (listingId: string) => {
+    const { error } = await updateListingStatus(listingId, { status: 'DELETED' });
+    if (error) {
+      Alert.alert('Hata', error);
+    } else {
+      refetch();
+    }
+  }, [updateListingStatus, refetch]);
+
+  const currentUserName = profile?.name ?? '';
+
   const renderItem = useCallback(
     ({ item }: { item: Listing }) => (
       <ListingCard
         listing={item}
         onMatch={handleMatch}
+        onRemove={handleRemove}
         isOwnListing={item.agent_id === currentUserId}
+        currentUserName={currentUserName}
       />
     ),
-    [handleMatch, currentUserId]
+    [handleMatch, handleRemove, currentUserId, currentUserName]
   );
 
   const keyExtractor = useCallback((item: Listing) => item.id, []);
@@ -91,7 +128,7 @@ export default function ListingsScreen() {
             <View style={styles.header}>
               <View>
                 <Text style={styles.title}>İlanlar</Text>
-                <Text style={styles.subtitle}>Kör mülk ilanları</Text>
+                <Text style={styles.subtitle}>Emlakçıların mülk portföyü</Text>
               </View>
               <Pressable
                 style={({ pressed }) => [
@@ -104,9 +141,13 @@ export default function ListingsScreen() {
               </Pressable>
             </View>
 
-            <DistrictFilter
-              selected={selectedDistrict}
-              onSelect={setSelectedDistrict}
+            <FilterBar
+              selectedCity={selectedCity}
+              selectedDistrict={selectedDistrict}
+              selectedNeighborhood={selectedNeighborhood}
+              transactionType={transactionType}
+              propertyType={propertyType}
+              onApply={handleFilter}
             />
 
             <View style={styles.resultRow}>
@@ -184,7 +225,7 @@ const styles = StyleSheet.create({
   },
   resultRow: {
     paddingHorizontal: Spacing.xl,
-    paddingBottom: Spacing.md,
+    paddingVertical: Spacing.sm,
   },
   resultText: {
     ...Typography.footnote,

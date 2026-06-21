@@ -32,7 +32,9 @@ export async function updateUserProfile(userId: string, updates: Partial<User>) 
 // ─── LISTINGS ─────────────────────────────────────────
 
 interface ListingFilters {
+  city?: string;
   district?: string;
+  neighborhood?: string;
   transaction_type?: TransactionType;
   property_type?: PropertyType;
   min_price?: number;
@@ -46,8 +48,14 @@ export async function getListings(filters?: ListingFilters) {
     .eq('status', 'ACTIVE')
     .order('created_at', { ascending: false });
 
+  if (filters?.city) {
+    query = query.eq('city', filters.city);
+  }
   if (filters?.district && filters.district !== 'Hepsi') {
     query = query.eq('district', filters.district);
+  }
+  if (filters?.neighborhood) {
+    query = query.eq('neighborhood', filters.neighborhood);
   }
   if (filters?.transaction_type) {
     query = query.eq('transaction_type', filters.transaction_type);
@@ -69,7 +77,7 @@ export async function getListings(filters?: ListingFilters) {
 export async function getMyListings(agentId: string) {
   const { data, error } = await supabase
     .from('listings')
-    .select('*')
+    .select('*, agent:users(*)')
     .eq('agent_id', agentId)
     .neq('status', 'DELETED')
     .order('created_at', { ascending: false });
@@ -97,7 +105,9 @@ export async function updateListing(id: string, updates: Partial<Listing>) {
 // ─── BUYER DEMANDS ────────────────────────────────────
 
 interface DemandFilters {
+  city?: string;
   district?: string;
+  neighborhood?: string;
   transaction_type?: TransactionType;
   property_type?: PropertyType;
   min_budget?: number;
@@ -111,8 +121,14 @@ export async function getDemands(filters?: DemandFilters) {
     .eq('status', 'ACTIVE')
     .order('created_at', { ascending: false });
 
+  if (filters?.city) {
+    query = query.eq('city', filters.city);
+  }
   if (filters?.district && filters.district !== 'Hepsi') {
     query = query.eq('district', filters.district);
+  }
+  if (filters?.neighborhood) {
+    query = query.contains('neighborhoods', [filters.neighborhood]);
   }
   if (filters?.transaction_type) {
     query = query.eq('transaction_type', filters.transaction_type);
@@ -128,7 +144,7 @@ export async function getDemands(filters?: DemandFilters) {
 export async function getMyDemands(agentId: string) {
   const { data, error } = await supabase
     .from('buyer_demands')
-    .select('*')
+    .select('*, agent:users(*)')
     .eq('agent_id', agentId)
     .neq('status', 'DELETED')
     .order('created_at', { ascending: false });
@@ -163,6 +179,28 @@ export async function sendMatchRequest(match: {
   demand_id?: string;
   message?: string;
 }) {
+  // Mevcut eşleşme kontrolü — duplicate key hatasını önle
+  let existingQuery = supabase
+    .from('matches')
+    .select('id, status')
+    .eq('requester_id', match.requester_id)
+    .eq('target_id', match.target_id);
+
+  if (match.listing_id) {
+    existingQuery = existingQuery.eq('listing_id', match.listing_id);
+  }
+  if (match.demand_id) {
+    existingQuery = existingQuery.eq('demand_id', match.demand_id);
+  }
+
+  const { data: existing } = await existingQuery.maybeSingle();
+
+  if (existing) {
+    const statusText = existing.status === 'PENDING' ? 'beklemede' :
+      existing.status === 'ACCEPTED' ? 'kabul edilmiş' : 'reddedilmiş';
+    return { data: null, error: `Bu eşleşme talebi zaten gönderildi (${statusText}).` };
+  }
+
   const { data, error } = await supabase
     .from('matches')
     .insert({ ...match, status: 'PENDING' })
@@ -172,10 +210,32 @@ export async function sendMatchRequest(match: {
 }
 
 export async function respondToMatch(matchId: string, status: 'ACCEPTED' | 'REJECTED') {
-  const { error } = await supabase
+  // Önce mevcut match'i al (old_record için)
+  const { data: oldMatch } = await supabase
+    .from('matches')
+    .select('*')
+    .eq('id', matchId)
+    .single();
+
+  const { data: updatedMatch, error } = await supabase
     .from('matches')
     .update({ status, responded_at: new Date().toISOString() })
-    .eq('id', matchId);
+    .eq('id', matchId)
+    .select()
+    .single();
+
+  if (!error && updatedMatch) {
+    // match-response-push edge function'ı doğrudan çağır
+    supabase.functions.invoke('match-response-push', {
+      body: {
+        type: 'UPDATE',
+        table: 'matches',
+        record: updatedMatch,
+        old_record: oldMatch ?? { status: 'PENDING' },
+      },
+    }).catch((e) => console.error('Match response push error:', e));
+  }
+
   return { error: error?.message };
 }
 

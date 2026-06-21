@@ -35,6 +35,7 @@ interface AuthContextType extends AuthState {
   ) => Promise<{ error: string | null }>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<{ error: string | null }>;
   setLicenseStatus: (status: AuthState['licenseStatus']) => void;
   refreshProfile: () => Promise<void>;
 }
@@ -174,6 +175,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  // Hesap silme
+  const deleteAccount = useCallback(
+    async (): Promise<{ error: string | null }> => {
+      try {
+        const { error } = await supabase.functions.invoke('delete-account');
+        if (error) return { error: error.message || 'Hesap silinirken hata oluştu' };
+        // Başarılı — oturumu kapat
+        await supabase.auth.signOut();
+        setState((prev) => ({
+          ...prev,
+          session: null,
+          user: null,
+          profile: null,
+          isLoading: false,
+          isLoggedIn: false,
+          emailVerified: false,
+          licenseStatus: 'none',
+        }));
+        return { error: null };
+      } catch (e: any) {
+        return { error: e.message || 'Bir hata oluştu' };
+      }
+    },
+    []
+  );
+
   // Çıkış
   const signOut = useCallback(async () => {
     try {
@@ -208,10 +235,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signIn,
       resetPassword,
       signOut,
+      deleteAccount,
       setLicenseStatus,
       refreshProfile,
     }),
-    [state, signUp, signIn, resetPassword, signOut, setLicenseStatus, refreshProfile]
+    [state, signUp, signIn, resetPassword, signOut, deleteAccount, setLicenseStatus, refreshProfile]
   );
 
   return (

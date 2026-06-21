@@ -41,7 +41,7 @@ export default class AppErrorBoundary extends Component<Props, State> {
           <Text style={styles.subtitle}>
             Beklenmeyen bir sorun meydana geldi. Lütfen tekrar deneyin.
           </Text>
-          {__DEV__ && this.state.error && (
+          {this.state.error && (
             <View style={styles.errorBox}>
               <Text style={styles.errorText} numberOfLines={6}>
                 {this.state.error.message}

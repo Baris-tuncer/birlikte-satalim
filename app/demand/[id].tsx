@@ -68,7 +68,7 @@ export default function DemandDetailScreen() {
 
   const isOwner = demand.agent_id === currentUserId;
   const isSale = demand.transaction_type === 'SALE';
-  const locationText = [demand.district, ...demand.neighborhoods].join(', ');
+  const locationText = [demand.district, ...(demand.neighborhoods ?? [])].join(', ');
 
   const criteria: { label: string; value: string | null }[] = [
     { label: 'Min Oda', value: demand.min_rooms },
@@ -172,6 +172,13 @@ export default function DemandDetailScreen() {
         {isOwner ? (
           <View style={styles.ownerActions}>
             <Pressable
+              style={({ pressed }) => [styles.ownerEditBtn, pressed && { opacity: 0.85 }]}
+              onPress={() => router.push(`/create/demand?editId=${demand.id}` as any)}
+            >
+              <Ionicons name="create-outline" size={18} color={Colors.accent} />
+              <Text style={styles.ownerEditText}>Düzenle</Text>
+            </Pressable>
+            <Pressable
               style={({ pressed }) => [styles.ownerActionBtn, pressed && { opacity: 0.85 }]}
               onPress={() => {
                 const options = [
@@ -262,7 +269,9 @@ const styles = StyleSheet.create({
   detailValue: { ...Typography.subhead, color: Colors.text.primary, fontWeight: '600' },
   notesText: { ...Typography.body, color: Colors.text.primary, lineHeight: 24 },
   agentBlindText: { ...Typography.caption1, color: Colors.text.tertiary, marginTop: Spacing.sm },
-  ownerActions: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.sm },
+  ownerActions: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.sm, flexWrap: 'wrap' },
+  ownerEditBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: Colors.accent + '0A', borderRadius: Radius.md, paddingVertical: Spacing.lg, borderWidth: 1, borderColor: Colors.accent + '28' },
+  ownerEditText: { ...Typography.subhead, color: Colors.accent, fontWeight: '600' },
   ownerActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: Colors.primary + '0A', borderRadius: Radius.md, paddingVertical: Spacing.lg, borderWidth: 1, borderColor: Colors.primary + '28' },
   ownerActionText: { ...Typography.subhead, color: Colors.primary, fontWeight: '600' },
   ownerDeleteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: Colors.error + '0A', borderRadius: Radius.md, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, borderWidth: 1, borderColor: Colors.error + '28' },

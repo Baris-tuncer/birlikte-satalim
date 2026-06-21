@@ -1,21 +1,30 @@
 import { Tabs } from 'expo-router';
-import { Platform, StyleSheet, Text } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Shadows } from '@/constants/Theme';
-
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = Platform.OS === 'ios' ? 88 : 64 + insets.bottom;
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.accent,
         tabBarInactiveTintColor: Colors.text.tertiary,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '500',
+          marginTop: 2,
+        },
         tabBarStyle: {
           backgroundColor: Colors.card,
           borderTopColor: Colors.borderLight,
           borderTopWidth: StyleSheet.hairlineWidth,
           paddingTop: 8,
-          height: Platform.OS === 'ios' ? 88 : 64,
+          paddingBottom: Platform.OS === 'android' ? insets.bottom : undefined,
+          height: tabBarHeight,
           ...Shadows.sm,
         },
       }}
@@ -23,12 +32,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'İlanlar',
+          title: 'Ilanlar',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="business-outline" size={size} color={color} />
-          ),
-          tabBarLabel: () => (
-            <Text style={styles.tabLabel}>İlanlar</Text>
           ),
         }}
       />
@@ -39,20 +45,14 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="heart-outline" size={size} color={color} />
           ),
-          tabBarLabel: () => (
-            <Text style={styles.tabLabel}>Talepler</Text>
-          ),
         }}
       />
       <Tabs.Screen
         name="portfolio"
         options={{
-          title: 'Portföyüm',
+          title: 'Portfoyum',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="briefcase-outline" size={size} color={color} />
-          ),
-          tabBarLabel: () => (
-            <Text style={styles.tabLabel}>Portföyüm</Text>
           ),
         }}
       />
@@ -63,20 +63,8 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-circle-outline" size={size} color={color} />
           ),
-          tabBarLabel: () => (
-            <Text style={styles.tabLabel}>Profil</Text>
-          ),
         }}
       />
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    marginTop: 4,
-    color: Colors.text.primary,
-  },
-});

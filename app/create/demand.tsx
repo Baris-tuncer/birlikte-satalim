@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -12,28 +12,40 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import {
-  DISTRICTS,
-  KADIKOY_NEIGHBORHOODS,
+  CITIES,
+  CITY_DISTRICTS,
   TRANSACTION_TYPES,
   PROPERTY_TYPES,
   ROOM_OPTIONS,
+  getNeighborhoodsForDistrict,
 } from '@/lib/constants';
 import { formatPriceInput } from '@/lib/format';
-import { useCreateDemand } from '@/lib/hooks';
-import type { TransactionType, PropertyType } from '@/types';
+import { useCreateDemand, useUpdateDemand } from '@/lib/hooks';
+import { supabase } from '@/lib/supabase';
+import DropdownPicker from '@/components/ui/DropdownPicker';
+import type { TransactionType, PropertyType, BuyerDemand } from '@/types';
+
+const CITY_OPTIONS = CITIES.map((c) => ({ key: c, label: c }));
+const ROOM_PICKER_OPTIONS = ROOM_OPTIONS.map((r) => ({ key: r, label: r }));
 
 export default function CreateDemandScreen() {
   const router = useRouter();
-  const { create, loading } = useCreateDemand();
+  const { editId } = useLocalSearchParams<{ editId?: string }>();
+  const isEdit = !!editId;
+  const { create, loading: createLoading } = useCreateDemand();
+  const { update, loading: updateLoading } = useUpdateDemand();
+  const loading = createLoading || updateLoading;
+  const scrollRef = useRef<ScrollView>(null);
+  const [initialLoading, setInitialLoading] = useState(isEdit);
 
   const [transactionType, setTransactionType] = useState<TransactionType | null>(null);
   const [propertyType, setPropertyType] = useState<PropertyType | null>(null);
+  const [city, setCity] = useState('İstanbul');
   const [district, setDistrict] = useState('');
   const [selectedNeighborhoods, setSelectedNeighborhoods] = useState<string[]>([]);
-  const [neighborhoodText, setNeighborhoodText] = useState('');
   const [minBudgetText, setMinBudgetText] = useState('');
   const [maxBudgetText, setMaxBudgetText] = useState('');
   const [minRooms, setMinRooms] = useState('');
@@ -41,13 +53,58 @@ export default function CreateDemandScreen() {
   const [maxFloor, setMaxFloor] = useState('');
   const [notes, setNotes] = useState('');
 
+  useEffect(() => {
+    if (!editId) return;
+    supabase
+      .from('buyer_demands')
+      .select('*')
+      .eq('id', editId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          const d = data as BuyerDemand;
+          setTransactionType(d.transaction_type);
+          setPropertyType(d.property_type);
+          setCity(d.city ?? 'İstanbul');
+          setDistrict(d.district);
+          setSelectedNeighborhoods(d.neighborhoods ?? []);
+          setMinBudgetText(d.min_budget ? formatPriceInput(d.min_budget.toString()) : '');
+          setMaxBudgetText(d.max_budget ? formatPriceInput(d.max_budget.toString()) : '');
+          setMinRooms(d.min_rooms ?? '');
+          setMinArea(d.min_area?.toString() ?? '');
+          setMaxFloor(d.max_floor?.toString() ?? '');
+          setNotes(d.notes ?? '');
+        }
+        setInitialLoading(false);
+      });
+  }, [editId]);
+
   const isLand = propertyType === 'LAND';
-  const isKadikoy = district === 'Kadıköy';
+
+  const districtOptions = useMemo(() => {
+    return (CITY_DISTRICTS[city] ?? []).map((d) => ({ key: d, label: d }));
+  }, [city]);
+
+  const neighborhoodList = useMemo(() => {
+    if (!district) return [];
+    return getNeighborhoodsForDistrict(city, district);
+  }, [city, district]);
 
   const toggleNeighborhood = (n: string) => {
     setSelectedNeighborhoods((prev) =>
       prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n]
     );
+  };
+
+  const handleCityChange = (c: string) => {
+    setCity(c);
+    setDistrict('');
+    setSelectedNeighborhoods([]);
+  };
+
+  const handleDistrictChange = (d: string) => {
+    setDistrict(d);
+    setSelectedNeighborhoods([]);
   };
 
   const parsePrice = (text: string) => Number(text.replace(/\./g, '').replace(/,/g, ''));
@@ -65,51 +122,63 @@ export default function CreateDemandScreen() {
     if (minBudget <= 0 || maxBudget <= 0) return Alert.alert('Hata', 'Geçerli bir bütçe girin.');
     if (minBudget > maxBudget) return Alert.alert('Hata', 'Min bütçe max bütçeden büyük olamaz.');
 
-    const neighborhoods = isKadikoy
-      ? selectedNeighborhoods
-      : neighborhoodText
-        ? neighborhoodText.split(',').map((n) => n.trim()).filter(Boolean)
-        : [];
-
-    const { error } = await create({
+    const demandData = {
       transaction_type: transactionType,
       property_type: propertyType,
+      city,
       district,
-      neighborhoods,
+      neighborhoods: selectedNeighborhoods,
       min_budget: minBudget,
       max_budget: maxBudget,
       min_rooms: minRooms || null,
       min_area: minArea ? Number(minArea) : null,
       max_floor: maxFloor ? Number(maxFloor) : null,
       notes: notes || null,
-    });
+    };
 
-    if (error) {
-      Alert.alert('Hata', error);
-      return;
+    if (isEdit && editId) {
+      const { error } = await update(editId, demandData);
+      if (error) {
+        Alert.alert('Hata', error);
+        return;
+      }
+      Alert.alert('Başarılı', 'Talep güncellendi.', [
+        { text: 'Tamam', onPress: () => router.back() },
+      ]);
+    } else {
+      const { error } = await create(demandData);
+      if (error) {
+        Alert.alert('Hata', error);
+        return;
+      }
+      Alert.alert('Başarılı', 'Talebiniz yayınlandı.', [
+        { text: 'Tamam', onPress: () => router.back() },
+      ]);
     }
-
-    Alert.alert('Başarılı', 'Talebiniz yayınlandı.', [
-      { text: 'Tamam', onPress: () => router.back() },
-    ]);
   };
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: 'Talep Oluştur',
+          title: isEdit ? 'Talebi Düzenle' : 'Talep Oluştur',
           headerShown: true,
           headerStyle: { backgroundColor: Colors.background },
           headerTintColor: Colors.text.primary,
         }}
       />
       <SafeAreaView style={styles.container} edges={['bottom']}>
+        {initialLoading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={Colors.accent} />
+          </View>
+        ) : (
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <ScrollView
+            ref={scrollRef}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -117,96 +186,55 @@ export default function CreateDemandScreen() {
             {/* İşlem Tipi */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>İşlem Tipi</Text>
-              <View style={styles.pillRow}>
-                {TRANSACTION_TYPES.map((t) => (
-                  <Pressable
-                    key={t.key}
-                    style={[
-                      styles.pill,
-                      transactionType === t.key && styles.pillSelected,
-                    ]}
-                    onPress={() => setTransactionType(t.key)}
-                  >
-                    <Text
-                      style={[
-                        styles.pillText,
-                        transactionType === t.key && styles.pillTextSelected,
-                      ]}
-                    >
-                      {t.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              <DropdownPicker
+                label="İşlem Tipi Seçin"
+                value={transactionType}
+                options={TRANSACTION_TYPES.map((t) => ({ key: t.key, label: t.label }))}
+                onSelect={(key) => setTransactionType(key as TransactionType)}
+                placeholder="Satılık / Kiralık"
+              />
             </View>
 
             {/* Mülk Tipi */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Mülk Tipi</Text>
-              <View style={styles.pillRow}>
-                {PROPERTY_TYPES.map((t) => (
-                  <Pressable
-                    key={t.key}
-                    style={[
-                      styles.pill,
-                      propertyType === t.key && styles.pillSelected,
-                    ]}
-                    onPress={() => setPropertyType(t.key)}
-                  >
-                    <Text
-                      style={[
-                        styles.pillText,
-                        propertyType === t.key && styles.pillTextSelected,
-                      ]}
-                    >
-                      {t.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              <DropdownPicker
+                label="Mülk Tipi Seçin"
+                value={propertyType}
+                options={PROPERTY_TYPES.map((t) => ({ key: t.key, label: t.label }))}
+                onSelect={(key) => setPropertyType(key as PropertyType)}
+                placeholder="Konut / Ticari / Arsa"
+              />
             </View>
 
             {/* Konum */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Konum</Text>
               <View style={styles.card}>
+                <Text style={styles.inputLabel}>Şehir</Text>
+                <DropdownPicker
+                  label="Şehir Seçin"
+                  value={city}
+                  options={CITY_OPTIONS}
+                  onSelect={handleCityChange}
+                  placeholder="Şehir seçin..."
+                />
                 <Text style={styles.inputLabel}>İlçe</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.districtScroll}
-                >
-                  {DISTRICTS.filter((d) => d !== 'Hepsi').map((d) => (
-                    <Pressable
-                      key={d}
-                      style={[
-                        styles.chipSmall,
-                        district === d && styles.chipSmallSelected,
-                      ]}
-                      onPress={() => {
-                        setDistrict(d);
-                        setSelectedNeighborhoods([]);
-                      }}
-                    >
-                      <Text
-                        style={[
-                          styles.chipSmallText,
-                          district === d && styles.chipSmallTextSelected,
-                        ]}
-                      >
-                        {d}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
+                <DropdownPicker
+                  label="İlçe Seçin"
+                  value={district || null}
+                  options={districtOptions}
+                  onSelect={handleDistrictChange}
+                  placeholder="İlçe seçin..."
+                />
 
-                {isKadikoy ? (
+                {district && neighborhoodList.length > 0 && (
                   <>
                     <Text style={styles.inputLabel}>
                       Mahalleler ({selectedNeighborhoods.length} seçili)
                     </Text>
                     <View style={styles.neighborhoodWrap}>
-                      {KADIKOY_NEIGHBORHOODS.map((n) => {
+                      {neighborhoodList.map((n) => {
                         const sel = selectedNeighborhoods.includes(n);
                         return (
                           <Pressable
@@ -230,20 +258,7 @@ export default function CreateDemandScreen() {
                       })}
                     </View>
                   </>
-                ) : district ? (
-                  <>
-                    <Text style={styles.inputLabel}>
-                      Mahalleler (virgülle ayırın)
-                    </Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Mahalle1, Mahalle2..."
-                      placeholderTextColor={Colors.text.tertiary}
-                      value={neighborhoodText}
-                      onChangeText={setNeighborhoodText}
-                    />
-                  </>
-                ) : null}
+                )}
               </View>
             </View>
 
@@ -282,31 +297,13 @@ export default function CreateDemandScreen() {
             {!isLand && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Min Oda Sayısı</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.pillRow}
-                >
-                  {ROOM_OPTIONS.map((r) => (
-                    <Pressable
-                      key={r}
-                      style={[
-                        styles.pill,
-                        minRooms === r && styles.pillSelected,
-                      ]}
-                      onPress={() => setMinRooms(r)}
-                    >
-                      <Text
-                        style={[
-                          styles.pillText,
-                          minRooms === r && styles.pillTextSelected,
-                        ]}
-                      >
-                        {r}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
+                <DropdownPicker
+                  label="Min Oda Sayısı Seçin"
+                  value={minRooms || null}
+                  options={ROOM_PICKER_OPTIONS}
+                  onSelect={setMinRooms}
+                  placeholder="Min oda sayısı seçin..."
+                />
               </View>
             )}
 
@@ -356,6 +353,9 @@ export default function CreateDemandScreen() {
                   textAlignVertical="top"
                   value={notes}
                   onChangeText={setNotes}
+                  onFocus={() => {
+                    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300);
+                  }}
                 />
               </View>
             </View>
@@ -373,11 +373,12 @@ export default function CreateDemandScreen() {
               {loading ? (
                 <ActivityIndicator color={Colors.text.inverse} />
               ) : (
-                <Text style={styles.submitButtonText}>Talebi Yayınla</Text>
+                <Text style={styles.submitButtonText}>{isEdit ? 'Güncelle' : 'Talebi Yayınla'}</Text>
               )}
             </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>
+        )}
       </SafeAreaView>
     </>
   );
@@ -405,30 +406,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     ...Shadows.sm,
-  },
-  pillRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  pill: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.borderLight,
-  },
-  pillSelected: {
-    backgroundColor: Colors.primary,
-  },
-  pillText: {
-    ...Typography.footnote,
-    fontWeight: '600',
-    color: Colors.text.secondary,
-  },
-  pillTextSelected: {
-    color: Colors.text.inverse,
-  },
-  districtScroll: {
-    marginBottom: Spacing.lg,
   },
   chipSmall: {
     paddingHorizontal: Spacing.md,

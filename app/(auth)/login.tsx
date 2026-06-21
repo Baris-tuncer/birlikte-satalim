@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
   registerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: Spacing['2xl'],
+    marginTop: Spacing.xl,
   },
   registerText: {
     ...Typography.subhead,

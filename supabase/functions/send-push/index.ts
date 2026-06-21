@@ -53,19 +53,6 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Hedef kullanicinin push token'larini al
-    const { data: tokens } = await supabase
-      .from('push_tokens')
-      .select('token')
-      .eq('user_id', match.target_id);
-
-    if (!tokens || tokens.length === 0) {
-      return new Response(
-        JSON.stringify({ message: 'No push tokens found' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Talep edenin adini al
     const { data: requester } = await supabase
       .from('users')
@@ -76,13 +63,62 @@ Deno.serve(async (req) => {
     const requesterName = requester?.name ?? 'Bir emlakçı';
     const isListing = match.match_type === 'LISTING';
 
+    // İlan/talep detaylarını al
+    let detailText = '';
+    if (isListing && match.listing_id) {
+      const { data: listing } = await supabase
+        .from('listings')
+        .select('district, neighborhood, property_type, room_count, transaction_type')
+        .eq('id', match.listing_id)
+        .single();
+      if (listing) {
+        const loc = listing.neighborhood ? `${listing.neighborhood}, ${listing.district}` : listing.district;
+        const type = listing.transaction_type === 'SALE' ? 'satılık' : 'kiralık';
+        const room = listing.room_count ? ` ${listing.room_count}` : '';
+        detailText = ` (${loc} -${room} ${type})`;
+      }
+    } else if (match.demand_id) {
+      const { data: demand } = await supabase
+        .from('buyer_demands')
+        .select('district, property_type, transaction_type')
+        .eq('id', match.demand_id)
+        .single();
+      if (demand) {
+        const type = demand.transaction_type === 'SALE' ? 'satılık' : 'kiralık';
+        detailText = ` (${demand.district} - ${type})`;
+      }
+    }
+
     const title = isListing
-      ? 'Yeni Eşleşme Talebi'
-      : 'Portföy Eşleşme Talebi';
+      ? `${requesterName} ilanınızla eşleşmek istiyor`
+      : `${requesterName} portföyünden eşleşme gönderdi`;
 
     const body = isListing
-      ? `${requesterName} ilanınızla ilgileniyor.`
-      : `${requesterName} talebiniz için portföyünden eşleşme gönderiyor.`;
+      ? `Müşterisi için ilanınızı${detailText} eşleştirmek istiyor. Talebi inceleyip kabul edebilirsiniz.`
+      : `Talebiniz${detailText} için portföyünden bir ilan önerdi. Talebi inceleyip kabul edebilirsiniz.`;
+
+    // Bildirim kaydini her zaman yaz (token olmasa bile)
+    await supabase.from('notifications').insert({
+      user_id: match.target_id,
+      title,
+      body,
+      type: 'match_request',
+      reference_id: match.id,
+      status: 'sent',
+    });
+
+    // Hedef kullanicinin push token'larini al
+    const { data: tokens } = await supabase
+      .from('push_tokens')
+      .select('token')
+      .eq('user_id', match.target_id);
+
+    if (!tokens || tokens.length === 0) {
+      return new Response(
+        JSON.stringify({ message: 'Notification saved, no push tokens' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Expo Push API'ye gonder
     const messages = tokens.map((t: { token: string }) => ({
@@ -106,16 +142,6 @@ Deno.serve(async (req) => {
     });
 
     const result = await expoResponse.json();
-
-    // Bildirim kaydini notifications tablosuna yaz
-    await supabase.from('notifications').insert({
-      user_id: match.target_id,
-      title,
-      body,
-      type: 'match_request',
-      reference_id: match.id,
-      status: 'sent',
-    });
 
     return new Response(
       JSON.stringify({ success: true, tickets: result.data }),

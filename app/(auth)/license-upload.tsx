@@ -7,6 +7,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,12 +18,27 @@ import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
 import { updateUserProfile } from '@/lib/database';
+import { parseMYKQRData } from '@/lib/format';
+import QRScanner from '@/components/ui/QRScanner';
 
 export default function LicenseUploadScreen() {
   const router = useRouter();
   const { user, profile, setLicenseStatus, refreshProfile } = useAuth();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [licenseNumber, setLicenseNumber] = useState('');
+  const [showQRScanner, setShowQRScanner] = useState(false);
+
+  const handleQRScanned = useCallback((data: string) => {
+    setShowQRScanner(false);
+    const parsed = parseMYKQRData(data);
+    if (parsed) {
+      setLicenseNumber(parsed);
+      Alert.alert('QR Okundu', `Belge No: ${parsed}`);
+    } else {
+      Alert.alert('Hata', 'QR koddan belge numarası okunamadı.');
+    }
+  }, []);
 
   const pickImage = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -110,10 +126,14 @@ export default function LicenseUploadScreen() {
 
       // Kullanıcı profilini güncelle
       if (profile?.id) {
-        await updateUserProfile(profile.id, {
+        const updates: Record<string, unknown> = {
           license_image_url: urlData.publicUrl,
           license_status: 'pending',
-        });
+        };
+        if (licenseNumber) {
+          updates.license_number = licenseNumber;
+        }
+        await updateUserProfile(profile.id, updates as any);
       }
 
       await refreshProfile();
@@ -227,8 +247,31 @@ export default function LicenseUploadScreen() {
                   <Text style={styles.uploadOptionText}>Fotoğraf Çek</Text>
                 </Pressable>
               </View>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.qrButton,
+                  pressed && { opacity: 0.8 },
+                ]}
+                onPress={() => setShowQRScanner(true)}
+              >
+                <Ionicons name="qr-code-outline" size={22} color={Colors.primary} />
+                <Text style={styles.qrButtonText}>QR Kod ile Belge No Okut</Text>
+              </Pressable>
             </View>
           )}
+        </View>
+
+        {/* Belge numarası */}
+        <View style={styles.licenseInputContainer}>
+          <Text style={styles.licenseInputLabel}>Belge Numarası</Text>
+          <TextInput
+            style={styles.licenseInput}
+            value={licenseNumber}
+            onChangeText={setLicenseNumber}
+            placeholder="QR okutun veya manuel girin"
+            placeholderTextColor={Colors.text.tertiary}
+          />
         </View>
 
         {/* Bilgi notu */}
@@ -278,6 +321,11 @@ export default function LicenseUploadScreen() {
           </View>
         </View>
       </View>
+      <QRScanner
+        visible={showQRScanner}
+        onScanned={handleQRScanned}
+        onClose={() => setShowQRScanner(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -397,6 +445,44 @@ const styles = StyleSheet.create({
     ...Typography.caption1,
     color: Colors.success,
     fontWeight: '600',
+  },
+  // QR button
+  qrButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.primary + '0A',
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary + '28',
+    paddingVertical: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  qrButtonText: {
+    ...Typography.footnote,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  // License input
+  licenseInputContainer: {
+    marginTop: Spacing.xl,
+  },
+  licenseInputLabel: {
+    ...Typography.footnote,
+    color: Colors.text.secondary,
+    marginBottom: Spacing.xs,
+    fontWeight: '600',
+  },
+  licenseInput: {
+    backgroundColor: Colors.card,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    ...Typography.body,
+    color: Colors.text.primary,
   },
   // Bilgi kutusu
   infoBox: {

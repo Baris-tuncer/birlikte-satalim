@@ -53,19 +53,6 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Talep edenin push token'larini al (bildirim requester'a gider)
-    const { data: tokens } = await supabase
-      .from('push_tokens')
-      .select('token')
-      .eq('user_id', match.requester_id);
-
-    if (!tokens || tokens.length === 0) {
-      return new Response(
-        JSON.stringify({ message: 'No push tokens found' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Yanit verenin adini al
     const { data: responder } = await supabase
       .from('users')
@@ -76,10 +63,35 @@ Deno.serve(async (req) => {
     const responderName = responder?.name ?? 'Bir emlakçı';
     const isAccepted = match.status === 'ACCEPTED';
 
-    const title = isAccepted ? 'Eşleşme Kabul Edildi!' : 'Eşleşme Reddedildi';
+    const title = isAccepted
+      ? `${responderName} talebinizi kabul etti!`
+      : `Eşleşme talebi reddedildi`;
     const body = isAccepted
-      ? `${responderName} eşleşme talebinizi kabul etti. İletişim bilgileri artık görünür.`
-      : `${responderName} eşleşme talebinizi reddetti.`;
+      ? `Artık iletişim bilgilerini görüntüleyebilir ve doğrudan iletişime geçebilirsiniz.`
+      : `${responderName} eşleşme talebinizi reddetti. Diğer ilanları incelemeye devam edebilirsiniz.`;
+
+    // Bildirim kaydini her zaman yaz (token olmasa bile)
+    await supabase.from('notifications').insert({
+      user_id: match.requester_id,
+      title,
+      body,
+      type: isAccepted ? 'match_accepted' : 'match_rejected',
+      reference_id: match.id,
+      status: 'sent',
+    });
+
+    // Talep edenin push token'larini al (bildirim requester'a gider)
+    const { data: tokens } = await supabase
+      .from('push_tokens')
+      .select('token')
+      .eq('user_id', match.requester_id);
+
+    if (!tokens || tokens.length === 0) {
+      return new Response(
+        JSON.stringify({ message: 'Notification saved, no push tokens' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     const messages = tokens.map((t: { token: string }) => ({
       to: t.token,
@@ -102,15 +114,6 @@ Deno.serve(async (req) => {
     });
 
     const result = await expoResponse.json();
-
-    await supabase.from('notifications').insert({
-      user_id: match.requester_id,
-      title,
-      body,
-      type: isAccepted ? 'match_accepted' : 'match_rejected',
-      reference_id: match.id,
-      status: 'sent',
-    });
 
     return new Response(
       JSON.stringify({ success: true, tickets: result.data }),

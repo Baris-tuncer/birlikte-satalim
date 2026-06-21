@@ -17,6 +17,7 @@
     },
     "android": {
       "package": "com.berabersatalim.app",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#0A2540",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -24,7 +25,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "permissions": [
-        "CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -42,6 +44,29 @@
           "resizeMode": "contain",
           "backgroundColor": "#F8F9FA"
         }
+      ],
+      [
+        "expo-apple-authentication"
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Yetki belgesindeki QR kodu okutmak için kamera erişimi gereklidir."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Profil fotoğrafını galeriden seçmek için galeri erişimi gereklidir.",
+          "cameraPermission": "Profil fotoğrafı çekmek için kamera erişimi gereklidir."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#FF6B4A"
+        }
       ]
     ],
     "experiments": {
@@ -53,6 +78,12 @@
         "projectId": "264935b9-802f-4f3b-a79a-75677adaf202"
       }
     },
-    "owner": "baris_tuncer80"
+    "owner": "baris_tuncer80",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/264935b9-802f-4f3b-a79a-75677adaf202"
+    }
   }
 }

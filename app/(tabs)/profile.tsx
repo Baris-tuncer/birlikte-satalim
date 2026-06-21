@@ -1,16 +1,57 @@
-import { StyleSheet, Text, View, Pressable, Alert, ScrollView } from 'react-native';
+import { useState, useCallback } from 'react';
+import { StyleSheet, Text, View, Pressable, Alert, ScrollView, Image, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import { useAuth } from '@/lib/auth-context';
-import { useMyMatches } from '@/lib/hooks';
+import { useMatchCount } from '@/lib/hooks';
 import { mockUsers } from '@/lib/mockData';
+import { supabase } from '@/lib/supabase';
+import { updateUserProfile } from '@/lib/database';
+import { getInitials } from '@/lib/format';
+import { registerForPushNotifications } from '@/lib/notifications';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, profile, licenseStatus, signOut } = useAuth();
-  const { data: matches, pendingCount } = useMyMatches();
+  const { user, profile, licenseStatus, signOut, deleteAccount, refreshProfile } = useAuth();
+  const { total: matchCount, pendingCount } = useMatchCount();
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [editVisible, setEditVisible] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editCompany, setEditCompany] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
+
+  const openEdit = useCallback(() => {
+    setEditName(profile?.name ?? '');
+    setEditCompany(profile?.company_name ?? '');
+    setEditPhone(profile?.phone ?? '');
+    setEditVisible(true);
+  }, [profile]);
+
+  const saveEdit = useCallback(async () => {
+    if (!profile?.id) return;
+    if (!editName.trim()) {
+      Alert.alert('Hata', 'İsim boş olamaz.');
+      return;
+    }
+    setEditSaving(true);
+    const { error } = await updateUserProfile(profile.id, {
+      name: editName.trim(),
+      company_name: editCompany.trim() || null,
+      phone: editPhone.trim() || null,
+    });
+    setEditSaving(false);
+    if (error) {
+      Alert.alert('Hata', error);
+      return;
+    }
+    await refreshProfile();
+    setEditVisible(false);
+    Alert.alert('Başarılı', 'Profil güncellendi.');
+  }, [profile?.id, editName, editCompany, editPhone, refreshProfile]);
 
   // DEV modda mock, production'da gerçek profil
   const devUser = __DEV__ ? mockUsers[0] : null;
@@ -41,6 +82,103 @@ export default function ProfileScreen() {
     rejected: 'close-circle' as const,
   }[licenseStatus];
 
+  const avatarUrl = profile?.avatar_url ?? devUser?.avatar_url ?? null;
+  const initials = displayName ? getInitials(displayName) : '?';
+
+  const expertiseText = profile?.expertise_districts && profile.expertise_districts.length > 0
+    ? `${profile.expertise_city ?? 'İstanbul'} / ${profile.expertise_districts.join(', ')}`
+    : null;
+
+  const handleAvatarPick = useCallback(async () => {
+    Alert.alert('Profil Fotoğrafı', 'Fotoğraf kaynağı seçin', [
+      {
+        text: 'Galeriden Seç',
+        onPress: async () => {
+          try {
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+              Alert.alert('İzin Gerekli', 'Galeri erişim izni gerekiyor.');
+              return;
+            }
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ['images'],
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.8,
+            });
+            if (!result.canceled && result.assets[0]) {
+              uploadAvatar(result.assets[0].uri);
+            }
+          } catch (e: any) {
+            Alert.alert('Hata', e?.message ?? 'Galeri açılamadı');
+          }
+        },
+      },
+      {
+        text: 'Fotoğraf Çek',
+        onPress: async () => {
+          try {
+            const { status } = await ImagePicker.requestCameraPermissionsAsync();
+            if (status !== 'granted') {
+              Alert.alert('İzin Gerekli', 'Kamera erişim izni gerekiyor.');
+              return;
+            }
+            const result = await ImagePicker.launchCameraAsync({
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.8,
+            });
+            if (!result.canceled && result.assets[0]) {
+              uploadAvatar(result.assets[0].uri);
+            }
+          } catch (e: any) {
+            Alert.alert('Hata', e?.message ?? 'Kamera açılamadı');
+          }
+        },
+      },
+      { text: 'Vazgeç', style: 'cancel' },
+    ]);
+  }, [profile, user]);
+
+  const uploadAvatar = useCallback(async (uri: string) => {
+    if (!profile?.id || !user?.id) return;
+    setAvatarUploading(true);
+    try {
+      const ext = uri.split('.').pop() ?? 'jpg';
+      const filePath = `${user.id}/avatar.${ext}`;
+
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      const arrayBuffer = await new Response(blob).arrayBuffer();
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, arrayBuffer, {
+          contentType: `image/${ext}`,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        Alert.alert('Hata', 'Fotoğraf yüklenirken hata oluştu.');
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Cache-bust için timestamp ekle
+      const publicUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      await updateUserProfile(profile.id, { avatar_url: publicUrl });
+      await refreshProfile();
+      Alert.alert('Başarılı', 'Profil fotoğrafı güncellendi.');
+    } catch (e: any) {
+      Alert.alert('Hata', e.message || 'Beklenmeyen bir hata oluştu.');
+    } finally {
+      setAvatarUploading(false);
+    }
+  }, [profile, user, refreshProfile]);
+
   const handleSignOut = () => {
     Alert.alert('Çıkış Yap', 'Hesabınızdan çıkış yapmak istediğinize emin misiniz?', [
       { text: 'Vazgeç', style: 'cancel' },
@@ -52,18 +190,74 @@ export default function ProfileScreen() {
     ]);
   };
 
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Hesabı Sil',
+      'Hesabınız ve tüm verileriniz (ilanlar, talepler, eşleşmeler) kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Hesabımı Sil',
+          style: 'destructive',
+          onPress: () => {
+            // İkinci onay
+            Alert.alert(
+              'Emin misiniz?',
+              'Hesabınız kalıcı olarak silinecek. Devam etmek istiyor musunuz?',
+              [
+                { text: 'Vazgeç', style: 'cancel' },
+                {
+                  text: 'Evet, Sil',
+                  style: 'destructive',
+                  onPress: async () => {
+                    setDeleting(true);
+                    const { error } = await deleteAccount();
+                    setDeleting(false);
+                    if (error) {
+                      Alert.alert('Hata', error);
+                    }
+                  },
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Profil</Text>
+        <Pressable
+          style={({ pressed }) => [styles.editHeaderBtn, pressed && { opacity: 0.7 }]}
+          onPress={openEdit}
+        >
+          <Ionicons name="create-outline" size={20} color={Colors.accent} />
+          <Text style={styles.editHeaderText}>Düzenle</Text>
+        </Pressable>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Avatar */}
         <View style={styles.avatarContainer}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={32} color={Colors.text.inverse} />
-          </View>
+          <Pressable onPress={handleAvatarPick} disabled={avatarUploading}>
+            <View style={styles.avatar}>
+              {avatarUploading ? (
+                <ActivityIndicator color={Colors.text.inverse} />
+              ) : avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+              ) : (
+                <Text style={styles.avatarInitials}>{initials}</Text>
+              )}
+            </View>
+            <View style={styles.avatarEditBadge}>
+              <Ionicons name="camera" size={14} color={Colors.text.inverse} />
+            </View>
+          </Pressable>
           <Text style={styles.name}>{displayName}</Text>
           {companyName && (
             <Text style={styles.companyName}>{companyName}</Text>
@@ -121,6 +315,24 @@ export default function ProfileScreen() {
           <View style={styles.divider} />
           <Pressable
             style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+            onPress={() => router.push('/profile/expertise' as any)}
+          >
+            <View style={styles.cardRow}>
+              <View style={styles.cardRowLeft}>
+                <Ionicons name="location-outline" size={18} color={Colors.text.tertiary} />
+                <Text style={styles.cardLabel}>Uzmanlık Bölgesi</Text>
+              </View>
+              <View style={styles.matchRight}>
+                <Text style={[styles.cardValue, { maxWidth: 160 }]} numberOfLines={1}>
+                  {expertiseText ?? 'Belirtilmedi'}
+                </Text>
+                <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+              </View>
+            </View>
+          </Pressable>
+          <View style={styles.divider} />
+          <Pressable
+            style={({ pressed }) => [pressed && { opacity: 0.7 }]}
             onPress={() => router.push('/matches')}
           >
             <View style={styles.cardRow}>
@@ -134,7 +346,7 @@ export default function ProfileScreen() {
                     <Text style={styles.pendingBadgeText}>{pendingCount}</Text>
                   </View>
                 )}
-                <Text style={styles.cardValue}>{matches.length}</Text>
+                <Text style={styles.cardValue}>{matchCount}</Text>
                 <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
               </View>
             </View>
@@ -150,6 +362,25 @@ export default function ProfileScreen() {
             }
           />
         </View>
+
+        {/* Bildirimler */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.adminButton,
+            pressed && { opacity: 0.9 },
+          ]}
+          onPress={() => {
+            if (profile?.id) {
+              registerForPushNotifications(profile.id, false);
+            } else {
+              Alert.alert('Hata', 'Profil yüklenemedi.');
+            }
+          }}
+        >
+          <Ionicons name="notifications-outline" size={20} color={Colors.accent} />
+          <Text style={styles.adminButtonText}>Bildirimleri Etkinleştir</Text>
+          <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+        </Pressable>
 
         {/* Admin Paneli */}
         {(profile?.is_admin || (__DEV__ && devUser?.is_admin)) && (
@@ -177,7 +408,89 @@ export default function ProfileScreen() {
           <Ionicons name="log-out-outline" size={20} color={Colors.error} />
           <Text style={styles.logoutText}>Çıkış Yap</Text>
         </Pressable>
+
+        {/* Hesabı Sil */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.deleteAccountButton,
+            pressed && { opacity: 0.9 },
+          ]}
+          onPress={handleDeleteAccount}
+          disabled={deleting}
+        >
+          {deleting ? (
+            <ActivityIndicator size="small" color={Colors.error} />
+          ) : (
+            <>
+              <Ionicons name="trash-outline" size={16} color={Colors.error} />
+              <Text style={styles.deleteAccountText}>Hesabımı Sil</Text>
+            </>
+          )}
+        </Pressable>
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal visible={editVisible} animationType="slide" transparent>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Profili Düzenle</Text>
+              <Pressable onPress={() => setEditVisible(false)} hitSlop={8}>
+                <Ionicons name="close" size={24} color={Colors.text.primary} />
+              </Pressable>
+            </View>
+
+            <Text style={styles.modalLabel}>Ad Soyad</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Ad Soyad"
+              placeholderTextColor={Colors.text.tertiary}
+              autoCapitalize="words"
+            />
+
+            <Text style={styles.modalLabel}>Firma Adı</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={editCompany}
+              onChangeText={setEditCompany}
+              placeholder="Firma Adı"
+              placeholderTextColor={Colors.text.tertiary}
+              autoCapitalize="words"
+            />
+
+            <Text style={styles.modalLabel}>Telefon</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={editPhone}
+              onChangeText={setEditPhone}
+              placeholder="05XX XXX XX XX"
+              placeholderTextColor={Colors.text.tertiary}
+              keyboardType="phone-pad"
+            />
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.modalSaveBtn,
+                pressed && { opacity: 0.9 },
+                editSaving && { opacity: 0.7 },
+              ]}
+              onPress={saveEdit}
+              disabled={editSaving}
+            >
+              {editSaving ? (
+                <ActivityIndicator color={Colors.text.inverse} />
+              ) : (
+                <Text style={styles.modalSaveBtnText}>Kaydet</Text>
+              )}
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -212,9 +525,22 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.lg,
     paddingBottom: Spacing.md,
+  },
+  editHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  editHeaderText: {
+    ...Typography.subhead,
+    color: Colors.accent,
+    fontWeight: '600',
   },
   title: {
     ...Typography.largeTitle,
@@ -237,7 +563,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.md,
+    overflow: 'hidden',
     ...Shadows.md,
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  avatarInitials: {
+    ...Typography.title2,
+    color: Colors.text.inverse,
+    fontWeight: '700',
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: Spacing.md,
+    right: -4,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.background,
   },
   name: {
     ...Typography.title3,
@@ -344,10 +694,77 @@ const styles = StyleSheet.create({
     borderColor: Colors.error + '28',
     paddingVertical: Spacing.lg,
     gap: Spacing.sm,
-    marginBottom: Spacing['5xl'],
+    marginBottom: Spacing.md,
   },
   logoutText: {
     ...Typography.headline,
     color: Colors.error,
+  },
+  deleteAccountButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.error + '08',
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.error + '1A',
+    paddingVertical: Spacing.md,
+    gap: Spacing.xs,
+    marginBottom: Spacing['5xl'],
+  },
+  deleteAccountText: {
+    ...Typography.caption1,
+    color: Colors.error,
+    fontWeight: '500',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: Colors.card,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    padding: Spacing['2xl'],
+    paddingBottom: Spacing['5xl'],
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  modalTitle: {
+    ...Typography.title3,
+    color: Colors.text.primary,
+  },
+  modalLabel: {
+    ...Typography.footnote,
+    color: Colors.text.secondary,
+    marginBottom: Spacing.xs,
+    marginTop: Spacing.md,
+  },
+  modalInput: {
+    backgroundColor: Colors.background,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.lg,
+    ...Typography.body,
+    color: Colors.text.primary,
+  },
+  modalSaveBtn: {
+    backgroundColor: Colors.accent,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    marginTop: Spacing.xl,
+    ...Shadows.sm,
+  },
+  modalSaveBtnText: {
+    ...Typography.headline,
+    color: Colors.text.inverse,
   },
 });

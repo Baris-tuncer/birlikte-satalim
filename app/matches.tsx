@@ -17,7 +17,7 @@ import type { Match } from '@/types';
 
 export default function MatchesScreen() {
   const { profile } = useAuth();
-  const { data: userMatches, loading, refetch } = useMyMatches();
+  const { data: userMatches, loading, error, refetch } = useMyMatches();
   const { respond } = useMatchActions();
 
   const currentUserId = profile?.id ?? (__DEV__ ? '1' : '');
@@ -77,6 +77,12 @@ export default function MatchesScreen() {
           <View style={styles.loaderContainer}>
             <ActivityIndicator size="large" color={Colors.accent} />
           </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Ionicons name="warning-outline" size={48} color={Colors.error} />
+            <Text style={styles.emptyTitle}>Yüklenemedi</Text>
+            <Text style={styles.emptySubtitle}>{error}</Text>
+          </View>
         ) : (
           <FlatList
             data={userMatches}
@@ -120,6 +126,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: Spacing.xl,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.md,
     padding: Spacing.xl,
   },
   emptyContainer: {

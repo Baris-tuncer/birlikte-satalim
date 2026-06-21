@@ -69,19 +69,26 @@ export default function ListingDetailScreen() {
   const isOwner = listing.agent_id === currentUserId;
   const isSale = listing.transaction_type === 'SALE';
 
-  const details: { label: string; value: string | null }[] = [
-    { label: 'Oda Sayısı', value: listing.room_count },
-    { label: 'Net Alan', value: listing.net_area ? `${listing.net_area} m²` : null },
-    { label: 'Brüt Alan', value: listing.gross_area ? `${listing.gross_area} m²` : null },
-    { label: 'Kat', value: listing.floor != null && listing.total_floors != null ? `${listing.floor} / ${listing.total_floors}` : listing.floor != null ? `${listing.floor}` : null },
-    { label: 'Bina Yaşı', value: listing.building_age != null ? `${listing.building_age} yıl` : null },
-    { label: 'Otopark', value: listing.has_parking != null ? (listing.has_parking ? 'Var' : 'Yok') : null },
-    { label: 'Asansör', value: listing.has_elevator != null ? (listing.has_elevator ? 'Var' : 'Yok') : null },
-    { label: 'Isıtma', value: listing.heating_type },
-  ];
+  const isUrbanRenewal = listing.property_type === 'URBAN_RENEWAL';
+
+  const details: { label: string; value: string | null }[] = isUrbanRenewal
+    ? [
+        { label: 'Ada', value: listing.ada ?? null },
+        { label: 'Parsel', value: listing.parsel ?? null },
+      ]
+    : [
+        { label: 'Oda Sayısı', value: listing.room_count },
+        { label: 'Net Alan', value: listing.net_area ? `${listing.net_area} m²` : null },
+        { label: 'Brüt Alan', value: listing.gross_area ? `${listing.gross_area} m²` : null },
+        { label: 'Kat', value: listing.floor != null && listing.total_floors != null ? `${listing.floor} / ${listing.total_floors}` : listing.floor != null ? `${listing.floor}` : null },
+        { label: 'Bina Yaşı', value: listing.building_age != null ? `${listing.building_age} yıl` : null },
+        { label: 'Otopark', value: listing.has_parking != null ? (listing.has_parking ? 'Var' : 'Yok') : null },
+        { label: 'Asansör', value: listing.has_elevator != null ? (listing.has_elevator ? 'Var' : 'Yok') : null },
+        { label: 'Isıtma', value: listing.heating_type },
+      ];
 
   const handleMatch = () => {
-    Alert.alert('Eşleşme Talebi', 'Bu ilan için eşleşme talebi gönderilecek.', [
+    Alert.alert('Müşterim Var', 'Bu ilan için müşteriniz olduğunu bildireceksiniz. Karşı taraf kabul ederse iletişim bilgileriniz paylaşılacak.', [
       { text: 'Vazgeç', style: 'cancel' },
       {
         text: 'Gönder',
@@ -136,7 +143,9 @@ export default function ListingDetailScreen() {
         </Text>
 
         {/* Price */}
-        <Text style={styles.price}>{formatPrice(listing.price)}</Text>
+        {!isUrbanRenewal && listing.price > 0 && (
+          <Text style={styles.price}>{formatPrice(listing.price)}</Text>
+        )}
 
         {/* Details Card */}
         <View style={styles.card}>
@@ -171,6 +180,13 @@ export default function ListingDetailScreen() {
         {/* Owner Actions / Match Button */}
         {isOwner ? (
           <View style={styles.ownerActions}>
+            <Pressable
+              style={({ pressed }) => [styles.ownerEditBtn, pressed && { opacity: 0.85 }]}
+              onPress={() => router.push(`/create/listing?editId=${listing.id}` as any)}
+            >
+              <Ionicons name="create-outline" size={18} color={Colors.accent} />
+              <Text style={styles.ownerEditText}>Düzenle</Text>
+            </Pressable>
             <Pressable
               style={({ pressed }) => [styles.ownerActionBtn, pressed && { opacity: 0.85 }]}
               onPress={() => {
@@ -264,7 +280,9 @@ const styles = StyleSheet.create({
   detailValue: { ...Typography.subhead, color: Colors.text.primary, fontWeight: '600' },
   descriptionText: { ...Typography.body, color: Colors.text.primary, lineHeight: 24 },
   agentBlindText: { ...Typography.caption1, color: Colors.text.tertiary, marginTop: Spacing.sm },
-  ownerActions: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.sm },
+  ownerActions: { flexDirection: 'row', gap: Spacing.md, marginTop: Spacing.sm, flexWrap: 'wrap' },
+  ownerEditBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: Colors.accent + '0A', borderRadius: Radius.md, paddingVertical: Spacing.lg, borderWidth: 1, borderColor: Colors.accent + '28' },
+  ownerEditText: { ...Typography.subhead, color: Colors.accent, fontWeight: '600' },
   ownerActionBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: Colors.primary + '0A', borderRadius: Radius.md, paddingVertical: Spacing.lg, borderWidth: 1, borderColor: Colors.primary + '28' },
   ownerActionText: { ...Typography.subhead, color: Colors.primary, fontWeight: '600' },
   ownerDeleteBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, backgroundColor: Colors.error + '0A', borderRadius: Radius.md, paddingVertical: Spacing.lg, paddingHorizontal: Spacing.xl, borderWidth: 1, borderColor: Colors.error + '28' },

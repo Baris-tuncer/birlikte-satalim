@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, Pressable, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Pressable, Alert, ActivityIndicator, Linking } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
@@ -179,32 +179,59 @@ export default function MatchDetailScreen() {
         ) : null}
 
         {/* Contact Box (Accepted) */}
-        {isAccepted && (
-          <View style={styles.contactCard}>
-            <View style={styles.contactHeader}>
-              <Ionicons name="call-outline" size={18} color={Colors.success} />
-              <Text style={styles.contactTitle}>İletişim Bilgileri</Text>
-            </View>
-            {match.requester?.name && (
-              <View style={styles.contactRow}>
-                <Text style={styles.contactLabel}>Talep Eden</Text>
-                <Text style={styles.contactValue}>
-                  {match.requester.name}
-                  {match.requester.phone ? ` — ${match.requester.phone}` : ''}
-                </Text>
+        {isAccepted && (() => {
+          const otherAgent = isTarget ? match.requester : match.target;
+          const otherPhone = otherAgent?.phone?.replace(/\s/g, '').replace('+90', '90').replace(/^0/, '90') ?? '';
+
+          return (
+            <>
+              <View style={styles.contactCard}>
+                <View style={styles.contactHeader}>
+                  <Ionicons name="call-outline" size={18} color={Colors.success} />
+                  <Text style={styles.contactTitle}>İletişim Bilgileri</Text>
+                </View>
+                {match.requester?.name && (
+                  <View style={styles.contactRow}>
+                    <Text style={styles.contactLabel}>Talep Eden</Text>
+                    <Text style={styles.contactValue}>
+                      {match.requester.name}
+                      {match.requester.phone ? ` — ${match.requester.phone}` : ''}
+                    </Text>
+                  </View>
+                )}
+                {match.target?.name && (
+                  <View style={styles.contactRow}>
+                    <Text style={styles.contactLabel}>İlan Sahibi</Text>
+                    <Text style={styles.contactValue}>
+                      {match.target.name}
+                      {match.target.phone ? ` — ${match.target.phone}` : ''}
+                    </Text>
+                  </View>
+                )}
               </View>
-            )}
-            {match.target?.name && (
-              <View style={styles.contactRow}>
-                <Text style={styles.contactLabel}>İlan Sahibi</Text>
-                <Text style={styles.contactValue}>
-                  {match.target.name}
-                  {match.target.phone ? ` — ${match.target.phone}` : ''}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
+
+              {/* WhatsApp & Ara butonları */}
+              {otherPhone ? (
+                <View style={styles.contactActions}>
+                  <Pressable
+                    style={({ pressed }) => [styles.whatsappButton, pressed && { opacity: 0.85 }]}
+                    onPress={() => Linking.openURL(`https://wa.me/${otherPhone}?text=${encodeURIComponent('Merhaba, Beraber Satalım üzerinden eşleştik.')}`)}
+                  >
+                    <Ionicons name="logo-whatsapp" size={20} color="#fff" />
+                    <Text style={styles.whatsappButtonText}>WhatsApp</Text>
+                  </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [styles.callButton, pressed && { opacity: 0.85 }]}
+                    onPress={() => Linking.openURL(`tel:${otherPhone}`)}
+                  >
+                    <Ionicons name="call" size={20} color={Colors.primary} />
+                    <Text style={styles.callButtonText}>Ara</Text>
+                  </Pressable>
+                </View>
+              ) : null}
+            </>
+          );
+        })()}
 
         {/* Accept / Reject */}
         {isPending && isTarget && (
@@ -277,6 +304,11 @@ const styles = StyleSheet.create({
   contactRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: Spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Colors.success + '28' },
   contactLabel: { ...Typography.subhead, color: Colors.text.secondary },
   contactValue: { ...Typography.subhead, color: Colors.text.primary, fontWeight: '600', flexShrink: 1, textAlign: 'right' },
+  contactActions: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.lg },
+  whatsappButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#25D366', borderRadius: Radius.md, paddingVertical: Spacing.lg, gap: Spacing.sm },
+  whatsappButtonText: { ...Typography.subhead, color: '#fff', fontWeight: '600' },
+  callButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary + '0A', borderRadius: Radius.md, paddingVertical: Spacing.lg, gap: Spacing.sm, borderWidth: 1, borderColor: Colors.primary + '28' },
+  callButtonText: { ...Typography.subhead, color: Colors.primary, fontWeight: '600' },
   actionsRow: { flexDirection: 'row', gap: Spacing.md, marginBottom: Spacing.lg },
   rejectButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.error + '0A', borderRadius: Radius.md, paddingVertical: Spacing.lg, gap: Spacing.sm, borderWidth: 1, borderColor: Colors.error + '28' },
   rejectButtonText: { ...Typography.subhead, color: Colors.error, fontWeight: '600' },

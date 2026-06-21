@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import type { BuyerDemand } from '@/types';
 import {
   formatBudget,
-  timeAgo,
+  formatDate,
   TRANSACTION_LABELS,
   PROPERTY_LABELS,
 } from '@/lib/format';
@@ -14,17 +15,23 @@ import AgentInfo from '@/components/ui/AgentInfo';
 interface DemandCardProps {
   demand: BuyerDemand;
   onMatch: (demandId: string) => void;
+  onRemove?: (demandId: string) => void;
   isOwnDemand?: boolean;
+  currentUserName?: string;
 }
 
 export default function DemandCard({
   demand,
   onMatch,
+  onRemove,
   isOwnDemand = false,
+  currentUserName,
 }: DemandCardProps) {
+  const router = useRouter();
   const isSale = demand.transaction_type === 'SALE';
 
-  const locationText = [demand.district, ...demand.neighborhoods].join(', ');
+  const cityLabel = demand.city && demand.city !== 'İstanbul' ? demand.city : '';
+  const locationText = [cityLabel, demand.district, ...(demand.neighborhoods ?? [])].filter(Boolean).join(', ');
   const budgetText = `${formatBudget(demand.min_budget)} – ${formatBudget(demand.max_budget)}`;
 
   return (
@@ -57,7 +64,7 @@ export default function DemandCard({
             </Text>
           </View>
         </View>
-        <Text style={styles.timeText}>{timeAgo(demand.created_at)}</Text>
+        <Text style={styles.timeText}>{demand.created_at ? formatDate(demand.created_at) : '—'}</Text>
       </View>
 
       {/* Location */}
@@ -114,11 +121,52 @@ export default function DemandCard({
 
       {/* Agent row (blind) */}
       <View style={styles.agentRow}>
-        <AgentInfo agent={demand.agent} size="compact" />
+        <AgentInfo
+          agent={demand.agent}
+          size="compact"
+          showContactActions={!isOwnDemand}
+          currentUserName={currentUserName}
+        />
       </View>
 
-      {/* Match button */}
-      {!isOwnDemand && (
+      {/* Owner: edit + remove buttons / Non-owner: match button */}
+      {isOwnDemand ? (
+        <View style={styles.ownerActions}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.editButton,
+              pressed && { opacity: 0.85 },
+            ]}
+            onPress={() => router.push(`/create/demand?editId=${demand.id}` as any)}
+          >
+            <Ionicons name="create-outline" size={18} color={Colors.accent} />
+            <Text style={styles.editButtonText}>Düzenle</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.removeButton,
+              pressed && { opacity: 0.85 },
+            ]}
+            onPress={() => {
+              Alert.alert(
+                'Talebi Kaldır',
+                'Bu talep kaldırılacak ve artık diğer emlakçılar tarafından görülmeyecek. Emin misiniz?',
+                [
+                  { text: 'Vazgeç', style: 'cancel' },
+                  {
+                    text: 'Kaldır',
+                    style: 'destructive',
+                    onPress: () => onRemove?.(demand.id),
+                  },
+                ]
+              );
+            }}
+          >
+            <Ionicons name="close-circle-outline" size={18} color={Colors.error} />
+            <Text style={styles.removeButtonText}>Kaldır</Text>
+          </Pressable>
+        </View>
+      ) : (
         <Pressable
           style={({ pressed }) => [
             styles.matchButton,
@@ -131,7 +179,7 @@ export default function DemandCard({
             size={18}
             color={Colors.text.inverse}
           />
-          <Text style={styles.matchButtonText}>Portföyümden Eşle</Text>
+          <Text style={styles.matchButtonText}>İlanım Var</Text>
         </Pressable>
       )}
     </View>
@@ -217,7 +265,7 @@ const styles = StyleSheet.create({
   },
   notesText: {
     ...Typography.footnote,
-    color: Colors.text.tertiary,
+    color: Colors.text.primary,
     fontStyle: 'italic',
     marginBottom: Spacing.md,
   },
@@ -244,6 +292,44 @@ const styles = StyleSheet.create({
   matchButtonText: {
     ...Typography.subhead,
     color: Colors.text.inverse,
+    fontWeight: '600',
+  },
+  ownerActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.accent + '0A',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.accent + '28',
+  },
+  editButtonText: {
+    ...Typography.subhead,
+    color: Colors.accent,
+    fontWeight: '600',
+  },
+  removeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.error + '0A',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.error + '28',
+  },
+  removeButtonText: {
+    ...Typography.subhead,
+    color: Colors.error,
     fontWeight: '600',
   },
 });

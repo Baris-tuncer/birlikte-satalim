@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   getListings,
   getDemands,
@@ -18,10 +18,36 @@ import { useAuth } from './auth-context';
 import { mockListings, mockDemands, mockMatches } from './mockData';
 import type { Listing, BuyerDemand, Match, TransactionType, PropertyType } from '@/types';
 
+let _hookCounter = 0;
+
+// Auto-match bildirim Edge Function'ini cagir
+async function triggerAutoMatchNotify(table: 'listings' | 'buyer_demands', record: Record<string, unknown>) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    if (!supabaseUrl) return;
+
+    await fetch(`${supabaseUrl}/functions/v1/auto-match-notify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ type: 'INSERT', table, record }),
+    });
+  } catch (e) {
+    console.error('Auto-match notify error:', e);
+  }
+}
+
 // ─── LISTINGS ────────────────────────────────────────
 
 interface UseListingsOptions {
+  city?: string;
   district?: string;
+  neighborhood?: string;
   transaction_type?: TransactionType;
   property_type?: PropertyType;
 }
@@ -37,20 +63,31 @@ export function useListings(filters?: UseListingsOptions) {
       if (filters?.district && filters.district !== 'Hepsi') {
         result = result.filter((l) => l.district === filters.district);
       }
+      if (filters?.neighborhood) {
+        result = result.filter((l) => l.neighborhood === filters.neighborhood);
+      }
+      if (filters?.transaction_type) {
+        result = result.filter((l) => l.transaction_type === filters.transaction_type);
+      }
+      if (filters?.property_type) {
+        result = result.filter((l) => l.property_type === filters.property_type);
+      }
       setData(result);
       setLoading(false);
       return;
     }
     setLoading(true);
     const { data: listings, error: err } = await getListings({
+      city: filters?.city,
       district: filters?.district,
+      neighborhood: filters?.neighborhood,
       transaction_type: filters?.transaction_type,
       property_type: filters?.property_type,
     });
     setData(listings);
     setError(err ?? null);
     setLoading(false);
-  }, [filters?.district, filters?.transaction_type, filters?.property_type]);
+  }, [filters?.city, filters?.district, filters?.neighborhood, filters?.transaction_type, filters?.property_type]);
 
   useEffect(() => {
     fetch();
@@ -77,7 +114,15 @@ export function useListings(filters?: UseListingsOptions) {
 
 // ─── DEMANDS ─────────────────────────────────────────
 
-export function useDemands(filters?: { district?: string }) {
+interface UseDemandOptions {
+  city?: string;
+  district?: string;
+  neighborhood?: string;
+  transaction_type?: TransactionType;
+  property_type?: PropertyType;
+}
+
+export function useDemands(filters?: UseDemandOptions) {
   const [data, setData] = useState<BuyerDemand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,18 +133,31 @@ export function useDemands(filters?: { district?: string }) {
       if (filters?.district && filters.district !== 'Hepsi') {
         result = result.filter((d) => d.district === filters.district);
       }
+      if (filters?.neighborhood) {
+        result = result.filter((d) => (d.neighborhoods ?? []).includes(filters.neighborhood!));
+      }
+      if (filters?.transaction_type) {
+        result = result.filter((d) => d.transaction_type === filters.transaction_type);
+      }
+      if (filters?.property_type) {
+        result = result.filter((d) => d.property_type === filters.property_type);
+      }
       setData(result);
       setLoading(false);
       return;
     }
     setLoading(true);
     const { data: demands, error: err } = await getDemands({
+      city: filters?.city,
       district: filters?.district,
+      neighborhood: filters?.neighborhood,
+      transaction_type: filters?.transaction_type,
+      property_type: filters?.property_type,
     });
     setData(demands);
     setError(err ?? null);
     setLoading(false);
-  }, [filters?.district]);
+  }, [filters?.city, filters?.district, filters?.neighborhood, filters?.transaction_type, filters?.property_type]);
 
   useEffect(() => {
     fetch();
@@ -202,6 +260,7 @@ export function useMyMatches() {
   const [pendingCount, setPendingCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hookIdRef = useRef(`${++_hookCounter}`);
 
   const userId = profile?.id;
 
@@ -228,13 +287,20 @@ export function useMyMatches() {
       return;
     }
     setLoading(true);
-    const [matchesResult, countResult] = await Promise.all([
-      getMyMatches(userId),
-      getPendingMatchCount(userId),
-    ]);
-    setData(matchesResult.data);
-    setPendingCount(countResult.count);
-    setError(matchesResult.error ?? countResult.error ?? null);
+    try {
+      const [matchesResult, countResult] = await Promise.all([
+        getMyMatches(userId),
+        getPendingMatchCount(userId),
+      ]);
+      setData(matchesResult.data ?? []);
+      setPendingCount(countResult.count ?? 0);
+      setError(matchesResult.error ?? countResult.error ?? null);
+    } catch (e: any) {
+      console.error('[useMyMatches] fetch error:', e);
+      setData([]);
+      setPendingCount(0);
+      setError(e?.message ?? 'Eşleşmeler yüklenirken hata oluştu');
+    }
     setLoading(false);
   }, [userId]);
 
@@ -243,40 +309,84 @@ export function useMyMatches() {
   }, [fetch]);
 
   // Realtime: eslesmeler degistiginde otomatik guncelle
+  // hookId ile benzersiz kanal adi olustur — ayni hook birden fazla yerde kullanildiginda crash onlenir
   useEffect(() => {
     if (__DEV__ || !userId) return;
 
-    const channel = supabase
-      .channel(`matches-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'matches',
-        },
-        (payload) => {
-          const row = payload.new as Record<string, unknown> | undefined;
-          const old = payload.old as Record<string, unknown> | undefined;
-          // Sadece bu kullaniciya ait degisiklikleri dinle
-          const isRelevant =
-            row?.requester_id === userId ||
-            row?.target_id === userId ||
-            old?.requester_id === userId ||
-            old?.target_id === userId;
-          if (isRelevant) {
-            fetch();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    try {
+      channel = supabase
+        .channel(`matches-${userId}-${hookIdRef.current}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'matches',
+          },
+          (payload) => {
+            const row = payload.new as Record<string, unknown> | undefined;
+            const old = payload.old as Record<string, unknown> | undefined;
+            // Sadece bu kullaniciya ait degisiklikleri dinle
+            const isRelevant =
+              row?.requester_id === userId ||
+              row?.target_id === userId ||
+              old?.requester_id === userId ||
+              old?.target_id === userId;
+            if (isRelevant) {
+              fetch();
+            }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
+    } catch (e) {
+      console.error('[useMyMatches] Realtime channel error:', e);
+    }
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [userId, fetch]);
 
   return { data, pendingCount, loading, error, refetch: fetch };
+}
+
+// ─── MATCH COUNT (profil icin hafif hook — realtime yok) ─────
+
+export function useMatchCount() {
+  const { profile } = useAuth();
+  const [total, setTotal] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  const userId = profile?.id;
+
+  useEffect(() => {
+    if (__DEV__) {
+      const uid = '1';
+      setTotal(mockMatches.filter((m) => m.requester_id === uid || m.target_id === uid).length);
+      setPendingCount(mockMatches.filter((m) => m.target_id === uid && m.status === 'PENDING').length);
+      return;
+    }
+    if (!userId) return;
+
+    (async () => {
+      try {
+        const [totalResult, pendingResult] = await Promise.all([
+          supabase.from('matches').select('*', { count: 'exact', head: true })
+            .or(`requester_id.eq.${userId},target_id.eq.${userId}`),
+          getPendingMatchCount(userId),
+        ]);
+        setTotal(totalResult.count ?? 0);
+        setPendingCount(pendingResult.count ?? 0);
+      } catch (e) {
+        console.error('[useMatchCount] error:', e);
+      }
+    })();
+  }, [userId]);
+
+  return { total, pendingCount };
 }
 
 // ─── MATCH ACTIONS ───────────────────────────────────
@@ -344,6 +454,10 @@ export function useCreateListing() {
         status: 'ACTIVE',
       });
       setLoading(false);
+      // Basarili ise auto-match bildirim gonder
+      if (data && !error) {
+        triggerAutoMatchNotify('listings', data as unknown as Record<string, unknown>);
+      }
       return { data, error };
     },
     [profile]
@@ -373,6 +487,10 @@ export function useCreateDemand() {
         expires_at: null,
       });
       setLoading(false);
+      // Basarili ise auto-match bildirim gonder
+      if (data && !error) {
+        triggerAutoMatchNotify('buyer_demands', data as unknown as Record<string, unknown>);
+      }
       return { data, error };
     },
     [profile]
@@ -417,4 +535,35 @@ export function useUpdateDemand() {
   );
 
   return { update, loading };
+}
+
+// ─── UNREAD NOTIFICATION COUNT ───────────────────────
+
+export function useUnreadNotificationCount() {
+  const { profile } = useAuth();
+  const [count, setCount] = useState(0);
+  const userId = profile?.id;
+
+  useEffect(() => {
+    if (__DEV__) {
+      setCount(2);
+      return;
+    }
+    if (!userId) return;
+
+    const fetchCount = async () => {
+      const { count: c } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('status', 'sent');
+      setCount(c ?? 0);
+    };
+    fetchCount();
+
+    const interval = setInterval(fetchCount, 30000);
+    return () => clearInterval(interval);
+  }, [userId]);
+
+  return count;
 }

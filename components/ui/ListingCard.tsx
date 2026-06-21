@@ -1,11 +1,12 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import type { Listing } from '@/types';
 import {
   formatPrice,
-  timeAgo,
+  formatDate,
   TRANSACTION_LABELS,
   PROPERTY_LABELS,
 } from '@/lib/format';
@@ -14,17 +15,23 @@ import AgentInfo from '@/components/ui/AgentInfo';
 interface ListingCardProps {
   listing: Listing;
   onMatch: (listingId: string) => void;
+  onRemove?: (listingId: string) => void;
   isOwnListing?: boolean;
+  currentUserName?: string;
 }
 
 export default function ListingCard({
   listing,
   onMatch,
+  onRemove,
   isOwnListing = false,
+  currentUserName,
 }: ListingCardProps) {
+  const router = useRouter();
   const isSale = listing.transaction_type === 'SALE';
 
-  const locationText = [listing.district, listing.neighborhood]
+  const cityLabel = listing.city && listing.city !== 'İstanbul' ? listing.city : '';
+  const locationText = [cityLabel, listing.district, listing.neighborhood]
     .filter(Boolean)
     .join(', ');
 
@@ -63,18 +70,39 @@ export default function ListingCard({
             </Text>
           </View>
         </View>
-        <Text style={styles.timeText}>{timeAgo(listing.created_at)}</Text>
+        <Text style={styles.timeText}>{listing.created_at ? formatDate(listing.created_at) : '—'}</Text>
       </View>
 
       {/* Location */}
       <Text style={styles.locationText}>{locationText}</Text>
 
       {/* Price tag */}
-      <View style={styles.pricePill}>
-        <Text style={styles.priceText}>{formatPrice(listing.price)}</Text>
-      </View>
+      {listing.property_type !== 'URBAN_RENEWAL' && listing.price > 0 && (
+        <View style={styles.pricePill}>
+          <Text style={styles.priceText}>{formatPrice(listing.price)}</Text>
+        </View>
+      )}
+
+      {/* Ada / Parsel (Kentsel Dönüşüm) */}
+      {listing.property_type === 'URBAN_RENEWAL' && (listing.ada || listing.parsel) && (
+        <View style={styles.chipsRow}>
+          {listing.ada && (
+            <View style={styles.chip}>
+              <Ionicons name="map-outline" size={14} color={Colors.text.secondary} />
+              <Text style={styles.chipText}>Ada: {listing.ada}</Text>
+            </View>
+          )}
+          {listing.parsel && (
+            <View style={styles.chip}>
+              <Ionicons name="grid-outline" size={14} color={Colors.text.secondary} />
+              <Text style={styles.chipText}>Parsel: {listing.parsel}</Text>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Property details chips */}
+      {listing.property_type !== 'URBAN_RENEWAL' && (
       <View style={styles.chipsRow}>
         {listing.room_count != null && (
           <View style={styles.chip}>
@@ -116,14 +144,15 @@ export default function ListingCard({
               color={Colors.text.secondary}
             />
             <Text style={styles.chipText}>
-              {listing.building_age} yaşında
+              {listing.building_age} yıl
             </Text>
           </View>
         )}
       </View>
+      )}
 
       {/* Features row */}
-      {features.length > 0 && (
+      {features.length > 0 && listing.property_type !== 'URBAN_RENEWAL' && (
         <View style={styles.featuresRow}>
           {features.map((feature) => (
             <View key={feature.label} style={styles.featureBadge}>
@@ -145,11 +174,52 @@ export default function ListingCard({
 
       {/* Agent row (blind) */}
       <View style={styles.agentRow}>
-        <AgentInfo agent={listing.agent} size="compact" />
+        <AgentInfo
+          agent={listing.agent}
+          size="compact"
+          showContactActions={!isOwnListing}
+          currentUserName={currentUserName}
+        />
       </View>
 
-      {/* Match button */}
-      {!isOwnListing && (
+      {/* Owner: edit + remove buttons / Non-owner: match button */}
+      {isOwnListing ? (
+        <View style={styles.ownerActions}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.editButton,
+              pressed && { opacity: 0.85 },
+            ]}
+            onPress={() => router.push(`/create/listing?editId=${listing.id}` as any)}
+          >
+            <Ionicons name="create-outline" size={18} color={Colors.accent} />
+            <Text style={styles.editButtonText}>Düzenle</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.removeButton,
+              pressed && { opacity: 0.85 },
+            ]}
+            onPress={() => {
+              Alert.alert(
+                'İlanı Kaldır',
+                'Bu ilan kaldırılacak ve artık diğer emlakçılar tarafından görülmeyecek. Emin misiniz?',
+                [
+                  { text: 'Vazgeç', style: 'cancel' },
+                  {
+                    text: 'Kaldır',
+                    style: 'destructive',
+                    onPress: () => onRemove?.(listing.id),
+                  },
+                ]
+              );
+            }}
+          >
+            <Ionicons name="close-circle-outline" size={18} color={Colors.error} />
+            <Text style={styles.removeButtonText}>Kaldır</Text>
+          </Pressable>
+        </View>
+      ) : (
         <Pressable
           style={({ pressed }) => [
             styles.matchButton,
@@ -261,7 +331,7 @@ const styles = StyleSheet.create({
   },
   descriptionText: {
     ...Typography.footnote,
-    color: Colors.text.tertiary,
+    color: Colors.text.primary,
     marginBottom: Spacing.md,
   },
   divider: {
@@ -287,6 +357,44 @@ const styles = StyleSheet.create({
   matchButtonText: {
     ...Typography.subhead,
     color: Colors.text.inverse,
+    fontWeight: '600',
+  },
+  ownerActions: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  editButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.accent + '0A',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.accent + '28',
+  },
+  editButtonText: {
+    ...Typography.subhead,
+    color: Colors.accent,
+    fontWeight: '600',
+  },
+  removeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.error + '0A',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.error + '28',
+  },
+  removeButtonText: {
+    ...Typography.subhead,
+    color: Colors.error,
     fontWeight: '600',
   },
 });

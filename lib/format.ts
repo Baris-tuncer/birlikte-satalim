@@ -2,7 +2,8 @@ import type { TransactionType, PropertyType } from '@/types';
 
 // ─── Fiyat / Bütçe Formatlama ─────────────────────────
 
-export function formatBudget(amount: number): string {
+export function formatBudget(amount: number | null | undefined): string {
+  if (amount == null) return '—';
   if (amount >= 1_000_000) {
     const val = amount / 1_000_000;
     return val % 1 === 0 ? `${val}M TL` : `${val.toFixed(1)}M TL`;
@@ -13,7 +14,8 @@ export function formatBudget(amount: number): string {
   return `${amount.toLocaleString('tr-TR')} TL`;
 }
 
-export function formatPrice(price: number): string {
+export function formatPrice(price: number | null | undefined): string {
+  if (price == null) return '—';
   if (price >= 1_000_000) {
     const val = price / 1_000_000;
     return `₺${val % 1 === 0 ? val : val.toFixed(1)}M`;
@@ -32,8 +34,10 @@ export function formatPriceInput(text: string): string {
 
 // ─── Zaman Formatlama ─────────────────────────────────
 
-export function timeAgo(dateStr: string): string {
+export function timeAgo(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—';
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (isNaN(seconds)) return '—';
   if (seconds < 60) return 'Az önce';
   if (seconds < 3600) return `${Math.floor(seconds / 60)}dk`;
   if (seconds < 86400) return `${Math.floor(seconds / 3600)}sa`;
@@ -56,6 +60,7 @@ export const PROPERTY_LABELS: Record<PropertyType, string> = {
   RESIDENTIAL: 'Konut',
   COMMERCIAL: 'Ticari',
   LAND: 'Arsa',
+  URBAN_RENEWAL: 'Kentsel Dönüşüm',
 };
 
 // ─── Yardımcılar ──────────────────────────────────────
@@ -67,4 +72,35 @@ export function getInitials(name: string): string {
     .join('')
     .toUpperCase()
     .slice(0, 2);
+}
+
+// ─── MYK QR Kod Parse ──────────────────────────────
+
+export function parseMYKQRData(qrData: string): string | null {
+  // MYK QR kodu genelde URL veya belge numarası içerir
+  // Örnek: "YB0203/17UY0333-5/00/724" veya URL içinde bu bilgi
+  // URL varsa parametrelerden belge no çıkar
+  try {
+    if (qrData.startsWith('http')) {
+      const url = new URL(qrData);
+      // myk.gov.tr/dogrula?belgeNo=... veya benzer parametre
+      const belgeNo = url.searchParams.get('belgeNo')
+        || url.searchParams.get('belgeno')
+        || url.searchParams.get('no')
+        || url.searchParams.get('documentNo');
+      if (belgeNo) return belgeNo;
+      // URL path'inde belge no olabilir
+      const pathMatch = url.pathname.match(/([A-Z]{2}\d{4}\/[\w\-\/]+)/);
+      if (pathMatch) return pathMatch[1];
+    }
+    // Direkt belge numarası formatı: YB0203/17UY0333-5/00/724
+    const directMatch = qrData.match(/[A-Z]{2}\d{4}\/[\w\-\/]+/);
+    if (directMatch) return directMatch[0];
+    // Herhangi bir alfanumerik seri numarası
+    const serialMatch = qrData.match(/[\w\-\/]{8,}/);
+    if (serialMatch) return serialMatch[0];
+    return qrData.trim() || null;
+  } catch {
+    return qrData.trim() || null;
+  }
 }

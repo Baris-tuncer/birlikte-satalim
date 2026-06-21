@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -12,20 +12,42 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
-import { DISTRICTS, TRANSACTION_TYPES, PROPERTY_TYPES, ROOM_OPTIONS, HEATING_TYPES } from '@/lib/constants';
+import {
+  CITIES,
+  CITY_DISTRICTS,
+  TRANSACTION_TYPES,
+  PROPERTY_TYPES,
+  ROOM_OPTIONS,
+  HEATING_TYPES,
+  BUILDING_AGE_OPTIONS,
+  getNeighborhoodsForDistrict,
+} from '@/lib/constants';
 import { formatPriceInput } from '@/lib/format';
-import { useCreateListing } from '@/lib/hooks';
-import type { TransactionType, PropertyType } from '@/types';
+import { useCreateListing, useUpdateListing } from '@/lib/hooks';
+import { supabase } from '@/lib/supabase';
+import DropdownPicker from '@/components/ui/DropdownPicker';
+import type { TransactionType, PropertyType, Listing } from '@/types';
+
+const CITY_OPTIONS = CITIES.map((c) => ({ key: c, label: c }));
+const ROOM_PICKER_OPTIONS = ROOM_OPTIONS.map((r) => ({ key: r, label: r }));
+const HEATING_PICKER_OPTIONS = HEATING_TYPES.map((h) => ({ key: h, label: h }));
 
 export default function CreateListingScreen() {
   const router = useRouter();
-  const { create, loading } = useCreateListing();
+  const { editId } = useLocalSearchParams<{ editId?: string }>();
+  const isEdit = !!editId;
+  const { create, loading: createLoading } = useCreateListing();
+  const { update, loading: updateLoading } = useUpdateListing();
+  const loading = createLoading || updateLoading;
+  const scrollRef = useRef<ScrollView>(null);
+  const [initialLoading, setInitialLoading] = useState(isEdit);
 
   const [transactionType, setTransactionType] = useState<TransactionType | null>(null);
   const [propertyType, setPropertyType] = useState<PropertyType | null>(null);
+  const [city, setCity] = useState('İstanbul');
   const [district, setDistrict] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [roomCount, setRoomCount] = useState('');
@@ -37,10 +59,67 @@ export default function CreateListingScreen() {
   const [hasParking, setHasParking] = useState(false);
   const [hasElevator, setHasElevator] = useState(false);
   const [heatingType, setHeatingType] = useState('');
+  const [ada, setAda] = useState('');
+  const [parsel, setParsel] = useState('');
   const [priceText, setPriceText] = useState('');
   const [description, setDescription] = useState('');
 
+  // Düzenleme modunda mevcut veriyi yükle
+  useEffect(() => {
+    if (!editId) return;
+    supabase
+      .from('listings')
+      .select('*')
+      .eq('id', editId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          const l = data as Listing;
+          setTransactionType(l.transaction_type);
+          setPropertyType(l.property_type);
+          setCity(l.city ?? 'İstanbul');
+          setDistrict(l.district);
+          setNeighborhood(l.neighborhood ?? '');
+          setRoomCount(l.room_count ?? '');
+          setNetArea(l.net_area?.toString() ?? '');
+          setGrossArea(l.gross_area?.toString() ?? '');
+          setFloor(l.floor?.toString() ?? '');
+          setTotalFloors(l.total_floors?.toString() ?? '');
+          setBuildingAge(l.building_age ?? '');
+          setHasParking(l.has_parking ?? false);
+          setHasElevator(l.has_elevator ?? false);
+          setHeatingType(l.heating_type ?? '');
+          setAda(l.ada ?? '');
+          setParsel(l.parsel ?? '');
+          setPriceText(l.price ? formatPriceInput(l.price.toString()) : '');
+          setDescription(l.description ?? '');
+        }
+        setInitialLoading(false);
+      });
+  }, [editId]);
+
   const isLand = propertyType === 'LAND';
+  const isUrbanRenewal = propertyType === 'URBAN_RENEWAL';
+
+  const districtOptions = useMemo(() => {
+    return (CITY_DISTRICTS[city] ?? []).map((d) => ({ key: d, label: d }));
+  }, [city]);
+
+  const neighborhoodOptions = useMemo(() => {
+    if (!district) return [];
+    return getNeighborhoodsForDistrict(city, district).map((n) => ({ key: n, label: n }));
+  }, [city, district]);
+
+  const handleCityChange = (c: string) => {
+    setCity(c);
+    setDistrict('');
+    setNeighborhood('');
+  };
+
+  const handleDistrictChange = (d: string) => {
+    setDistrict(d);
+    setNeighborhood('');
+  };
 
   const handlePriceChange = (text: string) => {
     setPriceText(formatPriceInput(text));
@@ -52,14 +131,15 @@ export default function CreateListingScreen() {
     if (!transactionType) return Alert.alert('Hata', 'İşlem tipi seçin.');
     if (!propertyType) return Alert.alert('Hata', 'Mülk tipi seçin.');
     if (!district) return Alert.alert('Hata', 'İlçe seçin.');
-    if (!priceText) return Alert.alert('Hata', 'Fiyat girin.');
+    if (!isUrbanRenewal && !priceText) return Alert.alert('Hata', 'Fiyat girin.');
 
-    const price = parsePrice(priceText);
-    if (price <= 0) return Alert.alert('Hata', 'Geçerli bir fiyat girin.');
+    const price = priceText ? parsePrice(priceText) : 0;
+    if (!isUrbanRenewal && price <= 0) return Alert.alert('Hata', 'Geçerli bir fiyat girin.');
 
-    const { error } = await create({
+    const listingData = {
       transaction_type: transactionType,
       property_type: propertyType,
+      city,
       district,
       neighborhood: neighborhood || null,
       room_count: roomCount || null,
@@ -67,40 +147,59 @@ export default function CreateListingScreen() {
       gross_area: grossArea ? Number(grossArea) : null,
       floor: floor ? Number(floor) : null,
       total_floors: totalFloors ? Number(totalFloors) : null,
-      building_age: buildingAge ? Number(buildingAge) : null,
-      has_parking: isLand ? null : hasParking,
-      has_elevator: isLand ? null : hasElevator,
-      heating_type: isLand ? null : heatingType || null,
+      building_age: buildingAge || null,
+      has_parking: isLand || isUrbanRenewal ? null : hasParking,
+      has_elevator: isLand || isUrbanRenewal ? null : hasElevator,
+      heating_type: isLand || isUrbanRenewal ? null : heatingType || null,
+      ada: isUrbanRenewal ? ada || null : null,
+      parsel: isUrbanRenewal ? parsel || null : null,
       price,
       description: description || null,
-    });
+    };
 
-    if (error) {
-      Alert.alert('Hata', error);
-      return;
+    if (isEdit && editId) {
+      const { error } = await update(editId, listingData);
+      if (error) {
+        Alert.alert('Hata', error);
+        return;
+      }
+      Alert.alert('Başarılı', 'İlan güncellendi.', [
+        { text: 'Tamam', onPress: () => router.back() },
+      ]);
+    } else {
+      const { error } = await create(listingData);
+      if (error) {
+        Alert.alert('Hata', error);
+        return;
+      }
+      Alert.alert('Başarılı', 'İlanınız yayınlandı.', [
+        { text: 'Tamam', onPress: () => router.back() },
+      ]);
     }
-
-    Alert.alert('Başarılı', 'İlanınız yayınlandı.', [
-      { text: 'Tamam', onPress: () => router.back() },
-    ]);
   };
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: 'İlan Oluştur',
+          title: isEdit ? 'İlanı Düzenle' : 'İlan Oluştur',
           headerShown: true,
           headerStyle: { backgroundColor: Colors.background },
           headerTintColor: Colors.text.primary,
         }}
       />
       <SafeAreaView style={styles.container} edges={['bottom']}>
+        {initialLoading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color={Colors.accent} />
+          </View>
+        ) : (
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <ScrollView
+            ref={scrollRef}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -108,129 +207,111 @@ export default function CreateListingScreen() {
             {/* İşlem Tipi */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>İşlem Tipi</Text>
-              <View style={styles.pillRow}>
-                {TRANSACTION_TYPES.map((t) => (
-                  <Pressable
-                    key={t.key}
-                    style={[
-                      styles.pill,
-                      transactionType === t.key && styles.pillSelected,
-                    ]}
-                    onPress={() => setTransactionType(t.key)}
-                  >
-                    <Text
-                      style={[
-                        styles.pillText,
-                        transactionType === t.key && styles.pillTextSelected,
-                      ]}
-                    >
-                      {t.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              <DropdownPicker
+                label="İşlem Tipi Seçin"
+                value={transactionType}
+                options={TRANSACTION_TYPES.map((t) => ({ key: t.key, label: t.label }))}
+                onSelect={(key) => setTransactionType(key as TransactionType)}
+                placeholder="Satılık / Kiralık"
+              />
             </View>
 
             {/* Mülk Tipi */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Mülk Tipi</Text>
-              <View style={styles.pillRow}>
-                {PROPERTY_TYPES.map((t) => (
-                  <Pressable
-                    key={t.key}
-                    style={[
-                      styles.pill,
-                      propertyType === t.key && styles.pillSelected,
-                    ]}
-                    onPress={() => setPropertyType(t.key)}
-                  >
-                    <Text
-                      style={[
-                        styles.pillText,
-                        propertyType === t.key && styles.pillTextSelected,
-                      ]}
-                    >
-                      {t.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              <DropdownPicker
+                label="Mülk Tipi Seçin"
+                value={propertyType}
+                options={PROPERTY_TYPES.map((t) => ({ key: t.key, label: t.label }))}
+                onSelect={(key) => setPropertyType(key as PropertyType)}
+                placeholder="Konut / Ticari / Arsa"
+              />
             </View>
 
             {/* Konum */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Konum</Text>
               <View style={styles.card}>
-                <Text style={styles.inputLabel}>İlçe</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.districtScroll}
-                >
-                  {DISTRICTS.filter((d) => d !== 'Hepsi').map((d) => (
-                    <Pressable
-                      key={d}
-                      style={[
-                        styles.chipSmall,
-                        district === d && styles.chipSmallSelected,
-                      ]}
-                      onPress={() => setDistrict(d)}
-                    >
-                      <Text
-                        style={[
-                          styles.chipSmallText,
-                          district === d && styles.chipSmallTextSelected,
-                        ]}
-                      >
-                        {d}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
-                <Text style={styles.inputLabel}>Mahalle</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Mahalle adı"
-                  placeholderTextColor={Colors.text.tertiary}
-                  value={neighborhood}
-                  onChangeText={setNeighborhood}
+                <Text style={styles.inputLabel}>Şehir</Text>
+                <DropdownPicker
+                  label="Şehir Seçin"
+                  value={city}
+                  options={CITY_OPTIONS}
+                  onSelect={handleCityChange}
+                  placeholder="Şehir seçin..."
                 />
+                <Text style={styles.inputLabel}>İlçe</Text>
+                <DropdownPicker
+                  label="İlçe Seçin"
+                  value={district || null}
+                  options={districtOptions}
+                  onSelect={handleDistrictChange}
+                  placeholder="İlçe seçin..."
+                />
+                {district && neighborhoodOptions.length > 0 && (
+                  <>
+                    <Text style={styles.inputLabel}>Mahalle</Text>
+                    <DropdownPicker
+                      label="Mahalle Seçin"
+                      value={neighborhood || null}
+                      options={neighborhoodOptions}
+                      onSelect={setNeighborhood}
+                      placeholder="Mahalle seçin..."
+                    />
+                  </>
+                )}
               </View>
             </View>
 
+            {/* Ada / Parsel (Kentsel Dönüşüm) */}
+            {isUrbanRenewal && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Ada / Parsel</Text>
+                <View style={styles.card}>
+                  <View style={styles.inputRow}>
+                    <View style={styles.inputHalf}>
+                      <Text style={styles.inputLabel}>Ada No</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="1234"
+                        placeholderTextColor={Colors.text.tertiary}
+                        keyboardType="numeric"
+                        value={ada}
+                        onChangeText={setAda}
+                      />
+                    </View>
+                    <View style={styles.inputHalf}>
+                      <Text style={styles.inputLabel}>Parsel No</Text>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="56"
+                        placeholderTextColor={Colors.text.tertiary}
+                        keyboardType="numeric"
+                        value={parsel}
+                        onChangeText={setParsel}
+                      />
+                    </View>
+                  </View>
+                </View>
+              </View>
+            )}
+
             {/* Oda Sayısı */}
-            {!isLand && (
+            {!isLand && !isUrbanRenewal && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Oda Sayısı</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.pillRow}
-                >
-                  {ROOM_OPTIONS.map((r) => (
-                    <Pressable
-                      key={r}
-                      style={[
-                        styles.pill,
-                        roomCount === r && styles.pillSelected,
-                      ]}
-                      onPress={() => setRoomCount(r)}
-                    >
-                      <Text
-                        style={[
-                          styles.pillText,
-                          roomCount === r && styles.pillTextSelected,
-                        ]}
-                      >
-                        {r}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </ScrollView>
+                <DropdownPicker
+                  label="Oda Sayısı Seçin"
+                  value={roomCount || null}
+                  options={ROOM_PICKER_OPTIONS}
+                  onSelect={setRoomCount}
+                  placeholder="Oda sayısı seçin..."
+                />
               </View>
             )}
 
             {/* Alan ve Kat */}
+            {!isUrbanRenewal && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Alan ve Kat</Text>
               <View style={styles.card}>
@@ -284,22 +365,28 @@ export default function CreateListingScreen() {
                         />
                       </View>
                     </View>
-                    <Text style={styles.inputLabel}>Bina Yaşı</Text>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="5"
-                      placeholderTextColor={Colors.text.tertiary}
-                      keyboardType="numeric"
-                      value={buildingAge}
-                      onChangeText={setBuildingAge}
-                    />
                   </>
                 )}
               </View>
             </View>
+            )}
+
+            {/* Bina Yaşı */}
+            {!isLand && !isUrbanRenewal && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Bina Yaşı</Text>
+                <DropdownPicker
+                  label="Bina Yaşı Seçin"
+                  value={buildingAge || null}
+                  options={BUILDING_AGE_OPTIONS}
+                  onSelect={setBuildingAge}
+                  placeholder="Bina yaşı seçin..."
+                />
+              </View>
+            )}
 
             {/* Özellikler */}
-            {!isLand && (
+            {!isLand && !isUrbanRenewal && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Özellikler</Text>
                 <View style={styles.card}>
@@ -331,34 +418,21 @@ export default function CreateListingScreen() {
             )}
 
             {/* Isıtma Tipi */}
-            {!isLand && (
+            {!isLand && !isUrbanRenewal && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Isıtma Tipi</Text>
-                <View style={styles.pillWrap}>
-                  {HEATING_TYPES.map((h) => (
-                    <Pressable
-                      key={h}
-                      style={[
-                        styles.pill,
-                        heatingType === h && styles.pillSelected,
-                      ]}
-                      onPress={() => setHeatingType(h)}
-                    >
-                      <Text
-                        style={[
-                          styles.pillText,
-                          heatingType === h && styles.pillTextSelected,
-                        ]}
-                      >
-                        {h}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
+                <DropdownPicker
+                  label="Isıtma Tipi Seçin"
+                  value={heatingType || null}
+                  options={HEATING_PICKER_OPTIONS}
+                  onSelect={setHeatingType}
+                  placeholder="Isıtma tipi seçin..."
+                />
               </View>
             )}
 
             {/* Fiyat */}
+            {!isUrbanRenewal && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Fiyat</Text>
               <View style={styles.card}>
@@ -375,6 +449,7 @@ export default function CreateListingScreen() {
                 />
               </View>
             </View>
+            )}
 
             {/* Açıklama */}
             <View style={styles.section}>
@@ -389,6 +464,9 @@ export default function CreateListingScreen() {
                   textAlignVertical="top"
                   value={description}
                   onChangeText={setDescription}
+                  onFocus={() => {
+                    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 300);
+                  }}
                 />
               </View>
             </View>
@@ -406,11 +484,12 @@ export default function CreateListingScreen() {
               {loading ? (
                 <ActivityIndicator color={Colors.text.inverse} />
               ) : (
-                <Text style={styles.submitButtonText}>İlanı Yayınla</Text>
+                <Text style={styles.submitButtonText}>{isEdit ? 'Güncelle' : 'İlanı Yayınla'}</Text>
               )}
             </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>
+        )}
       </SafeAreaView>
     </>
   );
@@ -438,53 +517,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     ...Shadows.sm,
-  },
-  pillRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  pillWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  pill: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.borderLight,
-  },
-  pillSelected: {
-    backgroundColor: Colors.primary,
-  },
-  pillText: {
-    ...Typography.footnote,
-    fontWeight: '600',
-    color: Colors.text.secondary,
-  },
-  pillTextSelected: {
-    color: Colors.text.inverse,
-  },
-  districtScroll: {
-    marginBottom: Spacing.lg,
-  },
-  chipSmall: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.borderLight,
-    marginRight: Spacing.sm,
-  },
-  chipSmallSelected: {
-    backgroundColor: Colors.primary,
-  },
-  chipSmallText: {
-    ...Typography.caption1,
-    fontWeight: '600',
-    color: Colors.text.secondary,
-  },
-  chipSmallTextSelected: {
-    color: Colors.text.inverse,
   },
   inputLabel: {
     ...Typography.footnote,
