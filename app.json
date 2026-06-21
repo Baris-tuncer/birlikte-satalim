@@ -46,9 +46,6 @@
         }
       ],
       [
-        "expo-apple-authentication"
-      ],
-      [
         "expo-camera",
         {
           "cameraPermission": "Yetki belgesindeki QR kodu okutmak için kamera erişimi gereklidir."

@@ -44,9 +44,12 @@ export default function VerifyEmailScreen() {
     }
 
     pollRef.current = setInterval(async () => {
-      const { data, error } = await supabase.auth.refreshSession();
-      if (!error && data.session?.user?.email_confirmed_at) {
+      // getUser() veritabanından direkt sorgular — refreshSession'dan daha güvenilir
+      const { data, error } = await supabase.auth.getUser();
+      if (!error && data.user?.email_confirmed_at) {
         if (pollRef.current) clearInterval(pollRef.current);
+        // Session'ı da yenile ki auth-context güncellensin
+        await supabase.auth.refreshSession();
         router.replace('/(auth)/license-upload');
       }
     }, POLL_INTERVAL);

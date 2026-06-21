@@ -1,12 +1,14 @@
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Linking from 'expo-linking';
 import { useEffect, useRef } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Theme';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
+import { supabase } from '@/lib/supabase';
 import { registerForPushNotifications, addNotificationListeners, clearBadgeCount } from '@/lib/notifications';
 import AnimatedSplash from '@/components/ui/AnimatedSplash';
 import AppErrorBoundary from '@/components/ui/ErrorBoundary';
@@ -23,6 +25,32 @@ function RootLayoutNav() {
   const segments = useSegments();
   const { isLoggedIn, isLoading, emailVerified, licenseStatus, profile } = useAuth();
   const notificationCleanup = useRef<(() => void) | null>(null);
+
+  // Deep link ile gelen Supabase auth callback'lerini yakala
+  useEffect(() => {
+    const handleUrl = (url: string) => {
+      if (!url) return;
+      // Fragment'tan (#) access_token ve refresh_token çıkar
+      const hashPart = url.split('#')[1];
+      if (!hashPart) return;
+      const params = new URLSearchParams(hashPart);
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      if (accessToken && refreshToken) {
+        supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+      }
+    };
+
+    // Uygulama açıkken gelen deep link'leri dinle
+    const subscription = Linking.addEventListener('url', ({ url }) => handleUrl(url));
+
+    // Uygulama kapalıyken gelen deep link'i kontrol et
+    Linking.getInitialURL().then((url) => {
+      if (url) handleUrl(url);
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   // Push bildirim kaydı
   useEffect(() => {
