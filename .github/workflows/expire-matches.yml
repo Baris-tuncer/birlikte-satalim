@@ -1,0 +1,16 @@
+name: Expire Pending Matches
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # Her gün UTC 03:00 (Türkiye 06:00)
+
+jobs:
+  expire:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call expire-matches edge function
+        run: |
+          curl -s -X POST \
+            "https://rjhhrcoorayrqwotfqbc.supabase.co/functions/v1/expire-matches" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json"
