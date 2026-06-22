@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -12,11 +12,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Typography, Spacing, Shadows } from '@/constants/Theme';
 import FilterBar from '@/components/ui/FilterBar';
 import ListingCard from '@/components/ui/ListingCard';
 import { useListings, useMatchActions, useUpdateListing } from '@/lib/hooks';
 import { useAuth } from '@/lib/auth-context';
+import { checkNotificationPermission, registerForPushNotifications } from '@/lib/notifications';
 import type { Listing } from '@/types';
 
 export default function ListingsScreen() {
@@ -40,6 +42,27 @@ export default function ListingsScreen() {
   const { update: updateListingStatus } = useUpdateListing();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [showNotifBanner, setShowNotifBanner] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const dismissed = await AsyncStorage.getItem('notif_banner_dismissed');
+      if (dismissed) return;
+      const granted = await checkNotificationPermission();
+      if (!granted) setShowNotifBanner(true);
+    })();
+  }, []);
+
+  const handleEnableNotifications = useCallback(async () => {
+    if (!profile?.id) return;
+    const token = await registerForPushNotifications(profile.id, false);
+    if (token) setShowNotifBanner(false);
+  }, [profile?.id]);
+
+  const handleDismissBanner = useCallback(async () => {
+    setShowNotifBanner(false);
+    await AsyncStorage.setItem('notif_banner_dismissed', 'true');
+  }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -125,6 +148,24 @@ export default function ListingsScreen() {
         keyExtractor={keyExtractor}
         ListHeaderComponent={
           <View>
+            {showNotifBanner && (
+              <View style={styles.notifBanner}>
+                <View style={styles.notifBannerContent}>
+                  <Ionicons name="notifications-off-outline" size={20} color={Colors.warning} />
+                  <Text style={styles.notifBannerText}>
+                    Bildirimleri açın, bölgenizde paylaşılan portföyleri kaçırmayın
+                  </Text>
+                </View>
+                <View style={styles.notifBannerActions}>
+                  <Pressable style={styles.notifEnableBtn} onPress={handleEnableNotifications}>
+                    <Text style={styles.notifEnableBtnText}>Etkinleştir</Text>
+                  </Pressable>
+                  <Pressable onPress={handleDismissBanner} hitSlop={8}>
+                    <Ionicons name="close" size={20} color={Colors.text.tertiary} />
+                  </Pressable>
+                </View>
+              </View>
+            )}
             <View style={styles.header}>
               <View>
                 <Text style={styles.title}>İlanlar</Text>
@@ -248,5 +289,41 @@ const styles = StyleSheet.create({
     ...Typography.subhead,
     color: Colors.text.secondary,
     textAlign: 'center',
+  },
+  notifBanner: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  notifBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  notifBannerText: {
+    ...Typography.footnote,
+    color: '#92400E',
+    flex: 1,
+  },
+  notifBannerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  notifEnableBtn: {
+    backgroundColor: Colors.warning,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xs,
+    borderRadius: 8,
+  },
+  notifEnableBtnText: {
+    ...Typography.footnote,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

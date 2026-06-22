@@ -93,6 +93,17 @@ export async function registerForPushNotifications(userId: string, silent = true
   }
 }
 
+// Bildirim izin durumunu kontrol et
+export async function checkNotificationPermission(): Promise<boolean> {
+  try {
+    if (!Device.isDevice) return false;
+    const { status } = await Notifications.getPermissionsAsync();
+    return status === 'granted';
+  } catch {
+    return false;
+  }
+}
+
 // Bildirim dinleyicileri ekle
 export function addNotificationListeners(callbacks: {
   onReceive?: (notification: Notifications.Notification) => void;

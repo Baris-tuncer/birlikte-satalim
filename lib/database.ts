@@ -203,6 +203,32 @@ export async function sendMatchRequest(match: {
     return { data: null, error: `Bu eşleşme talebi zaten gönderildi (${statusText}).` };
   }
 
+  // Günlük toplam eşleşme talep limiti (10)
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const { count: dailyCount } = await supabase
+    .from('matches')
+    .select('*', { count: 'exact', head: true })
+    .eq('requester_id', match.requester_id)
+    .gte('created_at', startOfDay.toISOString());
+
+  if ((dailyCount ?? 0) >= 10) {
+    return { data: null, error: 'Günlük eşleşme talep limitine ulaştınız (10). Yarın tekrar deneyin.' };
+  }
+
+  // Aynı kullanıcıya günlük limit (2)
+  const { count: targetDailyCount } = await supabase
+    .from('matches')
+    .select('*', { count: 'exact', head: true })
+    .eq('requester_id', match.requester_id)
+    .eq('target_id', match.target_id)
+    .gte('created_at', startOfDay.toISOString());
+
+  if ((targetDailyCount ?? 0) >= 2) {
+    return { data: null, error: 'Bu kullanıcıya bugün zaten 2 eşleşme talebi gönderdiniz.' };
+  }
+
   const { data, error } = await supabase
     .from('matches')
     .insert({ ...match, status: 'PENDING' })
