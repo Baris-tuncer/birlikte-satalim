@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { isValidUUID } from './format';
 import type {
   User,
   Listing,
@@ -294,6 +295,10 @@ export async function respondToMatch(matchId: string, status: 'ACCEPTED' | 'REJE
 }
 
 export async function getMyMatches(userId: string) {
+  if (!isValidUUID(userId)) {
+    return { data: [], error: 'Geçersiz kullanıcı kimliği.' };
+  }
+
   const { data, error } = await supabase
     .from('matches')
     .select('*, requester:users!requester_id(*), target:users!target_id(*), listing:listings(*), demand:buyer_demands(*)')

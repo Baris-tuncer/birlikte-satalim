@@ -97,19 +97,41 @@ export default function LicenseUploadScreen() {
         return;
       }
 
+      // Dosya uzantısı kontrolü
+      const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'heic', 'heif'];
+      const ext = (imageUri.split('.').pop() ?? '').toLowerCase();
+      if (!ALLOWED_EXTENSIONS.includes(ext)) {
+        Alert.alert('Hata', 'Sadece JPG, PNG veya HEIC formatında dosya yükleyebilirsiniz.');
+        setUploading(false);
+        return;
+      }
+
       // Dosyayı Supabase Storage'a yükle
-      const ext = imageUri.split('.').pop() ?? 'jpg';
       const fileName = `${user?.id ?? 'unknown'}_${Date.now()}.${ext}`;
       const filePath = `licenses/${fileName}`;
 
       const response = await fetch(imageUri);
       const blob = await response.blob();
+
+      // Dosya boyutu kontrolü (max 10MB)
+      const MAX_FILE_SIZE = 10 * 1024 * 1024;
+      if (blob.size > MAX_FILE_SIZE) {
+        Alert.alert('Hata', 'Dosya boyutu 10MB\'dan küçük olmalıdır.');
+        setUploading(false);
+        return;
+      }
+
       const arrayBuffer = await new Response(blob).arrayBuffer();
+
+      // MIME tipi doğrulama
+      const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/heic', 'image/heif'];
+      const mimeType = blob.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+      const contentType = ALLOWED_MIME_TYPES.includes(mimeType) ? mimeType : `image/${ext === 'jpg' ? 'jpeg' : ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from('documents')
         .upload(filePath, arrayBuffer, {
-          contentType: `image/${ext}`,
+          contentType,
           upsert: true,
         });
 

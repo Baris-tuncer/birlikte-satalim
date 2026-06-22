@@ -121,6 +121,12 @@ export default function CreateDemandScreen() {
 
     if (minBudget <= 0 || maxBudget <= 0) return Alert.alert('Hata', 'Geçerli bir bütçe girin.');
     if (minBudget > maxBudget) return Alert.alert('Hata', 'Min bütçe max bütçeden büyük olamaz.');
+    if (maxBudget > 50_000_000_000) return Alert.alert('Hata', 'Bütçe 50 milyar TL\'yi geçemez.');
+
+    if (notes.length > 500) return Alert.alert('Hata', 'Notlar en fazla 500 karakter olabilir.');
+    if (minArea && (Number(minArea) <= 0 || Number(minArea) > 100_000)) return Alert.alert('Hata', 'Geçerli bir alan girin.');
+    if (maxFloor && (Number(maxFloor) <= 0 || Number(maxFloor) > 100)) return Alert.alert('Hata', 'Geçerli bir kat sayısı girin.');
+    if (selectedNeighborhoods.length > 20) return Alert.alert('Hata', 'En fazla 20 mahalle seçebilirsiniz.');
 
     const demandData = {
       transaction_type: transactionType,
@@ -351,6 +357,7 @@ export default function CreateDemandScreen() {
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
+                  maxLength={500}
                   value={notes}
                   onChangeText={setNotes}
                   onFocus={() => {

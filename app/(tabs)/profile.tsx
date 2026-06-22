@@ -191,6 +191,40 @@ export default function ProfileScreen() {
   };
 
   const [deleting, setDeleting] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [passwordSaving, setPasswordSaving] = useState(false);
+
+  const handleChangePassword = useCallback(async () => {
+    if (newPassword.length < 8) {
+      Alert.alert('Hata', 'Şifre en az 8 karakter olmalı.');
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      Alert.alert('Hata', 'Şifre en az 1 büyük harf içermeli.');
+      return;
+    }
+    if (!/\d/.test(newPassword)) {
+      Alert.alert('Hata', 'Şifre en az 1 rakam içermeli.');
+      return;
+    }
+    if (newPassword !== newPasswordConfirm) {
+      Alert.alert('Hata', 'Şifreler uyuşmuyor.');
+      return;
+    }
+    setPasswordSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPasswordSaving(false);
+    if (error) {
+      Alert.alert('Hata', error.message);
+      return;
+    }
+    setPasswordVisible(false);
+    setNewPassword('');
+    setNewPasswordConfirm('');
+    Alert.alert('Başarılı', 'Şifreniz güncellendi.');
+  }, [newPassword, newPasswordConfirm]);
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -410,6 +444,23 @@ export default function ProfileScreen() {
           <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
         </Pressable>
 
+        {/* Şifre Değiştir */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.adminButton,
+            pressed && { opacity: 0.9 },
+          ]}
+          onPress={() => {
+            setNewPassword('');
+            setNewPasswordConfirm('');
+            setPasswordVisible(true);
+          }}
+        >
+          <Ionicons name="key-outline" size={20} color={Colors.accent} />
+          <Text style={styles.adminButtonText}>Şifre Değiştir</Text>
+          <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+        </Pressable>
+
         {/* Çıkış butonu */}
         <Pressable
           style={({ pressed }) => [
@@ -499,6 +550,60 @@ export default function ProfileScreen() {
                 <ActivityIndicator color={Colors.text.inverse} />
               ) : (
                 <Text style={styles.modalSaveBtnText}>Kaydet</Text>
+              )}
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+      {/* Change Password Modal */}
+      <Modal visible={passwordVisible} animationType="slide" transparent>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Şifre Değiştir</Text>
+              <Pressable onPress={() => setPasswordVisible(false)} hitSlop={8}>
+                <Ionicons name="close" size={24} color={Colors.text.primary} />
+              </Pressable>
+            </View>
+
+            <Text style={styles.modalLabel}>Yeni Şifre</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder="En az 8 karakter, 1 büyük harf, 1 rakam"
+              placeholderTextColor={Colors.text.tertiary}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+
+            <Text style={styles.modalLabel}>Yeni Şifre Tekrar</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={newPasswordConfirm}
+              onChangeText={setNewPasswordConfirm}
+              placeholder="Şifreyi tekrar girin"
+              placeholderTextColor={Colors.text.tertiary}
+              secureTextEntry
+              autoCapitalize="none"
+            />
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.modalSaveBtn,
+                pressed && { opacity: 0.9 },
+                passwordSaving && { opacity: 0.7 },
+              ]}
+              onPress={handleChangePassword}
+              disabled={passwordSaving}
+            >
+              {passwordSaving ? (
+                <ActivityIndicator color={Colors.text.inverse} />
+              ) : (
+                <Text style={styles.modalSaveBtnText}>Şifreyi Güncelle</Text>
               )}
             </Pressable>
           </View>

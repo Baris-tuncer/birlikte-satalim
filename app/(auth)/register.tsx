@@ -69,13 +69,17 @@ export default function RegisterScreen() {
 
   const allChecked = checkboxes.every((c) => c.checked);
   const passwordsMatch = password === passwordConfirm;
+  const passwordHasUpper = /[A-Z]/.test(password);
+  const passwordHasNumber = /\d/.test(password);
+  const passwordLongEnough = password.length >= 8;
+  const passwordStrong = passwordLongEnough && passwordHasUpper && passwordHasNumber;
   const isValid =
     name.trim().length >= 2 &&
     companyName.trim().length >= 2 &&
     email.includes('@') &&
     email.includes('.') &&
     phone.replace(/\D/g, '').length >= 10 &&
-    password.length >= 6 &&
+    passwordStrong &&
     passwordsMatch &&
     allChecked;
 
@@ -197,7 +201,7 @@ export default function RegisterScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Şifre (en az 6 karakter)"
+                placeholder="Şifre (en az 8 karakter, 1 büyük harf, 1 rakam)"
                 placeholderTextColor={Colors.text.tertiary}
                 value={password}
                 onChangeText={setPassword}
@@ -227,6 +231,13 @@ export default function RegisterScreen() {
               autoCapitalize="none"
             />
 
+            {password.length > 0 && !passwordStrong && (
+              <Text style={styles.errorText}>
+                {!passwordLongEnough ? 'Şifre en az 8 karakter olmalı' :
+                 !passwordHasUpper ? 'Şifre en az 1 büyük harf içermeli' :
+                 'Şifre en az 1 rakam içermeli'}
+              </Text>
+            )}
             {password.length > 0 && passwordConfirm.length > 0 && !passwordsMatch && (
               <Text style={styles.errorText}>Şifreler uyuşmuyor</Text>
             )}

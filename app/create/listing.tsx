@@ -135,6 +135,13 @@ export default function CreateListingScreen() {
 
     const price = priceText ? parsePrice(priceText) : 0;
     if (!isUrbanRenewal && price <= 0) return Alert.alert('Hata', 'Geçerli bir fiyat girin.');
+    if (price > 50_000_000_000) return Alert.alert('Hata', 'Fiyat 50 milyar TL\'yi geçemez.');
+
+    if (description.length > 500) return Alert.alert('Hata', 'Açıklama en fazla 500 karakter olabilir.');
+    if (netArea && (Number(netArea) <= 0 || Number(netArea) > 100_000)) return Alert.alert('Hata', 'Geçerli bir net alan girin.');
+    if (grossArea && (Number(grossArea) <= 0 || Number(grossArea) > 100_000)) return Alert.alert('Hata', 'Geçerli bir brüt alan girin.');
+    if (floor && (Number(floor) < -5 || Number(floor) > 100)) return Alert.alert('Hata', 'Geçerli bir kat numarası girin.');
+    if (totalFloors && (Number(totalFloors) <= 0 || Number(totalFloors) > 100)) return Alert.alert('Hata', 'Geçerli bir toplam kat sayısı girin.');
 
     const listingData = {
       transaction_type: transactionType,
@@ -462,6 +469,7 @@ export default function CreateListingScreen() {
                   multiline
                   numberOfLines={4}
                   textAlignVertical="top"
+                  maxLength={500}
                   value={description}
                   onChangeText={setDescription}
                   onFocus={() => {
