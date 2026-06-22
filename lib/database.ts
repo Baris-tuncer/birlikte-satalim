@@ -347,6 +347,26 @@ export async function reviewLicense(
   return { error: error?.message };
 }
 
+// ─── PLATFORM STATS ──────────────────────────────────
+
+export async function getPlatformStats() {
+  const [listingsResult, demandsResult] = await Promise.all([
+    supabase
+      .from('listings')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'ACTIVE'),
+    supabase
+      .from('buyer_demands')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'ACTIVE'),
+  ]);
+
+  return {
+    activeListings: listingsResult.count ?? 0,
+    activeDemands: demandsResult.count ?? 0,
+  };
+}
+
 // ─── NEIGHBORHOOD PRICES ──────────────────────────────
 
 export async function getNeighborhoodPrice(district: string, neighborhood: string, propertyType: PropertyType) {

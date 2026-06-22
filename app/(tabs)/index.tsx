@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors, Typography, Spacing, Shadows } from '@/constants/Theme';
 import FilterBar from '@/components/ui/FilterBar';
 import ListingCard from '@/components/ui/ListingCard';
-import { useListings, useMatchActions, useUpdateListing } from '@/lib/hooks';
+import { useListings, useMatchActions, useUpdateListing, usePlatformStats } from '@/lib/hooks';
 import { useAuth } from '@/lib/auth-context';
 import { checkNotificationPermission, registerForPushNotifications } from '@/lib/notifications';
 import type { Listing } from '@/types';
@@ -40,6 +40,7 @@ export default function ListingsScreen() {
   });
   const { send: sendMatch } = useMatchActions();
   const { update: updateListingStatus } = useUpdateListing();
+  const { activeListings, activeDemands } = usePlatformStats();
 
   const [refreshing, setRefreshing] = useState(false);
   const [showNotifBanner, setShowNotifBanner] = useState(false);
@@ -166,6 +167,24 @@ export default function ListingsScreen() {
                 </View>
               </View>
             )}
+            {(activeListings > 0 || activeDemands > 0) && (
+              <View style={styles.statsBar}>
+                <View style={styles.statItem}>
+                  <Ionicons name="business-outline" size={14} color={Colors.accent} />
+                  <Text style={styles.statText}>
+                    <Text style={styles.statNumber}>{activeListings}</Text> aktif ilan
+                  </Text>
+                </View>
+                <View style={styles.statDot} />
+                <View style={styles.statItem}>
+                  <Ionicons name="people-outline" size={14} color={Colors.accent} />
+                  <Text style={styles.statText}>
+                    <Text style={styles.statNumber}>{activeDemands}</Text> müşteri talebi
+                  </Text>
+                </View>
+              </View>
+            )}
+
             <View style={styles.header}>
               <View>
                 <Text style={styles.title}>İlanlar</Text>
@@ -289,6 +308,37 @@ const styles = StyleSheet.create({
     ...Typography.subhead,
     color: Colors.text.secondary,
     textAlign: 'center',
+  },
+  statsBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    backgroundColor: Colors.accent + '0D',
+    borderRadius: 10,
+    gap: Spacing.sm,
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  statText: {
+    ...Typography.footnote,
+    color: Colors.text.secondary,
+  },
+  statNumber: {
+    fontWeight: '700',
+    color: Colors.accent,
+  },
+  statDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.text.tertiary,
   },
   notifBanner: {
     marginHorizontal: Spacing.lg,

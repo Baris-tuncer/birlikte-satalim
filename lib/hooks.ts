@@ -6,6 +6,7 @@ import {
   getMyDemands,
   getMyMatches,
   getPendingMatchCount,
+  getPlatformStats,
   sendMatchRequest,
   respondToMatch,
   createListing,
@@ -535,6 +536,23 @@ export function useUpdateDemand() {
   );
 
   return { update, loading };
+}
+
+// ─── PLATFORM STATS ─────────────────────────────────
+
+export function usePlatformStats() {
+  const [stats, setStats] = useState({ activeListings: 0, activeDemands: 0 });
+
+  useEffect(() => {
+    if (__DEV__) {
+      setStats({ activeListings: mockListings.length, activeDemands: mockDemands.length });
+      return;
+    }
+
+    getPlatformStats().then(setStats).catch(() => {});
+  }, []);
+
+  return stats;
 }
 
 // ─── UNREAD NOTIFICATION COUNT ───────────────────────
