@@ -87,6 +87,19 @@ export async function getMyListings(agentId: string) {
 }
 
 export async function createListing(listing: Omit<Listing, 'id' | 'created_at' | 'updated_at' | 'agent'>) {
+  // Günlük ilan limiti (10)
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const { count: dailyCount } = await supabase
+    .from('listings')
+    .select('*', { count: 'exact', head: true })
+    .eq('agent_id', listing.agent_id)
+    .gte('created_at', startOfDay.toISOString());
+
+  if ((dailyCount ?? 0) >= 10) {
+    return { data: null, error: 'Günlük ilan ekleme limitine ulaştınız (10). Yarın tekrar deneyin.' };
+  }
+
   const { data, error } = await supabase
     .from('listings')
     .insert(listing)
@@ -155,6 +168,19 @@ export async function getMyDemands(agentId: string) {
 }
 
 export async function createDemand(demand: Omit<BuyerDemand, 'id' | 'created_at' | 'updated_at' | 'agent'>) {
+  // Günlük talep limiti (10)
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const { count: dailyCount } = await supabase
+    .from('buyer_demands')
+    .select('*', { count: 'exact', head: true })
+    .eq('agent_id', demand.agent_id)
+    .gte('created_at', startOfDay.toISOString());
+
+  if ((dailyCount ?? 0) >= 10) {
+    return { data: null, error: 'Günlük talep ekleme limitine ulaştınız (10). Yarın tekrar deneyin.' };
+  }
+
   const { data, error } = await supabase
     .from('buyer_demands')
     .insert(demand)
