@@ -16,6 +16,7 @@ interface AuthState {
   user: AuthUser | null;
   profile: AppUser | null;
   isLoading: boolean;
+  profileLoading: boolean;
   isLoggedIn: boolean;
   emailVerified: boolean;
   licenseStatus: 'none' | 'pending' | 'approved' | 'rejected';
@@ -48,6 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user: null,
     profile: null,
     isLoading: true,
+    profileLoading: false,
     isLoggedIn: false,
     emailVerified: false,
     licenseStatus: 'none',
@@ -55,14 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Kullanıcı profili çek (users tablosundan)
   const fetchProfile = useCallback(async (authId: string) => {
+    setState((prev) => ({ ...prev, profileLoading: true }));
     const { data } = await getUserProfile(authId);
-    if (data) {
-      setState((prev) => ({
-        ...prev,
-        profile: data,
-        licenseStatus: data.license_status,
-      }));
-    }
+    setState((prev) => ({
+      ...prev,
+      profile: data ?? prev.profile,
+      licenseStatus: data?.license_status ?? prev.licenseStatus,
+      profileLoading: false,
+    }));
   }, []);
 
   // Supabase session dinle

@@ -23,7 +23,7 @@ SplashScreen.preventAutoHideAsync();
 function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
-  const { isLoggedIn, isLoading, emailVerified, licenseStatus, profile } = useAuth();
+  const { isLoggedIn, isLoading, profileLoading, emailVerified, licenseStatus, profile } = useAuth();
   const notificationCleanup = useRef<(() => void) | null>(null);
 
   // Deep link ile gelen Supabase auth callback'lerini yakala
@@ -95,18 +95,21 @@ function RootLayoutNav() {
     if (inLegalGroup) return;
     if (segments[0] === 'reset-password') return;
 
+    // Profil henüz yükleniyorsa yönlendirme yapma (döngü önleme)
+    if (isLoggedIn && emailVerified && profileLoading) return;
+
     if (!isLoggedIn && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (isLoggedIn && !emailVerified && !inAuthGroup) {
       router.replace('/(auth)/verify-email');
     } else if (isLoggedIn && emailVerified && licenseStatus === 'none' && !inAuthGroup) {
       router.replace('/(auth)/license-upload');
-    } else if (isLoggedIn && emailVerified && licenseStatus === 'pending' && !inAuthGroup) {
+    } else if (isLoggedIn && emailVerified && (licenseStatus === 'pending' || licenseStatus === 'rejected') && !inAuthGroup) {
       router.replace('/(auth)/approval-pending');
     } else if (isLoggedIn && emailVerified && licenseStatus === 'approved' && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [isLoggedIn, isLoading, emailVerified, segments, licenseStatus]);
+  }, [isLoggedIn, isLoading, profileLoading, emailVerified, segments, licenseStatus]);
 
   return (
     <>
