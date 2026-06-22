@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { StyleSheet, Text, View, Pressable, Alert, ScrollView, Image, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Alert, ScrollView, Image, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -397,6 +397,19 @@ export default function ProfileScreen() {
           </Pressable>
         )}
 
+        {/* WhatsApp Destek Hattı */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.supportButton,
+            pressed && { opacity: 0.9 },
+          ]}
+          onPress={() => Linking.openURL('https://wa.me/905332951303?text=Merhaba, Beraber Satalım uygulaması hakkında destek almak istiyorum.')}
+        >
+          <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
+          <Text style={styles.supportButtonText}>Destek Hattı</Text>
+          <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+        </Pressable>
+
         {/* Çıkış butonu */}
         <Pressable
           style={({ pressed }) => [
@@ -682,6 +695,21 @@ const styles = StyleSheet.create({
   adminButtonText: {
     ...Typography.headline,
     color: Colors.accent,
+    flex: 1,
+  },
+  supportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+    marginBottom: Spacing.xl,
+    ...Shadows.sm,
+  },
+  supportButtonText: {
+    ...Typography.headline,
+    color: '#25D366',
     flex: 1,
   },
   logoutButton: {

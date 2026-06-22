@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
+import { getPendingAuth, clearPendingAuth } from '@/lib/pending-auth';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
 
 const RESEND_COOLDOWN = 60;
@@ -34,7 +35,8 @@ export default function VerifyEmailScreen() {
     }
   }, [emailVerified, router]);
 
-  // Polling: email_confirmed_at kontrol
+  // Polling: signInWithPassword ile email doğrulanmış mı kontrol et
+  // Signup sonrası session oluşmadığı için getUser() çalışmaz
   useEffect(() => {
     if (SKIP_AUTH_IN_DEV) {
       const timeout = setTimeout(() => {
@@ -43,13 +45,17 @@ export default function VerifyEmailScreen() {
       return () => clearTimeout(timeout);
     }
 
+    const { email, password } = getPendingAuth();
+    if (!email || !password) return;
+
     pollRef.current = setInterval(async () => {
-      // getUser() veritabanından direkt sorgular — refreshSession'dan daha güvenilir
-      const { data, error } = await supabase.auth.getUser();
-      if (!error && data.user?.email_confirmed_at) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (!error && data.session?.user?.email_confirmed_at) {
         if (pollRef.current) clearInterval(pollRef.current);
-        // Session'ı da yenile ki auth-context güncellensin
-        await supabase.auth.refreshSession();
+        clearPendingAuth();
         router.replace('/(auth)/license-upload');
       }
     }, POLL_INTERVAL);

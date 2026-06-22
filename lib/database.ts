@@ -44,8 +44,9 @@ interface ListingFilters {
 export async function getListings(filters?: ListingFilters) {
   let query = supabase
     .from('listings')
-    .select('*, agent:users(*)')
+    .select('*, agent:users!inner(*)')
     .eq('status', 'ACTIVE')
+    .eq('agent.is_admin', false)
     .order('created_at', { ascending: false });
 
   if (filters?.city) {
@@ -117,8 +118,9 @@ interface DemandFilters {
 export async function getDemands(filters?: DemandFilters) {
   let query = supabase
     .from('buyer_demands')
-    .select('*, agent:users(*)')
+    .select('*, agent:users!inner(*)')
     .eq('status', 'ACTIVE')
+    .eq('agent.is_admin', false)
     .order('created_at', { ascending: false });
 
   if (filters?.city) {

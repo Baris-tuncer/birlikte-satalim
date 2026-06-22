@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               company_name: params.companyName,
               phone: params.phone,
             },
-            emailRedirectTo: 'berabersatalim://verify-email',
+            emailRedirectTo: 'https://berabersatalim.com/auth/callback',
           },
         });
         if (error) return { error: error.message };
@@ -164,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async (email: string): Promise<{ error: string | null }> => {
       try {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: 'berabersatalim://reset-password',
+          redirectTo: 'https://berabersatalim.com/auth/callback',
         });
         if (error) return { error: error.message };
         return { error: null };

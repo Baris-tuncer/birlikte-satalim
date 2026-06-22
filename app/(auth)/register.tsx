@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import { useAuth } from '@/lib/auth-context';
+import { setPendingAuth } from '@/lib/pending-auth';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
 
 interface LegalCheckbox {
@@ -118,6 +119,7 @@ export default function RegisterScreen() {
       return;
     }
 
+    setPendingAuth(email.trim(), password);
     router.push('/(auth)/verify-email');
   }, [isValid, passwordsMatch, email, password, name, companyName, phone, signUp, router]);
 

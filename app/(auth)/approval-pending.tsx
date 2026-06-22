@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, Pressable, Animated, Easing, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Pressable, Animated, Easing, ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
@@ -100,6 +100,19 @@ export default function ApprovalPendingScreen() {
             </View>
           ))}
         </View>
+
+        {/* WhatsApp Destek */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.supportButton,
+            pressed && { opacity: 0.9 },
+          ]}
+          onPress={() => Linking.openURL('https://wa.me/905332951303?text=Merhaba, Beraber Satalım uygulaması hakkında destek almak istiyorum.')}
+        >
+          <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
+          <Text style={styles.supportText}>Destek Hattı</Text>
+          <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+        </Pressable>
 
         {/* Sign Out Button */}
         <Pressable
@@ -238,6 +251,23 @@ const styles = StyleSheet.create({
   bottomSection: {
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing['3xl'],
+  },
+  supportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.sm,
+    width: '100%',
+    marginTop: Spacing['2xl'],
+    marginBottom: Spacing.lg,
+    ...Shadows.sm,
+  },
+  supportText: {
+    ...Typography.headline,
+    color: '#25D366',
+    flex: 1,
   },
   signOutButton: {
     flexDirection: 'row',
