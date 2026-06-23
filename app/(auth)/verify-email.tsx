@@ -120,8 +120,16 @@ export default function VerifyEmailScreen() {
 
         <Text style={styles.instruction}>
           Lütfen e-posta kutunuzu kontrol edin ve bağlantıya tıklayarak
-          hesabınızı doğrulayın. Spam klasörünü de kontrol etmeyi unutmayın.
+          hesabınızı doğrulayın.
         </Text>
+
+        {/* Spam uyarısı */}
+        <View style={styles.spamWarning}>
+          <Ionicons name="warning-outline" size={18} color={Colors.warning} />
+          <Text style={styles.spamWarningText}>
+            E-postayı bulamıyorsanız <Text style={styles.spamBold}>Spam / Gereksiz</Text> klasörünü kontrol edin. Mesajı "Gereksiz değil" olarak işaretlemeyi unutmayın.
+          </Text>
+        </View>
 
         {/* Bekleme göstergesi */}
         <View style={styles.pollingRow}>
@@ -211,7 +219,28 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  spamWarning: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#FEF3C7',
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    gap: Spacing.sm,
     marginBottom: Spacing['2xl'],
+    marginHorizontal: Spacing.sm,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  spamWarningText: {
+    ...Typography.footnote,
+    color: '#92400E',
+    flex: 1,
+    lineHeight: 20,
+  },
+  spamBold: {
+    fontWeight: '700',
   },
   pollingRow: {
     flexDirection: 'row',
