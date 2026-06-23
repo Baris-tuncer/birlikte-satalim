@@ -79,7 +79,7 @@ export async function registerForPushNotifications(userId: string, silent = true
     }
 
     if (upsertError) {
-      console.error('Push token kaydedilemedi:', upsertError);
+      // Push token kaydedilemedi
       if (!silent) Alert.alert('Hata', 'Bildirim kaydı yapılamadı: ' + upsertError.message);
       return null;
     }
@@ -87,7 +87,7 @@ export async function registerForPushNotifications(userId: string, silent = true
     if (!silent) Alert.alert('Başarılı', 'Bildirimler etkinleştirildi.');
     return token;
   } catch (e: any) {
-    console.error('Push bildirim kayit hatasi:', e);
+    // Push bildirim kayıt hatası
     if (!silent) Alert.alert('Hata', 'Bildirim kurulumu başarısız: ' + (e?.message ?? 'Bilinmeyen hata'));
     return null;
   }

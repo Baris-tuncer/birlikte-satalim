@@ -39,7 +39,7 @@ async function triggerAutoMatchNotify(table: 'listings' | 'buyer_demands', recor
       body: JSON.stringify({ type: 'INSERT', table, record }),
     });
   } catch (e) {
-    console.error('Auto-match notify error:', e);
+    // Auto-match notify sessizce başarısız oldu
   }
 }
 
@@ -297,7 +297,7 @@ export function useMyMatches() {
       setPendingCount(countResult.count ?? 0);
       setError(matchesResult.error ?? countResult.error ?? null);
     } catch (e: any) {
-      console.error('[useMyMatches] fetch error:', e);
+      // Eşleşmeler yüklenemedi
       setData([]);
       setPendingCount(0);
       setError(e?.message ?? 'Eşleşmeler yüklenirken hata oluştu');
@@ -341,7 +341,7 @@ export function useMyMatches() {
         )
         .subscribe();
     } catch (e) {
-      console.error('[useMyMatches] Realtime channel error:', e);
+      // Realtime kanal hatası — sessizce devam et
     }
 
     return () => {
@@ -382,7 +382,7 @@ export function useMatchCount() {
         setTotal(totalResult.count ?? 0);
         setPendingCount(pendingResult.count ?? 0);
       } catch (e) {
-        console.error('[useMatchCount] error:', e);
+        // Match count hatası — sessizce devam et
       }
     })();
   }, [userId]);

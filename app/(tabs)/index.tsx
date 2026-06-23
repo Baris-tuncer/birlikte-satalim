@@ -31,7 +31,7 @@ export default function ListingsScreen() {
   const [transactionType, setTransactionType] = useState('ALL');
   const [propertyType, setPropertyType] = useState('ALL');
 
-  const { data: listings, loading, refetch } = useListings({
+  const { data: listings, loading, error: listingsError, refetch } = useListings({
     city: selectedCity,
     district: selectedDistrict || undefined,
     neighborhood: selectedNeighborhood || undefined,
@@ -224,11 +224,28 @@ export default function ListingsScreen() {
         ListEmptyComponent={
           !loading ? (
             <View style={styles.empty}>
-              <Ionicons name="business-outline" size={48} color={Colors.text.tertiary} />
-              <Text style={styles.emptyTitle}>Bu bölgede ilan yok</Text>
-              <Text style={styles.emptySubtitle}>
-                Farklı bir bölge seçin veya ilk ilanı siz ekleyin
+              <Ionicons
+                name={listingsError ? "cloud-offline-outline" : "business-outline"}
+                size={48}
+                color={Colors.text.tertiary}
+              />
+              <Text style={styles.emptyTitle}>
+                {listingsError ? 'Bağlantı hatası' : 'Bu bölgede ilan yok'}
               </Text>
+              <Text style={styles.emptySubtitle}>
+                {listingsError
+                  ? 'İlanlar yüklenirken bir sorun oluştu'
+                  : 'Farklı bir bölge seçin veya ilk ilanı siz ekleyin'}
+              </Text>
+              {listingsError && (
+                <Pressable
+                  style={({ pressed }) => [styles.retryButton, pressed && { opacity: 0.9 }]}
+                  onPress={onRefresh}
+                >
+                  <Ionicons name="refresh" size={18} color={Colors.text.inverse} />
+                  <Text style={styles.retryButtonText}>Tekrar Dene</Text>
+                </Pressable>
+              )}
             </View>
           ) : null
         }
@@ -308,6 +325,21 @@ const styles = StyleSheet.create({
     ...Typography.subhead,
     color: Colors.text.secondary,
     textAlign: 'center',
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.accent,
+    borderRadius: 8,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  retryButtonText: {
+    ...Typography.subhead,
+    color: Colors.text.inverse,
+    fontWeight: '600',
   },
   statsBar: {
     flexDirection: 'row',

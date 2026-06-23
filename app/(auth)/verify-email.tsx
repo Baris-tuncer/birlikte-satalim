@@ -49,14 +49,18 @@ export default function VerifyEmailScreen() {
     if (!email || !password) return;
 
     pollRef.current = setInterval(async () => {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (!error && data.session?.user?.email_confirmed_at) {
-        if (pollRef.current) clearInterval(pollRef.current);
-        clearPendingAuth();
-        router.replace('/(auth)/license-upload');
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (!error && data.session?.user?.email_confirmed_at) {
+          if (pollRef.current) clearInterval(pollRef.current);
+          clearPendingAuth();
+          router.replace('/(auth)/license-upload');
+        }
+      } catch {
+        // Ağ hatası — polling devam eder, kullanıcı tekrar gönder butonunu kullanabilir
       }
     }, POLL_INTERVAL);
 
@@ -115,7 +119,7 @@ export default function VerifyEmailScreen() {
         </Text>
 
         <View style={styles.emailBadge}>
-          <Text style={styles.emailText}>{userEmail || 'ornek@email.com'}</Text>
+          <Text style={styles.emailText}>{userEmail}</Text>
         </View>
 
         <Text style={styles.instruction}>

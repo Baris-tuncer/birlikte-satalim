@@ -288,7 +288,7 @@ export async function respondToMatch(matchId: string, status: 'ACCEPTED' | 'REJE
         record: updatedMatch,
         old_record: oldMatch ?? { status: 'PENDING' },
       },
-    }).catch((e) => console.error('Match response push error:', e));
+    }).catch(() => {});
   }
 
   return { error: error?.message };

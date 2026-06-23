@@ -11,7 +11,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
       '.env.example dosyasini .env olarak kopyalayip degerleri doldurun.'
     );
   }
-  console.warn('[Supabase] Env degiskenleri tanimli degil. __DEV__ modda mock data kullanilacak.');
+  // DEV modda env değişkenleri tanımlı değil — mock data kullanılacak
 }
 
 // Web SSR sırasında AsyncStorage kullanılamaz (window is not defined)

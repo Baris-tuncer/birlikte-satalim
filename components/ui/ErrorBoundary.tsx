@@ -21,7 +21,7 @@ export default class AppErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    console.error('[ErrorBoundary]', error, info.componentStack);
+    // ErrorBoundary hata yakaladı — production'da sessiz
   }
 
   handleRetry = () => {

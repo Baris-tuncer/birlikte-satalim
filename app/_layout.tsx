@@ -74,7 +74,7 @@ function RootLayoutNav() {
         },
       });
     } catch (e) {
-      console.error('Bildirim kurulum hatası:', e);
+      // Bildirim kurulumu başarısız — sessizce devam et
     }
 
     return () => {

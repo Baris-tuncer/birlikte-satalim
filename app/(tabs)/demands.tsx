@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, Shadows } from '@/constants/Theme';
+import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import FilterBar from '@/components/ui/FilterBar';
 import DemandCard from '@/components/ui/DemandCard';
 import { useDemands, useMatchActions, useUpdateDemand } from '@/lib/hooks';
@@ -28,7 +28,7 @@ export default function DemandPoolScreen() {
   const [transactionType, setTransactionType] = useState('ALL');
   const [propertyType, setPropertyType] = useState('ALL');
 
-  const { data: demands, loading, refetch } = useDemands({
+  const { data: demands, loading, error: demandsError, refetch } = useDemands({
     city: selectedCity,
     district: selectedDistrict || undefined,
     neighborhood: selectedNeighborhood || undefined,
@@ -163,11 +163,28 @@ export default function DemandPoolScreen() {
         ListEmptyComponent={
           !loading ? (
             <View style={styles.empty}>
-              <Ionicons name="heart-outline" size={48} color={Colors.text.tertiary} />
-              <Text style={styles.emptyTitle}>Bu bölgede talep yok</Text>
-              <Text style={styles.emptySubtitle}>
-                Farklı bir bölge seçin veya ilk talebi siz ekleyin
+              <Ionicons
+                name={demandsError ? "cloud-offline-outline" : "heart-outline"}
+                size={48}
+                color={Colors.text.tertiary}
+              />
+              <Text style={styles.emptyTitle}>
+                {demandsError ? 'Bağlantı hatası' : 'Bu bölgede talep yok'}
               </Text>
+              <Text style={styles.emptySubtitle}>
+                {demandsError
+                  ? 'Talepler yüklenirken bir sorun oluştu'
+                  : 'Farklı bir bölge seçin veya ilk talebi siz ekleyin'}
+              </Text>
+              {demandsError && (
+                <Pressable
+                  style={({ pressed }) => [styles.retryButton, pressed && { opacity: 0.9 }]}
+                  onPress={onRefresh}
+                >
+                  <Ionicons name="refresh" size={18} color={Colors.text.inverse} />
+                  <Text style={styles.retryButtonText}>Tekrar Dene</Text>
+                </Pressable>
+              )}
             </View>
           ) : null
         }
@@ -247,5 +264,20 @@ const styles = StyleSheet.create({
     ...Typography.subhead,
     color: Colors.text.secondary,
     textAlign: 'center',
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.accent,
+    borderRadius: 8,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  retryButtonText: {
+    ...Typography.subhead,
+    color: Colors.text.inverse,
+    fontWeight: '600',
   },
 });

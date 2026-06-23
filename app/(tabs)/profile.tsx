@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { StyleSheet, Text, View, Pressable, Alert, ScrollView, Image, ActivityIndicator, TextInput, Modal, KeyboardAvoidingView, Platform, Linking } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,7 +18,9 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, profile, licenseStatus, signOut, deleteAccount, refreshProfile } = useAuth();
   const { total: matchCount, pendingCount } = useMatchCount();
+  const insets = useSafeAreaInsets();
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const [editVisible, setEditVisible] = useState(false);
   const [editName, setEditName] = useState('');
   const [editCompany, setEditCompany] = useState('');
@@ -282,8 +285,12 @@ export default function ProfileScreen() {
             <View style={styles.avatar}>
               {avatarUploading ? (
                 <ActivityIndicator color={Colors.text.inverse} />
-              ) : avatarUrl ? (
-                <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+              ) : avatarUrl && !avatarError ? (
+                <Image
+                  source={{ uri: avatarUrl }}
+                  style={styles.avatarImage}
+                  onError={() => setAvatarError(true)}
+                />
               ) : (
                 <Text style={styles.avatarInitials}>{initials}</Text>
               )}
@@ -499,7 +506,7 @@ export default function ProfileScreen() {
           style={styles.modalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { paddingBottom: Math.max(insets.bottom, Spacing['5xl']) }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Profili Düzenle</Text>
               <Pressable onPress={() => setEditVisible(false)} hitSlop={8}>
@@ -561,7 +568,7 @@ export default function ProfileScreen() {
           style={styles.modalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { paddingBottom: Math.max(insets.bottom, Spacing['5xl']) }]}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Şifre Değiştir</Text>
               <Pressable onPress={() => setPasswordVisible(false)} hitSlop={8}>
@@ -860,7 +867,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     padding: Spacing['2xl'],
-    paddingBottom: Spacing['5xl'],
   },
   modalHeader: {
     flexDirection: 'row',
