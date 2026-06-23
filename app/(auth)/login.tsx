@@ -72,7 +72,17 @@ export default function LoginScreen() {
         router.replace('/(tabs)');
         return;
       }
-      Alert.alert('Hata', error);
+      // Supabase hata mesajlarını kullanıcı dostu Türkçeye çevir
+      if (error.toLowerCase().includes('email not confirmed')) {
+        Alert.alert(
+          'E-posta Doğrulanmadı',
+          'Üyeliğinizi tamamlamak için lütfen e-posta adresinize gelen onay bağlantısına tıklayın. Spam/Gereksiz klasörünü de kontrol edin.',
+        );
+      } else if (error.toLowerCase().includes('invalid login credentials')) {
+        Alert.alert('Giriş Başarısız', 'E-posta veya şifre hatalı. Lütfen tekrar deneyin.');
+      } else {
+        Alert.alert('Giriş Başarısız', error);
+      }
       return;
     }
   }, [isValid, email, password, rememberMe, signIn, router]);
