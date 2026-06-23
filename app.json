@@ -8,7 +8,8 @@
     "scheme": "berabersatalim",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
+      "privacyUrl": "https://baris-tuncer.github.io/birlikte-satalim/gizlilik.html",
       "bundleIdentifier": "com.berabersatalim.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Yetki belgenizin fotoğrafını çekmek için kamera erişimi gereklidir.",
