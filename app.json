@@ -13,7 +13,8 @@
       "bundleIdentifier": "com.berabersatalim.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Yetki belgenizin fotoğrafını çekmek için kamera erişimi gereklidir.",
-        "NSPhotoLibraryUsageDescription": "Yetki belgenizi galeriden seçmek için galeri erişimi gereklidir."
+        "NSPhotoLibraryUsageDescription": "Yetki belgenizi galeriden seçmek için galeri erişimi gereklidir.",
+        "ITSAppUsesNonExemptEncryption": false
       },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
