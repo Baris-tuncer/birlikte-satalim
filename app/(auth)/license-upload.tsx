@@ -4,18 +4,16 @@ import {
   Text,
   View,
   Pressable,
-  Image,
   Alert,
   ActivityIndicator,
   TextInput,
+  ScrollView,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/lib/supabase';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
 import { updateUserProfile } from '@/lib/database';
 import { parseMYKQRData } from '@/lib/format';
@@ -23,11 +21,14 @@ import QRScanner from '@/components/ui/QRScanner';
 
 export default function LicenseUploadScreen() {
   const router = useRouter();
-  const { user, profile, setLicenseStatus, refreshProfile } = useAuth();
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const { profile, setLicenseStatus, refreshProfile, signOut } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [licenseNumber, setLicenseNumber] = useState('');
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const insets = useSafeAreaInsets();
+
+  const isValid = licenseNumber.trim().length >= 3;
 
   const handleQRScanned = useCallback((data: string) => {
     setShowQRScanner(false);
@@ -40,133 +41,35 @@ export default function LicenseUploadScreen() {
     }
   }, []);
 
-  const pickImage = useCallback(async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'İzin Gerekli',
-        'Fotoğraf seçebilmek için galeri erişim izni vermeniz gerekiyor.'
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
-    }
-  }, []);
-
-  const takePhoto = useCallback(async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'İzin Gerekli',
-        'Fotoğraf çekebilmek için kamera erişim izni vermeniz gerekiyor.'
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
-    }
-  }, []);
-
-  const handleUpload = useCallback(async () => {
-    if (!imageUri) return;
+  const handleSubmit = useCallback(async () => {
+    if (!isValid) return;
 
     setUploading(true);
 
     try {
       if (SKIP_AUTH_IN_DEV) {
-        // Env var yokken DEV modda simüle et
         await new Promise((r) => setTimeout(r, 1000));
         setLicenseStatus('pending');
-        router.replace('/(auth)/approval-pending');
+        setUploadSuccess(true);
         return;
       }
 
-      // Dosya uzantısı kontrolü
-      const ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'heic', 'heif'];
-      const ext = (imageUri.split('.').pop() ?? '').toLowerCase();
-      if (!ALLOWED_EXTENSIONS.includes(ext)) {
-        Alert.alert('Hata', 'Sadece JPG, PNG veya HEIC formatında dosya yükleyebilirsiniz.');
-        setUploading(false);
-        return;
-      }
-
-      // Dosyayı Supabase Storage'a yükle
-      const fileName = `${user?.id ?? 'unknown'}_${Date.now()}.${ext}`;
-      const filePath = `licenses/${fileName}`;
-
-      const response = await fetch(imageUri);
-      const blob = await response.blob();
-
-      // Dosya boyutu kontrolü (max 10MB)
-      const MAX_FILE_SIZE = 10 * 1024 * 1024;
-      if (blob.size > MAX_FILE_SIZE) {
-        Alert.alert('Hata', 'Dosya boyutu 10MB\'dan küçük olmalıdır.');
-        setUploading(false);
-        return;
-      }
-
-      const arrayBuffer = await new Response(blob).arrayBuffer();
-
-      // MIME tipi doğrulama
-      const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/heic', 'image/heif'];
-      const mimeType = blob.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`;
-      const contentType = ALLOWED_MIME_TYPES.includes(mimeType) ? mimeType : `image/${ext === 'jpg' ? 'jpeg' : ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('documents')
-        .upload(filePath, arrayBuffer, {
-          contentType,
-          upsert: true,
-        });
-
-      if (uploadError) {
-        Alert.alert('Hata', 'Dosya yüklenirken bir hata oluştu.');
-        setUploading(false);
-        return;
-      }
-
-      // Public URL al
-      const { data: urlData } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
-
-      // Kullanıcı profilini güncelle
       if (profile?.id) {
-        const updates: Record<string, unknown> = {
-          license_image_url: urlData.publicUrl,
+        await updateUserProfile(profile.id, {
+          license_number: licenseNumber.trim(),
           license_status: 'pending',
-        };
-        if (licenseNumber) {
-          updates.license_number = licenseNumber;
-        }
-        await updateUserProfile(profile.id, updates as any);
+        } as any);
       }
 
       await refreshProfile();
       setLicenseStatus('pending');
-      router.replace('/(auth)/approval-pending');
+      setUploadSuccess(true);
     } catch (e: any) {
       Alert.alert('Hata', e.message || 'Beklenmeyen bir hata oluştu.');
     } finally {
       setUploading(false);
     }
-  }, [imageUri, user, profile, setLicenseStatus, refreshProfile, router]);
+  }, [isValid, licenseNumber, profile, setLicenseStatus, refreshProfile]);
 
   const handleSkip = useCallback(() => {
     Alert.alert(
@@ -185,9 +88,51 @@ export default function LicenseUploadScreen() {
     );
   }, [setLicenseStatus, router]);
 
+  if (uploadSuccess) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.successContent}>
+          <View style={styles.successIconCircle}>
+            <Ionicons name="checkmark-circle" size={72} color={Colors.success} />
+          </View>
+          <Text style={styles.successTitle}>Belgeniz Başarıyla Yüklendi</Text>
+          <Text style={styles.successMessage}>
+            Yetki belgeniz ekibimize ulaştı ve inceleme sürecine alındı.
+            {'\n\n'}
+            Onay tamamlandığında size bildirim göndereceğiz.{'\n'}
+            Bu süreç genellikle 24 saat içinde sonuçlanır.
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.successButton,
+              pressed && { opacity: 0.9 },
+            ]}
+            onPress={() => router.replace('/(auth)/approval-pending')}
+          >
+            <Text style={styles.successButtonText}>Devam Et</Text>
+            <Ionicons name="arrow-forward" size={20} color={Colors.text.inverse} />
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: Math.max(insets.bottom, 16) + 16 },
+        ]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Çıkış butonu */}
+        <Pressable style={styles.signOutLink} onPress={signOut}>
+          <Ionicons name="log-out-outline" size={18} color={Colors.text.tertiary} />
+          <Text style={styles.signOutLinkText}>Çıkış Yap</Text>
+        </Pressable>
+
         {/* Başlık */}
         <View style={styles.header}>
           <View style={styles.iconCircle}>
@@ -195,106 +140,55 @@ export default function LicenseUploadScreen() {
           </View>
           <Text style={styles.title}>Yetki Belgesi</Text>
           <Text style={styles.subtitle}>
-            Yetkili emlakçı olarak doğrulanmak için yetki belgenizin fotoğrafını
-            yükleyin
+            Yetkili emlakçı olarak doğrulanmak için yetki belge numaranızı girin
           </Text>
         </View>
 
-        {/* Fotoğraf alanı */}
-        <View>
-          {imageUri ? (
-            <View style={styles.previewContainer}>
-              <Image source={{ uri: imageUri }} style={styles.previewImage} />
-              <Pressable
-                style={styles.removeButton}
-                onPress={() => setImageUri(null)}
-              >
-                <Ionicons
-                  name="close-circle"
-                  size={28}
-                  color={Colors.error}
-                />
-              </Pressable>
-              <View style={styles.previewBadge}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={16}
-                  color={Colors.success}
-                />
-                <Text style={styles.previewBadgeText}>Fotoğraf hazır</Text>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.uploadArea}>
-              <Ionicons
-                name="cloud-upload-outline"
-                size={48}
-                color={Colors.text.tertiary}
-              />
-              <Text style={styles.uploadTitle}>
-                Yetki belgenizi yükleyin
-              </Text>
-              <Text style={styles.uploadSubtitle}>
-                JPG, PNG formatında, en az 1MB
-              </Text>
+        {/* QR Kod ile okutma */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.qrButton,
+            pressed && { opacity: 0.8 },
+          ]}
+          onPress={() => setShowQRScanner(true)}
+        >
+          <View style={styles.qrIconCircle}>
+            <Ionicons name="qr-code-outline" size={28} color={Colors.primary} />
+          </View>
+          <View style={styles.qrTextContainer}>
+            <Text style={styles.qrButtonTitle}>QR Kod ile Okut</Text>
+            <Text style={styles.qrButtonSubtitle}>Yetki belgenizdeki QR kodu kameraya gösterin</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={Colors.text.tertiary} />
+        </Pressable>
 
-              <View style={styles.uploadButtons}>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.uploadOption,
-                    pressed && styles.uploadOptionPressed,
-                  ]}
-                  onPress={pickImage}
-                >
-                  <Ionicons
-                    name="images-outline"
-                    size={22}
-                    color={Colors.accent}
-                  />
-                  <Text style={styles.uploadOptionText}>Galeriden Seç</Text>
-                </Pressable>
-
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.uploadOption,
-                    pressed && styles.uploadOptionPressed,
-                  ]}
-                  onPress={takePhoto}
-                >
-                  <Ionicons
-                    name="camera-outline"
-                    size={22}
-                    color={Colors.accent}
-                  />
-                  <Text style={styles.uploadOptionText}>Fotoğraf Çek</Text>
-                </Pressable>
-              </View>
-
-              <Pressable
-                style={({ pressed }) => [
-                  styles.qrButton,
-                  pressed && { opacity: 0.8 },
-                ]}
-                onPress={() => setShowQRScanner(true)}
-              >
-                <Ionicons name="qr-code-outline" size={22} color={Colors.primary} />
-                <Text style={styles.qrButtonText}>QR Kod ile Belge No Okut</Text>
-              </Pressable>
-            </View>
-          )}
+        {/* Ayırıcı */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>veya</Text>
+          <View style={styles.dividerLine} />
         </View>
 
-        {/* Belge numarası */}
+        {/* Manuel belge numarası girişi */}
         <View style={styles.licenseInputContainer}>
           <Text style={styles.licenseInputLabel}>Belge Numarası</Text>
           <TextInput
             style={styles.licenseInput}
             value={licenseNumber}
             onChangeText={setLicenseNumber}
-            placeholder="QR okutun veya manuel girin"
+            placeholder="Örn: YB0203/17UY0333-5/00/724"
             placeholderTextColor={Colors.text.tertiary}
+            autoCapitalize="characters"
           />
         </View>
+
+        {/* QR ile dolduğunda göster */}
+        {licenseNumber.length > 0 && (
+          <View style={styles.licensePreview}>
+            <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
+            <Text style={styles.licensePreviewText}>{licenseNumber}</Text>
+          </View>
+        )}
 
         {/* Bilgi notu */}
         <View style={styles.infoBox}>
@@ -304,45 +198,41 @@ export default function LicenseUploadScreen() {
             color={Colors.accent}
           />
           <Text style={styles.infoText}>
-            Yetki belgeniz ekibimiz tarafından incelenecektir. Onay süreci 24
-            saat içinde tamamlanır.
+            Yetki belge numaranız ekibimiz tarafından doğrulanacaktır. Onay süreci
+            24 saat içinde tamamlanır.
           </Text>
         </View>
 
         {/* Alt butonlar */}
         <View style={styles.bottomActions}>
-          <View>
-            <Pressable
-              style={({ pressed }) => [
-                styles.submitButton,
-                !imageUri && styles.submitButtonDisabled,
-                pressed && { opacity: 0.9 },
-              ]}
-              onPress={handleUpload}
-              disabled={!imageUri || uploading}
-            >
-              {uploading ? (
-                <ActivityIndicator color={Colors.text.inverse} />
-              ) : (
-                <>
-                  <Ionicons
-                    name="cloud-upload"
-                    size={20}
-                    color={Colors.text.inverse}
-                  />
-                  <Text style={styles.submitButtonText}>Belgeyi Yükle</Text>
-                </>
-              )}
-            </Pressable>
-          </View>
+          <Pressable
+            style={({ pressed }) => [
+              styles.submitButton,
+              !isValid && styles.submitButtonDisabled,
+              pressed && isValid && { opacity: 0.9 },
+            ]}
+            onPress={handleSubmit}
+            disabled={!isValid || uploading}
+          >
+            {uploading ? (
+              <ActivityIndicator color={Colors.text.inverse} />
+            ) : (
+              <>
+                <Ionicons
+                  name="shield-checkmark"
+                  size={20}
+                  color={Colors.text.inverse}
+                />
+                <Text style={styles.submitButtonText}>Belgeyi Doğrula</Text>
+              </>
+            )}
+          </Pressable>
 
-          <View>
-            <Pressable style={styles.skipButton} onPress={handleSkip}>
-              <Text style={styles.skipButtonText}>Şimdilik Atla</Text>
-            </Pressable>
-          </View>
+          <Pressable style={styles.skipButton} onPress={handleSkip}>
+            <Text style={styles.skipButtonText}>Şimdilik Atla</Text>
+          </Pressable>
         </View>
-      </View>
+      </ScrollView>
       <QRScanner
         visible={showQRScanner}
         onScanned={handleQRScanned}
@@ -357,10 +247,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  signOutLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: Spacing.xs,
+    paddingVertical: Spacing.sm,
+  },
+  signOutLinkText: {
+    ...Typography.footnote,
+    color: Colors.text.tertiary,
+  },
   content: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing['3xl'],
+    paddingTop: Spacing.lg,
   },
   // Başlık
   header: {
@@ -388,107 +289,54 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     paddingHorizontal: Spacing.lg,
   },
-  // Yükleme alanı
-  uploadArea: {
-    backgroundColor: Colors.card,
-    borderRadius: Radius.xl,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    borderStyle: 'dashed',
-    padding: Spacing['3xl'],
-    alignItems: 'center',
-    ...Shadows.sm,
-  },
-  uploadTitle: {
-    ...Typography.headline,
-    color: Colors.text.primary,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.xs,
-  },
-  uploadSubtitle: {
-    ...Typography.footnote,
-    color: Colors.text.tertiary,
-    marginBottom: Spacing['2xl'],
-  },
-  uploadButtons: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  uploadOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    backgroundColor: Colors.accent + '0A',
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.accent + '28',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  uploadOptionPressed: {
-    backgroundColor: Colors.accent + '1A',
-  },
-  uploadOptionText: {
-    ...Typography.footnote,
-    color: Colors.accent,
-    fontWeight: '600',
-  },
-  // Fotoğraf önizleme
-  previewContainer: {
-    position: 'relative',
-    borderRadius: Radius.xl,
-    overflow: 'hidden',
-    ...Shadows.md,
-  },
-  previewImage: {
-    width: '100%',
-    height: 220,
-    borderRadius: Radius.xl,
-  },
-  removeButton: {
-    position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
-  },
-  previewBadge: {
-    position: 'absolute',
-    bottom: Spacing.md,
-    left: Spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    backgroundColor: Colors.card,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    ...Shadows.sm,
-  },
-  previewBadgeText: {
-    ...Typography.caption1,
-    color: Colors.success,
-    fontWeight: '600',
-  },
   // QR button
   qrButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    backgroundColor: Colors.primary + '0A',
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.primary + '28',
-    paddingVertical: Spacing.md,
-    marginTop: Spacing.md,
+    backgroundColor: Colors.card,
+    borderRadius: Radius.xl,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    ...Shadows.sm,
   },
-  qrButtonText: {
+  qrIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.primary + '14',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  qrTextContainer: {
+    flex: 1,
+  },
+  qrButtonTitle: {
+    ...Typography.headline,
+    color: Colors.text.primary,
+    marginBottom: 2,
+  },
+  qrButtonSubtitle: {
+    ...Typography.caption1,
+    color: Colors.text.secondary,
+  },
+  // Ayırıcı
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: Spacing.xl,
+    gap: Spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  dividerText: {
     ...Typography.footnote,
-    color: Colors.primary,
-    fontWeight: '600',
+    color: Colors.text.tertiary,
   },
   // License input
   licenseInputContainer: {
-    marginTop: Spacing.xl,
   },
   licenseInputLabel: {
     ...Typography.footnote,
@@ -502,9 +350,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.lg,
     ...Typography.body,
     color: Colors.text.primary,
+  },
+  // License preview
+  licensePreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+  },
+  licensePreviewText: {
+    ...Typography.footnote,
+    color: Colors.success,
+    fontWeight: '600',
   },
   // Bilgi kutusu
   infoBox: {
@@ -524,8 +385,7 @@ const styles = StyleSheet.create({
   },
   // Alt butonlar
   bottomActions: {
-    marginTop: 'auto',
-    paddingBottom: Spacing['2xl'],
+    marginTop: Spacing['3xl'],
   },
   submitButton: {
     flexDirection: 'row',
@@ -553,5 +413,49 @@ const styles = StyleSheet.create({
     ...Typography.subhead,
     color: Colors.text.tertiary,
     fontWeight: '500',
+  },
+  // Success screen
+  successContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: Spacing['2xl'],
+  },
+  successIconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: Colors.success + '14',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing['2xl'],
+  },
+  successTitle: {
+    ...Typography.title2,
+    color: Colors.text.primary,
+    textAlign: 'center',
+    marginBottom: Spacing.lg,
+  },
+  successMessage: {
+    ...Typography.body,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: Spacing['3xl'],
+  },
+  successButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.accent,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing['3xl'],
+    gap: Spacing.sm,
+    ...Shadows.md,
+  },
+  successButtonText: {
+    ...Typography.headline,
+    color: Colors.text.inverse,
   },
 });

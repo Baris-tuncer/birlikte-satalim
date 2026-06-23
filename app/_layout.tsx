@@ -98,8 +98,22 @@ function RootLayoutNav() {
     // Profil henüz yükleniyorsa yönlendirme yapma (döngü önleme)
     if (isLoggedIn && emailVerified && profileLoading) return;
 
-    if (!isLoggedIn && !inAuthGroup) {
-      router.replace('/(auth)/login');
+    if (!isLoggedIn) {
+      // Giriş yapılmamış — login/register dışındaysa login'e yönlendir
+      if (segments[1] !== 'login' && segments[1] !== 'register') {
+        router.replace('/(auth)/login');
+      }
+    } else if (isLoggedIn && inAuthGroup && (segments[1] === 'login' || segments[1] === 'register')) {
+      // Login/register sayfasında ama giriş yapılmış — doğru adıma yönlendir
+      if (!emailVerified) {
+        router.replace('/(auth)/verify-email');
+      } else if (licenseStatus === 'none') {
+        router.replace('/(auth)/license-upload');
+      } else if (licenseStatus === 'pending' || licenseStatus === 'rejected') {
+        router.replace('/(auth)/approval-pending');
+      } else if (licenseStatus === 'approved') {
+        router.replace('/(tabs)');
+      }
     } else if (isLoggedIn && !emailVerified && !inAuthGroup) {
       router.replace('/(auth)/verify-email');
     } else if (isLoggedIn && emailVerified && licenseStatus === 'none' && !inAuthGroup) {

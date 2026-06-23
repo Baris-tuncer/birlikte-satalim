@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -11,12 +11,16 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import { useAuth } from '@/lib/auth-context';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
+
+const REMEMBER_EMAIL_KEY = '@remember_email';
+const REMEMBER_ENABLED_KEY = '@remember_enabled';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -25,6 +29,23 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Kayıtlı e-postayı yükle
+  useEffect(() => {
+    (async () => {
+      try {
+        const [savedEmail, savedEnabled] = await Promise.all([
+          AsyncStorage.getItem(REMEMBER_EMAIL_KEY),
+          AsyncStorage.getItem(REMEMBER_ENABLED_KEY),
+        ]);
+        if (savedEnabled === 'true' && savedEmail) {
+          setEmail(savedEmail);
+          setRememberMe(true);
+        }
+      } catch {}
+    })();
+  }, []);
 
   const isValid = email.includes('@') && email.includes('.') && password.length >= 6;
 
@@ -32,6 +53,17 @@ export default function LoginScreen() {
     if (!isValid) return;
 
     setLoading(true);
+
+    // Beni hatırla tercihini kaydet
+    try {
+      if (rememberMe) {
+        await AsyncStorage.setItem(REMEMBER_EMAIL_KEY, email.trim());
+        await AsyncStorage.setItem(REMEMBER_ENABLED_KEY, 'true');
+      } else {
+        await AsyncStorage.multiRemove([REMEMBER_EMAIL_KEY, REMEMBER_ENABLED_KEY]);
+      }
+    } catch {}
+
     const { error } = await signIn(email.trim(), password);
     setLoading(false);
 
@@ -43,7 +75,7 @@ export default function LoginScreen() {
       Alert.alert('Hata', error);
       return;
     }
-  }, [isValid, email, password, signIn, router]);
+  }, [isValid, email, password, rememberMe, signIn, router]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -126,13 +158,27 @@ export default function LoginScreen() {
               </Pressable>
             </View>
 
-            {/* Forgot Password */}
-            <Pressable
-              onPress={() => router.push('/(auth)/forgot-password')}
-              style={styles.forgotButton}
-            >
-              <Text style={styles.forgotText}>Şifremi Unuttum</Text>
-            </Pressable>
+            {/* Beni Hatırla + Şifremi Unuttum */}
+            <View style={styles.rememberForgotRow}>
+              <Pressable
+                style={styles.rememberButton}
+                onPress={() => setRememberMe((v) => !v)}
+                hitSlop={6}
+              >
+                <Ionicons
+                  name={rememberMe ? 'checkbox' : 'square-outline'}
+                  size={20}
+                  color={rememberMe ? Colors.accent : Colors.text.tertiary}
+                />
+                <Text style={styles.rememberText}>Beni Hatırla</Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => router.push('/(auth)/forgot-password')}
+              >
+                <Text style={styles.forgotText}>Şifremi Unuttum</Text>
+              </Pressable>
+            </View>
 
             {/* Sign In Button */}
             <Pressable
@@ -242,9 +288,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.lg,
   },
-  forgotButton: {
-    alignSelf: 'flex-end',
+  rememberForgotRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: Spacing.xl,
+  },
+  rememberButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  rememberText: {
+    ...Typography.footnote,
+    color: Colors.text.secondary,
   },
   forgotText: {
     ...Typography.footnote,

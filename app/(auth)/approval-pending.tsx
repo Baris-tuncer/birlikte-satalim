@@ -6,8 +6,16 @@ import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme'
 import { useAuth } from '@/lib/auth-context';
 
 export default function ApprovalPendingScreen() {
-  const { signOut } = useAuth();
+  const { signOut, refreshProfile } = useAuth();
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
+
+  // Her 15 saniyede profili yenile — onay geldiğinde routing guard yönlendirir
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshProfile();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [refreshProfile]);
 
   useEffect(() => {
     const animation = Animated.loop(

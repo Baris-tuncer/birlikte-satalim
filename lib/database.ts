@@ -303,6 +303,7 @@ export async function getMyMatches(userId: string) {
     .from('matches')
     .select('*, requester:users!requester_id(*), target:users!target_id(*), listing:listings(*), demand:buyer_demands(*)')
     .or(`requester_id.eq.${userId},target_id.eq.${userId}`)
+    .neq('status', 'EXPIRED')
     .order('created_at', { ascending: false });
 
   return { data: (data as Match[]) ?? [], error: error?.message };
