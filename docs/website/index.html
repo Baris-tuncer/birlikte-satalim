@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beraber Satalim - Emlakcilarin Ortak Satis Platformu</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1A1A2E; background: #F8F9FA; }
+    .hero { background: linear-gradient(135deg, #0A2540 0%, #1B3A5C 100%); color: #fff; padding: 80px 24px; text-align: center; }
+    .hero h1 { font-size: 2.5rem; margin-bottom: 16px; font-weight: 700; }
+    .hero p { font-size: 1.2rem; opacity: 0.85; max-width: 600px; margin: 0 auto 32px; line-height: 1.6; }
+    .hero .badges { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .hero .badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); padding: 12px 24px; border-radius: 12px; font-size: 0.95rem; }
+    .features { max-width: 900px; margin: 0 auto; padding: 64px 24px; }
+    .features h2 { text-align: center; font-size: 1.8rem; margin-bottom: 48px; color: #0A2540; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+    .card { background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .card .icon { width: 48px; height: 48px; border-radius: 12px; background: #FF6B4A14; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; font-size: 1.5rem; }
+    .card h3 { font-size: 1.1rem; margin-bottom: 8px; color: #0A2540; }
+    .card p { font-size: 0.9rem; color: #666; line-height: 1.5; }
+    .footer { background: #0A2540; color: rgba(255,255,255,0.7); padding: 40px 24px; text-align: center; }
+    .footer a { color: #FF6B4A; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .footer .links { margin-top: 16px; display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+    .footer .copy { margin-top: 24px; font-size: 0.85rem; opacity: 0.6; }
+    .contact { max-width: 600px; margin: 0 auto; padding: 48px 24px; text-align: center; }
+    .contact h2 { font-size: 1.5rem; margin-bottom: 16px; color: #0A2540; }
+    .contact p { color: #666; line-height: 1.6; }
+    .contact a { color: #FF6B4A; text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <h1>Beraber Satalim</h1>
+    <p>Gayrimenkul danismanlari icin ortak satis ve portfoy paylasim platformu. Kor ilan sistemiyle guvende, eslesme sistemiyle verimli calisin.</p>
+    <div class="badges">
+      <span class="badge">Android'de Mevcut</span>
+      <span class="badge">Yakin Zamanda iOS</span>
+    </div>
+  </div>
+
+  <div class="features">
+    <h2>Nasil Calisiyor?</h2>
+    <div class="grid">
+      <div class="card">
+        <div class="icon">&#128273;</div>
+        <h3>Kor Ilan Sistemi</h3>
+        <p>Mulk adresi paylasılmadan ilce, mahalle, tip ve fiyat bilgileriyle ilan verin. Portfoyunuz guvenle korunur.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#129309;</div>
+        <h3>Akilli Eslestirme</h3>
+        <p>Musteri talebiyle otusen ilanlari gorun, tek tikla eslestirme talebi gonderin. Karsi taraf kabul ederse iletisim bilgileri paylasılır.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#128276;</div>
+        <h3>Anlik Bildirimler</h3>
+        <p>Uzmanlik bolgenizde yeni ilan eklendiginde, taleplerinizle eslesen ilan cıktığında aninda haberdar olun.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#9989;</div>
+        <h3>Yetkili Emlakci Dogrulamasi</h3>
+        <p>Tum kullanıcılar yetki belgesiyle dogrulanir. Sadece lisansli emlak danismanlari platformu kullanabilir.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#128205;</div>
+        <h3>Bolge Uzmanligi</h3>
+        <p>Uzmanlik bolgenizi belirtin, o bolgede portfoyu olan diger emlakcılarla kolayca eslestirin.</p>
+      </div>
+      <div class="card">
+        <div class="icon">&#128241;</div>
+        <h3>WhatsApp Entegrasyonu</h3>
+        <p>Eslestikten sonra tek tikla WhatsApp uzerinden iletisime gecin.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="contact">
+    <h2>Iletisim</h2>
+    <p>Sorulariniz icin: <a href="mailto:destek@berabersatalim.com">destek@berabersatalim.com</a></p>
+  </div>
+
+  <div class="footer">
+    <div class="links">
+      <a href="/gizlilik.html">Gizlilik Politikasi</a>
+      <a href="/kullanim-kosullari.html">Kullanim Kosullari</a>
+      <a href="/kvkk.html">KVKK Aydinlatma Metni</a>
+      <a href="mailto:destek@berabersatalim.com">Iletisim</a>
+    </div>
+    <p class="copy">&copy; 2026 Beraber Satalim. Tum haklar saklidir.</p>
+  </div>
+</body>
+</html>
