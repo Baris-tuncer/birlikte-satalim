@@ -637,7 +637,7 @@ function ProfileRow({
         <Ionicons name={icon} size={18} color={Colors.text.tertiary} />
         <Text style={styles.cardLabel}>{label}</Text>
       </View>
-      <Text style={[styles.cardValue, valueColor ? { color: valueColor } : null]}>
+      <Text style={[styles.cardValue, valueColor ? { color: valueColor } : null]} numberOfLines={1}>
         {value}
       </Text>
     </View>
@@ -758,7 +758,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    flex: 1,
+    flexShrink: 0,
   },
   cardLabel: {
     ...Typography.subhead,
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
     ...Typography.subhead,
     color: Colors.text.primary,
     fontWeight: '500',
-    flexShrink: 1,
+    flex: 1,
     textAlign: 'right',
   },
   matchRight: {
