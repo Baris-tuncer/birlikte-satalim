@@ -82,6 +82,73 @@ export function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+// ─── İçerik Filtresi ──────────────────────────────
+
+const BLOCKED_WORDS = [
+  'amına', 'ananı', 'orospu', 'siktir', 'sikerim',
+  'götveren', 'pezevenk', 'kahpe', 'gerizekalı',
+  'yavşak', 'şerefsiz', 'haysiyetsiz',
+];
+
+// Kısa kelimeler — sadece bağımsız kelime olarak eşleşmeli (substring olarak değil)
+const BLOCKED_WORDS_EXACT = [
+  'amk', 'piç', 'ibne', 'salak', 'aptal',
+];
+
+const PHONE_RE = /(?:\+?90|0)[\s\-]?\d{3}[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/;
+const EMAIL_RE = /[\w.-]+@[\w.-]+\.\w{2,}/;
+const URL_RE = /https?:\/\/\S+|www\.\S+/i;
+
+// Türkçe karakterler \b ile çalışmaz, bu yüzden kelime sınırını elle kontrol ediyoruz
+const WORD_CHARS = new Set('abcçdefgğhıijklmnoöprsştuüvyzqwx0123456789');
+
+function isWordBoundary(text: string, start: number, end: number): boolean {
+  const before = start > 0 ? text[start - 1] : ' ';
+  const after = end < text.length ? text[end] : ' ';
+  return !WORD_CHARS.has(before) && !WORD_CHARS.has(after);
+}
+
+/**
+ * Checks user-generated text for objectionable content.
+ * Returns an error message if content is rejected, null if clean.
+ */
+export function checkContent(text: string): string | null {
+  if (!text) return null;
+  const lower = text.toLocaleLowerCase('tr');
+
+  // Uzun/belirgin küfürler — substring yeterli
+  for (const word of BLOCKED_WORDS) {
+    if (lower.includes(word)) {
+      return 'Açıklama uygunsuz ifade içeriyor. Lütfen düzenleyin.';
+    }
+  }
+
+  // Kısa kelimeler — kelime sınırı kontrolü ile
+  for (const word of BLOCKED_WORDS_EXACT) {
+    let idx = lower.indexOf(word);
+    while (idx !== -1) {
+      if (isWordBoundary(lower, idx, idx + word.length)) {
+        return 'Açıklama uygunsuz ifade içeriyor. Lütfen düzenleyin.';
+      }
+      idx = lower.indexOf(word, idx + 1);
+    }
+  }
+
+  if (PHONE_RE.test(text)) {
+    return 'Açıklamaya telefon numarası yazılamaz. İletişim bilgileri eşleşme sonrası paylaşılır.';
+  }
+
+  if (EMAIL_RE.test(text)) {
+    return 'Açıklamaya e-posta adresi yazılamaz. İletişim bilgileri eşleşme sonrası paylaşılır.';
+  }
+
+  if (URL_RE.test(text)) {
+    return 'Açıklamaya link eklenemez.';
+  }
+
+  return null;
+}
+
 // ─── MYK QR Kod Parse ──────────────────────────────
 
 export function parseMYKQRData(qrData: string): string | null {

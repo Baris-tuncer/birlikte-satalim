@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth-context';
 import { useMatchActions } from '@/lib/hooks';
 import { mockMatches } from '@/lib/mockData';
 import { supabase } from '@/lib/supabase';
+import { blockUser } from '@/lib/database';
 import type { Match, MatchStatus } from '@/types';
 
 const STATUS_CONFIG: Record<MatchStatus, { label: string; color: string; icon: keyof typeof Ionicons.glyphMap }> = {
@@ -104,6 +105,39 @@ export default function MatchDetailScreen() {
           headerShown: true,
           headerStyle: { backgroundColor: Colors.background },
           headerTintColor: Colors.text.primary,
+          headerRight: () => {
+            const otherUserId = isTarget ? match.requester_id : match.target_id;
+            return (
+              <Pressable
+                onPress={() => {
+                  Alert.alert('Kullanıcı Hakkında', 'Ne yapmak istiyorsunuz?', [
+                    {
+                      text: 'Kullanıcıyı Engelle',
+                      onPress: () => {
+                        Alert.alert('Engelle', 'Bu kullanıcının ilanları ve talepleri artık size gösterilmeyecek.', [
+                          { text: 'Vazgeç', style: 'cancel' },
+                          {
+                            text: 'Engelle',
+                            style: 'destructive',
+                            onPress: async () => {
+                              const { error } = await blockUser(currentUserId, otherUserId);
+                              Alert.alert(error ? 'Hata' : 'Engellendi', error ?? 'Kullanıcı engellendi.');
+                              if (!error) router.back();
+                            },
+                          },
+                        ]);
+                      },
+                    },
+                    { text: 'Vazgeç', style: 'cancel' },
+                  ]);
+                }}
+                hitSlop={12}
+                style={{ padding: Spacing.xs }}
+              >
+                <Ionicons name="flag-outline" size={22} color={Colors.text.secondary} />
+              </Pressable>
+            );
+          },
         }}
       />
       <ScrollView

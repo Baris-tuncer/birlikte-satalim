@@ -16,6 +16,7 @@ import SegmentControl from '@/components/ui/SegmentControl';
 import ListingCard from '@/components/ui/ListingCard';
 import DemandCard from '@/components/ui/DemandCard';
 import { useMyListings, useMyDemands, useMyMatches } from '@/lib/hooks';
+import { useAuth } from '@/lib/auth-context';
 import type { Listing, BuyerDemand } from '@/types';
 
 const SEGMENTS = ['İlanlarım', 'Taleplerim'];
@@ -28,7 +29,16 @@ export default function PortfolioScreen() {
   const { data: myDemands, loading: demandsLoading } = useMyDemands();
   const { data: myMatches } = useMyMatches();
 
+  const { licenseStatus } = useAuth();
+
   const handleAdd = useCallback(() => {
+    if (licenseStatus !== 'approved') {
+      Alert.alert('Kimlik Doğrulama Gerekli', 'İlan veya talep eklemek için yetki belgenizin doğrulanması gerekmektedir.', [
+        { text: 'Belge Yükle', onPress: () => router.push('/(auth)/license-upload') },
+        { text: 'Kapat', style: 'cancel' },
+      ]);
+      return;
+    }
     Alert.alert('Yeni Ekle', 'Ne eklemek istiyorsunuz?', [
       {
         text: 'İlan Ekle',
@@ -40,7 +50,7 @@ export default function PortfolioScreen() {
       },
       { text: 'Vazgeç', style: 'cancel' },
     ]);
-  }, [router]);
+  }, [router, licenseStatus]);
 
   const renderListing = useCallback(
     ({ item }: { item: Listing }) => (

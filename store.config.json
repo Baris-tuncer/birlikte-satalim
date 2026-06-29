@@ -1,0 +1,83 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "version": "1.0",
+    "copyright": "2026 Beraber Satalım",
+    "release": {
+      "automaticRelease": true
+    },
+    "info": {
+      "tr": {
+        "description": "Beraber Satalım, emlak danışmanlarının portföylerini paylaştığı ve alıcı taleplerini eşleştirdiği profesyonel bir platformdur.\n\nÖzellikler:\n• İlan Havuzu: Satılık ve kiralık mülk portföyünüzü paylaşın\n• Talep Havuzu: Alıcı müşteri taleplerinizi yayınlayın\n• Akıllı Eşleşme: İlan ve talepleri otomatik eşleştirin\n• Bölge Filtresi: İl, ilçe ve mahalle bazında arama yapın\n• Güvenli İletişim: Eşleşme onaylandığında iletişim bilgileri paylaşılır\n• Anlık Bildirimler: Yeni eşleşmelerden anında haberdar olun\n\nNasıl Çalışır:\n1. Kayıt olun ve emlak yetki belgenizi yükleyin\n2. İlanlarınızı veya müşteri taleplerinizi ekleyin\n3. Bölgenizdeki portföyleri keşfedin\n4. Eşleşme talebi gönderin, onaylandığında iletişime geçin\n\nBeraber Satalım ile emlak sektöründe iş birliği yapın, portföyünüzü büyütün.",
+        "keywords": [
+          "emlak",
+          "emlakçı",
+          "portföy",
+          "gayrimenkul",
+          "satılık",
+          "kiralık",
+          "müşteri",
+          "eşleşme",
+          "ilan",
+          "talep"
+        ],
+        "promoText": "Emlakçılar arası portföy paylaşım platformu. İlan ve talepleri eşleştirin.",
+        "supportUrl": "https://baris-tuncer.github.io/birlikte-satalim/",
+        "title": "Beraber Satalım",
+        "subtitle": "Emlakçılar için ortak portföy",
+        "privacyPolicyUrl": "https://baris-tuncer.github.io/birlikte-satalim/gizlilik.html",
+        "screenshots": {
+          "APP_IPHONE_65": [
+            "store/apple/screenshot/tr/APP_IPHONE_65/03_portfolyum.png",
+            "store/apple/screenshot/tr/APP_IPHONE_65/01_ilanlar.png",
+            "store/apple/screenshot/tr/APP_IPHONE_65/04_profil.png",
+            "store/apple/screenshot/tr/APP_IPHONE_65/05_ilan_detay.png",
+            "store/apple/screenshot/tr/APP_IPHONE_65/02_talepler.png"
+          ]
+        }
+      }
+    },
+    "categories": [
+      "BUSINESS"
+    ],
+    "advisory": {
+      "ageRatingOverride": "NONE",
+      "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+      "contests": "NONE",
+      "gambling": false,
+      "gamblingSimulated": "NONE",
+      "horrorOrFearThemes": "NONE",
+      "kidsAgeBand": null,
+      "koreaAgeRatingOverride": "NONE",
+      "lootBox": false,
+      "matureOrSuggestiveThemes": "NONE",
+      "medicalOrTreatmentInformation": "NONE",
+      "profanityOrCrudeHumor": "NONE",
+      "sexualContentGraphicAndNudity": "NONE",
+      "sexualContentOrNudity": "NONE",
+      "unrestrictedWebAccess": false,
+      "violenceCartoonOrFantasy": "NONE",
+      "violenceRealistic": "NONE",
+      "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+      "advertising": false,
+      "ageAssurance": false,
+      "ageRatingOverrideV2": "NONE",
+      "developerAgeRatingInfoUrl": null,
+      "gunsOrOtherWeapons": "NONE",
+      "healthOrWellnessTopics": false,
+      "messagingAndChat": false,
+      "parentalControls": false,
+      "userGeneratedContent": true
+    },
+    "review": {
+      "firstName": "Baris",
+      "lastName": "Tuncer",
+      "email": "baristuncer80@icloud.com",
+      "phone": "+905332951303",
+      "demoUsername": "review@berabersatalim.com",
+      "demoPassword": "Review2025!",
+      "demoRequired": true,
+      "notes": "This is a free B2B networking app for real estate agents in Turkey. All features are free and accessible to all users. License verification is used solely for identity verification and trust, not for feature access control. There are no in-app purchases, subscriptions, or paid features.\n\nUser-generated content moderation: Users can report content (misleading, inappropriate, spam) and block other users. Blocked users' content is hidden. Reports are reviewed by the admin team.\n\nDemo account credentials are provided above. The account is pre-verified and ready to use."
+    }
+  }
+}

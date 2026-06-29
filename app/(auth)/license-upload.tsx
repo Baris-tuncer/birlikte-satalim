@@ -74,7 +74,7 @@ export default function LicenseUploadScreen() {
   const handleSkip = useCallback(() => {
     Alert.alert(
       'Atlamak istediğinize emin misiniz?',
-      'Yetki belgenizi daha sonra profil sayfanızdan yükleyebilirsiniz. Belge onaylanana kadar bazı özellikler kısıtlı olacaktır.',
+      'Yetki belgenizi daha sonra profil sayfanızdan yükleyebilirsiniz. Kimlik doğrulama süreciniz beklemede kalacaktır.',
       [
         { text: 'Vazgeç', style: 'cancel' },
         {

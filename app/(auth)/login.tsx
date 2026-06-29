@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import { useAuth } from '@/lib/auth-context';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
+import { supabase } from '@/lib/supabase';
 
 const REMEMBER_EMAIL_KEY = '@remember_email';
 const REMEMBER_ENABLED_KEY = '@remember_enabled';
@@ -63,6 +64,19 @@ export default function LoginScreen() {
         await AsyncStorage.multiRemove([REMEMBER_EMAIL_KEY, REMEMBER_ENABLED_KEY]);
       }
     } catch {}
+
+    // Engelli email kontrolü
+    const { data: blocked } = await supabase
+      .from('blocked_emails')
+      .select('id')
+      .eq('email', email.trim().toLowerCase())
+      .maybeSingle();
+
+    if (blocked) {
+      setLoading(false);
+      Alert.alert('Hata', 'Bu hesap askıya alınmıştır.');
+      return;
+    }
 
     const { error } = await signIn(email.trim(), password);
     setLoading(false);

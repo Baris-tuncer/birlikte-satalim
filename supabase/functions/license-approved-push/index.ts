@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const title = 'Yetki Belgeniz Onaylandı';
-    const body = 'Tebrikler! Yetki belgeniz onaylandı, artık tüm özellikleri kullanabilirsiniz.';
+    const body = 'Tebrikler! Yetki belgeniz onaylandı, kimliğiniz doğrulandı.';
 
     // Bildirim kaydini yaz
     await supabase.from('notifications').insert({

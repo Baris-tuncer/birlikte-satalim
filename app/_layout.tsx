@@ -107,20 +107,14 @@ function RootLayoutNav() {
       // Login/register sayfasında ama giriş yapılmış — doğru adıma yönlendir
       if (!emailVerified) {
         router.replace('/(auth)/verify-email');
-      } else if (licenseStatus === 'none') {
-        router.replace('/(auth)/license-upload');
-      } else if (licenseStatus === 'pending' || licenseStatus === 'rejected') {
-        router.replace('/(auth)/approval-pending');
-      } else if (licenseStatus === 'approved') {
+      } else {
+        // E-posta doğrulanmış, ana ekrana yönlendir (lisans durumu fark etmez)
         router.replace('/(tabs)');
       }
     } else if (isLoggedIn && !emailVerified && !inAuthGroup) {
       router.replace('/(auth)/verify-email');
-    } else if (isLoggedIn && emailVerified && licenseStatus === 'none' && !inAuthGroup) {
-      router.replace('/(auth)/license-upload');
-    } else if (isLoggedIn && emailVerified && (licenseStatus === 'pending' || licenseStatus === 'rejected') && !inAuthGroup) {
-      router.replace('/(auth)/approval-pending');
-    } else if (isLoggedIn && emailVerified && licenseStatus === 'approved' && inAuthGroup) {
+    } else if (isLoggedIn && emailVerified && inAuthGroup) {
+      // E-posta doğrulanmış, ana ekrana yönlendir (lisans durumu fark etmez)
       router.replace('/(tabs)');
     }
   }, [isLoggedIn, isLoading, profileLoading, emailVerified, segments, licenseStatus]);

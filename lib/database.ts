@@ -368,6 +368,89 @@ export async function getPlatformStats() {
   };
 }
 
+// ─── CONTENT REPORTS ─────────────────────────────────
+
+export async function reportContent(report: {
+  reporter_id: string;
+  content_type: 'LISTING' | 'DEMAND';
+  content_id: string;
+  reason: string;
+  description?: string;
+}) {
+  const { error } = await supabase
+    .from('content_reports')
+    .insert(report);
+
+  if (error?.code === '23505') {
+    return { error: 'Bu içeriği zaten bildirdiniz.' };
+  }
+  return { error: error?.message };
+}
+
+export interface ContentReport {
+  id: string;
+  reporter_id: string;
+  content_type: 'LISTING' | 'DEMAND';
+  content_id: string;
+  reason: string;
+  description?: string;
+  status: 'PENDING' | 'REVIEWED' | 'RESOLVED';
+  created_at: string;
+  reporter?: { name: string; email: string } | null;
+}
+
+export async function getContentReports(statusFilter?: 'PENDING' | 'REVIEWED' | 'RESOLVED') {
+  let query = supabase
+    .from('content_reports')
+    .select('*, reporter:users!reporter_id(name, email)')
+    .order('created_at', { ascending: false });
+
+  if (statusFilter) {
+    query = query.eq('status', statusFilter);
+  }
+
+  const { data, error } = await query;
+  return { data: (data as ContentReport[]) ?? [], error: error?.message };
+}
+
+export async function updateReportStatus(reportId: string, status: 'REVIEWED' | 'RESOLVED') {
+  const { error } = await supabase
+    .from('content_reports')
+    .update({ status })
+    .eq('id', reportId);
+  return { error: error?.message };
+}
+
+// ─── USER BLOCKS ─────────────────────────────────────
+
+export async function blockUser(blockerId: string, blockedId: string) {
+  const { error } = await supabase
+    .from('user_blocks')
+    .insert({ blocker_id: blockerId, blocked_id: blockedId });
+
+  if (error?.code === '23505') {
+    return { error: 'Bu kullanıcı zaten engellenmiş.' };
+  }
+  return { error: error?.message };
+}
+
+export async function unblockUser(blockerId: string, blockedId: string) {
+  const { error } = await supabase
+    .from('user_blocks')
+    .delete()
+    .eq('blocker_id', blockerId)
+    .eq('blocked_id', blockedId);
+  return { error: error?.message };
+}
+
+export async function getBlockedUserIds(blockerId: string): Promise<string[]> {
+  const { data } = await supabase
+    .from('user_blocks')
+    .select('blocked_id')
+    .eq('blocker_id', blockerId);
+  return (data ?? []).map((row: any) => row.blocked_id);
+}
+
 // ─── NEIGHBORHOOD PRICES ──────────────────────────────
 
 export async function getNeighborhoodPrice(district: string, neighborhood: string, propertyType: PropertyType) {

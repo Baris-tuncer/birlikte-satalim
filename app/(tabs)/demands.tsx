@@ -21,7 +21,7 @@ import type { BuyerDemand } from '@/types';
 
 export default function DemandPoolScreen() {
   const router = useRouter();
-  const { profile } = useAuth();
+  const { profile, licenseStatus } = useAuth();
   const [selectedCity, setSelectedCity] = useState('İstanbul');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedNeighborhood, setSelectedNeighborhood] = useState('');
@@ -63,6 +63,13 @@ export default function DemandPoolScreen() {
   }, []);
 
   const handleMatch = useCallback((demandId: string) => {
+    if (licenseStatus !== 'approved') {
+      Alert.alert('Kimlik Doğrulama Gerekli', 'Eşleşme göndermek için yetki belgenizin doğrulanması gerekmektedir.', [
+        { text: 'Belge Yükle', onPress: () => router.push('/(auth)/license-upload') },
+        { text: 'Kapat', style: 'cancel' },
+      ]);
+      return;
+    }
     const demand = demands.find((d) => d.id === demandId);
     if (!demand) return;
 

@@ -277,7 +277,7 @@ export const mockDemands: BuyerDemand[] = [
     min_rooms: '3+1',
     min_area: 100,
     max_floor: null,
-    notes: 'Deniz manzaralı, metro yakınında, 2020 sonrası bina tercih ediliyor. Müşteri nakit ödeme yapacak.',
+    notes: 'Deniz manzaralı, metro yakınında, 2020 sonrası bina tercih ediliyor.',
     status: 'ACTIVE',
     expires_at: null,
     created_at: new Date(Date.now() - 180000).toISOString(), // 3dk önce

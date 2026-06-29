@@ -18,6 +18,7 @@ import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme'
 import { useAuth } from '@/lib/auth-context';
 import { setPendingAuth } from '@/lib/pending-auth';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
+import { supabase } from '@/lib/supabase';
 
 interface LegalCheckbox {
   key: string;
@@ -43,12 +44,6 @@ const INITIAL_CHECKBOXES: LegalCheckbox[] = [
     key: 'consent',
     label: 'Açık Rıza Beyanı',
     slug: 'consent',
-    checked: false,
-  },
-  {
-    key: 'subscription',
-    label: 'Mesafeli Satış Sözleşmesi',
-    slug: 'subscription',
     checked: false,
   },
 ];
@@ -105,6 +100,20 @@ export default function RegisterScreen() {
     }
 
     setLoading(true);
+
+    // Engelli email kontrolü
+    const { data: blocked } = await supabase
+      .from('blocked_emails')
+      .select('id')
+      .eq('email', email.trim().toLowerCase())
+      .maybeSingle();
+
+    if (blocked) {
+      setLoading(false);
+      Alert.alert('Hata', 'Bu e-posta adresi ile kayıt olunamaz.');
+      return;
+    }
+
     const { error } = await signUp({
       email: email.trim(),
       password,

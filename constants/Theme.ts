@@ -2,7 +2,7 @@ import { Dimensions, Platform } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Premium renk paleti
+// Ana renk paleti
 export const Colors = {
   primary: '#0A2540',       // Koyu lacivert-gri (ana renk)
   accent: '#FF6B4A',        // Coral (sıcak, enerjik)
@@ -118,7 +118,7 @@ export const Radius = {
   full: 9999,
 } as const;
 
-// Premium gölgeler - web ve native uyumlu
+// Gölgeler - web ve native uyumlu
 const createShadow = (offsetY: number, opacity: number, radius: number, elevation: number) =>
   Platform.select({
     web: {

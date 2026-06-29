@@ -425,17 +425,30 @@ export default function ProfileScreen() {
 
         {/* Admin Paneli */}
         {(profile?.is_admin || (__DEV__ && devUser?.is_admin)) && (
-          <Pressable
-            style={({ pressed }) => [
-              styles.adminButton,
-              pressed && { opacity: 0.9 },
-            ]}
-            onPress={() => router.push('/admin/licenses')}
-          >
-            <Ionicons name="shield-checkmark-outline" size={20} color={Colors.accent} />
-            <Text style={styles.adminButtonText}>Lisans Onay Paneli</Text>
-            <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
-          </Pressable>
+          <>
+            <Pressable
+              style={({ pressed }) => [
+                styles.adminButton,
+                pressed && { opacity: 0.9 },
+              ]}
+              onPress={() => router.push('/admin/licenses')}
+            >
+              <Ionicons name="shield-checkmark-outline" size={20} color={Colors.accent} />
+              <Text style={styles.adminButtonText}>Lisans Onay Paneli</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.adminButton,
+                pressed && { opacity: 0.9 },
+              ]}
+              onPress={() => router.push('/admin/reports' as any)}
+            >
+              <Ionicons name="flag-outline" size={20} color={Colors.warning} />
+              <Text style={[styles.adminButtonText, { color: Colors.warning }]}>Şikayetler</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+            </Pressable>
+          </>
         )}
 
         {/* WhatsApp Destek Hattı */}
@@ -450,6 +463,37 @@ export default function ProfileScreen() {
           <Text style={styles.supportButtonText}>Destek Hattı</Text>
           <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
         </Pressable>
+
+        {/* Yasal Belgeler */}
+        <View style={styles.legalSection}>
+          <Text style={styles.legalSectionTitle}>Yasal</Text>
+          <Pressable
+            style={({ pressed }) => [styles.legalLink, pressed && { opacity: 0.7 }]}
+            onPress={() => router.push('/legal/terms')}
+          >
+            <Ionicons name="document-text-outline" size={18} color={Colors.text.secondary} />
+            <Text style={styles.legalLinkText}>Kullanım Koşulları</Text>
+            <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+          </Pressable>
+          <View style={styles.legalDivider} />
+          <Pressable
+            style={({ pressed }) => [styles.legalLink, pressed && { opacity: 0.7 }]}
+            onPress={() => router.push('/legal/kvkk')}
+          >
+            <Ionicons name="shield-outline" size={18} color={Colors.text.secondary} />
+            <Text style={styles.legalLinkText}>KVKK Aydınlatma Metni</Text>
+            <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+          </Pressable>
+          <View style={styles.legalDivider} />
+          <Pressable
+            style={({ pressed }) => [styles.legalLink, pressed && { opacity: 0.7 }]}
+            onPress={() => router.push('/legal/privacy')}
+          >
+            <Ionicons name="lock-closed-outline" size={18} color={Colors.text.secondary} />
+            <Text style={styles.legalLinkText}>Gizlilik Politikası</Text>
+            <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+          </Pressable>
+        </View>
 
         {/* Şifre Değiştir */}
         <Pressable
@@ -839,6 +883,35 @@ const styles = StyleSheet.create({
   logoutText: {
     ...Typography.headline,
     color: Colors.error,
+  },
+  legalSection: {
+    backgroundColor: Colors.card,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
+    ...Shadows.sm,
+  },
+  legalSectionTitle: {
+    ...Typography.footnote,
+    color: Colors.text.tertiary,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.5,
+    marginBottom: Spacing.md,
+  },
+  legalLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+  },
+  legalLinkText: {
+    ...Typography.subhead,
+    color: Colors.text.primary,
+    flex: 1,
+  },
+  legalDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: Colors.borderLight,
   },
   deleteAccountButton: {
     flexDirection: 'row',

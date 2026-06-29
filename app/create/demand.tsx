@@ -22,8 +22,9 @@ import {
   ROOM_OPTIONS,
   getNeighborhoodsForDistrict,
 } from '@/lib/constants';
-import { formatPriceInput } from '@/lib/format';
+import { formatPriceInput, checkContent } from '@/lib/format';
 import { useCreateDemand, useUpdateDemand } from '@/lib/hooks';
+import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import DropdownPicker from '@/components/ui/DropdownPicker';
 import type { TransactionType, PropertyType, BuyerDemand } from '@/types';
@@ -33,6 +34,20 @@ const ROOM_PICKER_OPTIONS = ROOM_OPTIONS.map((r) => ({ key: r, label: r }));
 
 export default function CreateDemandScreen() {
   const router = useRouter();
+  const { licenseStatus } = useAuth();
+
+  useEffect(() => {
+    if (licenseStatus !== 'approved') {
+      Alert.alert(
+        'Kimlik Doğrulama Gerekli',
+        'Talep eklemek için yetki belgenizin doğrulanması gerekmektedir.',
+        [
+          { text: 'Belge Yükle', onPress: () => router.replace('/(auth)/license-upload') },
+          { text: 'Geri Dön', style: 'cancel', onPress: () => router.back() },
+        ]
+      );
+    }
+  }, [licenseStatus]);
   const { editId } = useLocalSearchParams<{ editId?: string }>();
   const isEdit = !!editId;
   const { create, loading: createLoading } = useCreateDemand();
@@ -124,6 +139,10 @@ export default function CreateDemandScreen() {
     if (maxBudget > 50_000_000_000) return Alert.alert('Hata', 'Bütçe 50 milyar TL\'yi geçemez.');
 
     if (notes.length > 500) return Alert.alert('Hata', 'Notlar en fazla 500 karakter olabilir.');
+
+    const contentError = checkContent(notes);
+    if (contentError) return Alert.alert('Hata', contentError);
+
     if (minArea && (Number(minArea) <= 0 || Number(minArea) > 100_000)) return Alert.alert('Hata', 'Geçerli bir alan girin.');
     if (maxFloor && (Number(maxFloor) <= 0 || Number(maxFloor) > 100)) return Alert.alert('Hata', 'Geçerli bir kat sayısı girin.');
     if (selectedNeighborhoods.length > 20) return Alert.alert('Hata', 'En fazla 20 mahalle seçebilirsiniz.');

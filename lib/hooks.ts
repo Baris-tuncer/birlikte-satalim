@@ -13,6 +13,7 @@ import {
   createDemand,
   updateListing,
   updateDemand,
+  getBlockedUserIds,
 } from './database';
 import { supabase } from './supabase';
 import { useAuth } from './auth-context';
@@ -54,9 +55,12 @@ interface UseListingsOptions {
 }
 
 export function useListings(filters?: UseListingsOptions) {
+  const { profile } = useAuth();
   const [data, setData] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const userId = profile?.id;
 
   const fetch = useCallback(async () => {
     if (__DEV__) {
@@ -78,17 +82,23 @@ export function useListings(filters?: UseListingsOptions) {
       return;
     }
     setLoading(true);
-    const { data: listings, error: err } = await getListings({
-      city: filters?.city,
-      district: filters?.district,
-      neighborhood: filters?.neighborhood,
-      transaction_type: filters?.transaction_type,
-      property_type: filters?.property_type,
-    });
-    setData(listings);
-    setError(err ?? null);
+    const [listingsResult, blockedIds] = await Promise.all([
+      getListings({
+        city: filters?.city,
+        district: filters?.district,
+        neighborhood: filters?.neighborhood,
+        transaction_type: filters?.transaction_type,
+        property_type: filters?.property_type,
+      }),
+      userId ? getBlockedUserIds(userId) : Promise.resolve([]),
+    ]);
+    const filtered = blockedIds.length > 0
+      ? listingsResult.data.filter((l) => !blockedIds.includes(l.agent_id))
+      : listingsResult.data;
+    setData(filtered);
+    setError(listingsResult.error ?? null);
     setLoading(false);
-  }, [filters?.city, filters?.district, filters?.neighborhood, filters?.transaction_type, filters?.property_type]);
+  }, [userId, filters?.city, filters?.district, filters?.neighborhood, filters?.transaction_type, filters?.property_type]);
 
   useEffect(() => {
     fetch();
@@ -124,9 +134,12 @@ interface UseDemandOptions {
 }
 
 export function useDemands(filters?: UseDemandOptions) {
+  const { profile } = useAuth();
   const [data, setData] = useState<BuyerDemand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const userId = profile?.id;
 
   const fetch = useCallback(async () => {
     if (__DEV__) {
@@ -148,17 +161,23 @@ export function useDemands(filters?: UseDemandOptions) {
       return;
     }
     setLoading(true);
-    const { data: demands, error: err } = await getDemands({
-      city: filters?.city,
-      district: filters?.district,
-      neighborhood: filters?.neighborhood,
-      transaction_type: filters?.transaction_type,
-      property_type: filters?.property_type,
-    });
-    setData(demands);
-    setError(err ?? null);
+    const [demandsResult, blockedIds] = await Promise.all([
+      getDemands({
+        city: filters?.city,
+        district: filters?.district,
+        neighborhood: filters?.neighborhood,
+        transaction_type: filters?.transaction_type,
+        property_type: filters?.property_type,
+      }),
+      userId ? getBlockedUserIds(userId) : Promise.resolve([]),
+    ]);
+    const filtered = blockedIds.length > 0
+      ? demandsResult.data.filter((d) => !blockedIds.includes(d.agent_id))
+      : demandsResult.data;
+    setData(filtered);
+    setError(demandsResult.error ?? null);
     setLoading(false);
-  }, [filters?.city, filters?.district, filters?.neighborhood, filters?.transaction_type, filters?.property_type]);
+  }, [userId, filters?.city, filters?.district, filters?.neighborhood, filters?.transaction_type, filters?.property_type]);
 
   useEffect(() => {
     fetch();

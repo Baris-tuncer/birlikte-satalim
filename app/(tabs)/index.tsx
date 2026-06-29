@@ -23,7 +23,7 @@ import type { Listing } from '@/types';
 
 export default function ListingsScreen() {
   const router = useRouter();
-  const { profile } = useAuth();
+  const { profile, licenseStatus } = useAuth();
 
   const [selectedCity, setSelectedCity] = useState('İstanbul');
   const [selectedDistrict, setSelectedDistrict] = useState('');
@@ -88,6 +88,13 @@ export default function ListingsScreen() {
   }, []);
 
   const handleMatch = useCallback((listingId: string) => {
+    if (licenseStatus !== 'approved') {
+      Alert.alert('Kimlik Doğrulama Gerekli', 'Eşleşme göndermek için yetki belgenizin doğrulanması gerekmektedir.', [
+        { text: 'Belge Yükle', onPress: () => router.push('/(auth)/license-upload') },
+        { text: 'Kapat', style: 'cancel' },
+      ]);
+      return;
+    }
     const listing = listings.find((l) => l.id === listingId);
     if (!listing) return;
 

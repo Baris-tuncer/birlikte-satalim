@@ -12,8 +12,8 @@
       "privacyUrl": "https://baris-tuncer.github.io/birlikte-satalim/gizlilik.html",
       "bundleIdentifier": "com.berabersatalim.app",
       "infoPlist": {
-        "NSCameraUsageDescription": "Yetki belgenizin fotoğrafını çekmek için kamera erişimi gereklidir.",
-        "NSPhotoLibraryUsageDescription": "Yetki belgenizi galeriden seçmek için galeri erişimi gereklidir.",
+        "NSCameraUsageDescription": "Yetki belgesi QR kodunu okutmak ve profil fotoğrafı çekmek için kamera erişimi gereklidir.",
+        "NSPhotoLibraryUsageDescription": "Profil fotoğrafı veya yetki belgesi görseli seçmek için galeri erişimi gereklidir.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "privacyManifests": {
@@ -69,14 +69,14 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Yetki belgesindeki QR kodu okutmak için kamera erişimi gereklidir."
+          "cameraPermission": "Yetki belgesi QR kodunu okutmak ve profil fotoğrafı çekmek için kamera erişimi gereklidir."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Profil fotoğrafını galeriden seçmek için galeri erişimi gereklidir.",
-          "cameraPermission": "Profil fotoğrafı çekmek için kamera erişimi gereklidir."
+          "photosPermission": "Profil fotoğrafı veya yetki belgesi görseli seçmek için galeri erişimi gereklidir.",
+          "cameraPermission": "Yetki belgesi QR kodunu okutmak ve profil fotoğrafı çekmek için kamera erişimi gereklidir."
         }
       ],
       [

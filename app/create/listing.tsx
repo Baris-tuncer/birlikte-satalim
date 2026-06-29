@@ -25,8 +25,9 @@ import {
   BUILDING_AGE_OPTIONS,
   getNeighborhoodsForDistrict,
 } from '@/lib/constants';
-import { formatPriceInput } from '@/lib/format';
+import { formatPriceInput, checkContent } from '@/lib/format';
 import { useCreateListing, useUpdateListing } from '@/lib/hooks';
+import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import DropdownPicker from '@/components/ui/DropdownPicker';
 import type { TransactionType, PropertyType, Listing } from '@/types';
@@ -37,6 +38,20 @@ const HEATING_PICKER_OPTIONS = HEATING_TYPES.map((h) => ({ key: h, label: h }));
 
 export default function CreateListingScreen() {
   const router = useRouter();
+  const { licenseStatus } = useAuth();
+
+  useEffect(() => {
+    if (licenseStatus !== 'approved') {
+      Alert.alert(
+        'Kimlik Doğrulama Gerekli',
+        'İlan eklemek için yetki belgenizin doğrulanması gerekmektedir.',
+        [
+          { text: 'Belge Yükle', onPress: () => router.replace('/(auth)/license-upload') },
+          { text: 'Geri Dön', style: 'cancel', onPress: () => router.back() },
+        ]
+      );
+    }
+  }, [licenseStatus]);
   const { editId } = useLocalSearchParams<{ editId?: string }>();
   const isEdit = !!editId;
   const { create, loading: createLoading } = useCreateListing();
@@ -138,6 +153,10 @@ export default function CreateListingScreen() {
     if (price > 50_000_000_000) return Alert.alert('Hata', 'Fiyat 50 milyar TL\'yi geçemez.');
 
     if (description.length > 500) return Alert.alert('Hata', 'Açıklama en fazla 500 karakter olabilir.');
+
+    const contentError = checkContent(description);
+    if (contentError) return Alert.alert('Hata', contentError);
+
     if (netArea && (Number(netArea) <= 0 || Number(netArea) > 100_000)) return Alert.alert('Hata', 'Geçerli bir net alan girin.');
     if (grossArea && (Number(grossArea) <= 0 || Number(grossArea) > 100_000)) return Alert.alert('Hata', 'Geçerli bir brüt alan girin.');
     if (floor && (Number(floor) < -5 || Number(floor) > 100)) return Alert.alert('Hata', 'Geçerli bir kat numarası girin.');

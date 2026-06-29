@@ -9,12 +9,13 @@ import { useAuth } from '@/lib/auth-context';
 import { useMatchActions, useUpdateListing } from '@/lib/hooks';
 import { mockListings } from '@/lib/mockData';
 import { supabase } from '@/lib/supabase';
+import { reportContent, blockUser } from '@/lib/database';
 import type { Listing } from '@/types';
 
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { profile } = useAuth();
+  const { profile, licenseStatus } = useAuth();
   const { send: sendMatch, loading: matchLoading } = useMatchActions();
   const { update: updateListingStatus } = useUpdateListing();
 
@@ -69,6 +70,55 @@ export default function ListingDetailScreen() {
   const isOwner = listing.agent_id === currentUserId;
   const isSale = listing.transaction_type === 'SALE';
 
+  const handleReport = () => {
+    Alert.alert('İlan Sahibi Hakkında', 'Ne yapmak istiyorsunuz?', [
+      {
+        text: 'Kullanıcıyı Engelle',
+        onPress: () => {
+          Alert.alert('Engelle', 'Bu kullanıcının ilanları ve talepleri artık size gösterilmeyecek.', [
+            { text: 'Vazgeç', style: 'cancel' },
+            {
+              text: 'Engelle',
+              style: 'destructive',
+              onPress: async () => {
+                const { error } = await blockUser(currentUserId, listing.agent_id);
+                Alert.alert(error ? 'Hata' : 'Engellendi', error ?? 'Kullanıcı engellendi.');
+                if (!error) router.back();
+              },
+            },
+          ]);
+        },
+      },
+      {
+        text: 'İçerik Bildir',
+        onPress: () => {
+          const reasons = [
+            { text: 'Yanıltıcı İçerik', value: 'MISLEADING' },
+            { text: 'Uygunsuz İçerik', value: 'INAPPROPRIATE' },
+            { text: 'Spam', value: 'SPAM' },
+            { text: 'Diğer', value: 'OTHER' },
+            { text: 'Vazgeç', style: 'cancel' as const },
+          ];
+          Alert.alert('İlanı Bildir', 'Bildirme nedeninizi seçin:', reasons.map((r) =>
+            r.style ? { text: r.text, style: r.style } : {
+              text: r.text,
+              onPress: async () => {
+                const { error } = await reportContent({
+                  reporter_id: currentUserId,
+                  content_type: 'LISTING',
+                  content_id: listing.id,
+                  reason: r.value!,
+                });
+                Alert.alert(error ? 'Hata' : 'Bildirildi', error ?? 'İlan incelenmek üzere bildirildi. Teşekkürler.');
+              },
+            }
+          ));
+        },
+      },
+      { text: 'Vazgeç', style: 'cancel' },
+    ]);
+  };
+
   const isUrbanRenewal = listing.property_type === 'URBAN_RENEWAL';
 
   const details: { label: string; value: string | null }[] = isUrbanRenewal
@@ -88,6 +138,13 @@ export default function ListingDetailScreen() {
       ];
 
   const handleMatch = () => {
+    if (licenseStatus !== 'approved') {
+      Alert.alert('Kimlik Doğrulama Gerekli', 'Eşleşme göndermek için yetki belgenizin doğrulanması gerekmektedir.', [
+        { text: 'Belge Yükle', onPress: () => router.push('/(auth)/license-upload') },
+        { text: 'Kapat', style: 'cancel' },
+      ]);
+      return;
+    }
     Alert.alert('Müşterim Var', 'Bu ilan için müşteriniz olduğunu bildireceksiniz. Karşı taraf kabul ederse iletişim bilgileriniz paylaşılacak.', [
       { text: 'Vazgeç', style: 'cancel' },
       {
@@ -116,6 +173,12 @@ export default function ListingDetailScreen() {
           headerShown: true,
           headerStyle: { backgroundColor: Colors.background },
           headerTintColor: Colors.text.primary,
+          headerRight: () =>
+            !isOwner ? (
+              <Pressable onPress={handleReport} hitSlop={12} style={{ padding: Spacing.xs }}>
+                <Ionicons name="flag-outline" size={22} color={Colors.text.secondary} />
+              </Pressable>
+            ) : null,
         }}
       />
       <ScrollView

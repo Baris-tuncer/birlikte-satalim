@@ -38,11 +38,11 @@ Son Güncelleme: 18 Haziran 2026
   a) 18 yaşını doldurmuş olması,
   b) Gayrimenkul danışmanlığı yetki belgesine sahip olması,
   c) Geçerli bir e-posta adresine sahip olması,
-  d) İşbu Sözleşme'yi, KVKK Aydınlatma Metni'ni, Açık Rıza Beyanı'nı ve Mesafeli Satış Sözleşmesi'ni okumuş ve kabul etmiş olması gerekmektedir.
+  d) İşbu Sözleşme'yi, KVKK Aydınlatma Metni'ni ve Açık Rıza Beyanı'nı okumuş ve kabul etmiş olması gerekmektedir.
 
 4.2. Kullanıcı, kayıt sırasında verdiği bilgilerin doğru, güncel ve eksiksiz olduğunu beyan ve taahhüt eder. Gerçeğe aykırı beyanda bulunan Kullanıcı, bu durumdan doğan her türlü hukuki ve cezai sorumluluktan münhasıran kendisi sorumludur.
 
-4.3. Kullanıcı, yetki belgesinin Platform tarafından onaylanmasının ardından tüm Platform özelliklerine erişim kazanır. Platform, yetki belgesi doğrulamasını kendi takdirine bağlı olarak gerçekleştirir ve gerekçe göstermeksizin üyeliği reddedebilir.
+4.3. Platform, yetki belgesi doğrulamasını kimlik teyidi amacıyla kendi takdirine bağlı olarak gerçekleştirir ve gerekçe göstermeksizin üyeliği reddedebilir.
 
 5. PLATFORM DIŞI İŞLEM YASAĞI (ANTİ-ÇANTA KURALI)
 
@@ -81,11 +81,11 @@ Son Güncelleme: 18 Haziran 2026
 
 8.2. Platform, mücbir sebepler (doğal afet, savaş, siber saldırı, yasal düzenleme değişikliği vb.) nedeniyle hizmet kesintisi yaşanmasından sorumlu tutulamaz.
 
-8.3. Platform'un işbu Sözleşme kapsamındaki azami sorumluluğu, ilgili Kullanıcı'nın son 12 ay içinde Platform'a ödediği toplam ücret tutarıyla sınırlıdır.
+8.3. Platform'un işbu Sözleşme kapsamındaki azami sorumluluğu, ilgili Kullanıcı'nın uğradığı doğrudan zararlarla sınırlıdır.
 
 9. FESİH
 
-9.1. Kullanıcı, hesabını dilediği zaman kapatarak işbu Sözleşme'yi feshedebilir. Hesap kapatma işlemi, aktif abonelik döneminin sonunda geçerlilik kazanır.
+9.1. Kullanıcı, hesabını dilediği zaman kapatarak işbu Sözleşme'yi feshedebilir.
 
 9.2. Platform, aşağıdaki hallerde Kullanıcı'nın üyeliğini önceden bildirimde bulunmaksızın askıya alabilir veya feshedebilir:
   a) İşbu Sözleşme hükümlerinin ihlali,
@@ -140,7 +140,7 @@ Son Güncelleme: 18 Haziran 2026
 
 2.6. Teknik Veriler: IP adresi, cihaz bilgileri, uygulama sürümü, push bildirim token'ı, oturum bilgileri.
 
-2.7. Ödeme Verileri: Abonelik durumu, fatura bilgileri. (Kredi kartı bilgileri Platform tarafından saklanmaz; ödeme işlemleri üçüncü taraf ödeme altyapısı sağlayıcıları aracılığıyla gerçekleştirilir.)
+2.7. Cihaz Verileri: Push bildirim token'ı, cihaz modeli, işletim sistemi bilgisi.
 
 3. KİŞİSEL VERİLERİN İŞLENME AMAÇLARI
 
@@ -151,7 +151,7 @@ Kişisel verileriniz aşağıdaki amaçlarla işlenmektedir:
 3.3. Platform hizmetlerinin sunulması (ilan yayımlama, talep oluşturma, eşleştirme),
 3.4. Eşleşme gerçekleştiğinde tarafların birbirleriyle iletişim kurmasının sağlanması,
 3.5. Bildirim hizmetlerinin sunulması,
-3.6. Abonelik ve ödeme süreçlerinin yönetimi,
+3.6. Platform kullanım süreçlerinin yönetimi,
 3.7. Platform güvenliğinin sağlanması ve kötüye kullanımın önlenmesi,
 3.8. Yasal yükümlülüklerin yerine getirilmesi,
 3.9. Hizmet kalitesinin iyileştirilmesi ve istatistiksel analizler.
@@ -164,7 +164,7 @@ Kişisel verileriniz, KVKK'nın 5. maddesi kapsamında aşağıdaki hukuki dayan
 
 4.2. Sözleşmenin İfası: Üyelik sözleşmesi kapsamında hizmetlerin sunulması için zorunlu olan veri işleme faaliyetleri (KVKK md. 5/2-c).
 
-4.3. Hukuki Yükümlülük: 5651 sayılı Kanun kapsamındaki trafik verisi saklama yükümlülüğü, vergi mevzuatı kapsamındaki fatura düzenleme yükümlülüğü (KVKK md. 5/2-ç).
+4.3. Hukuki Yükümlülük: 5651 sayılı Kanun kapsamındaki trafik verisi saklama yükümlülüğü (KVKK md. 5/2-ç).
 
 4.4. Meşru Menfaat: Platform güvenliğinin sağlanması, dolandırıcılığın ve kötüye kullanımın önlenmesi (KVKK md. 5/2-f).
 
@@ -173,7 +173,7 @@ Kişisel verileriniz, KVKK'nın 5. maddesi kapsamında aşağıdaki hukuki dayan
 Kişisel verileriniz, yukarıda belirtilen amaçlar doğrultusunda:
 
 5.1. Eşleşme kabul edildiğinde, eşleşen diğer Kullanıcı ile (ad, soyad, telefon numarası, yetki belgesi numarası),
-5.2. Ödeme işlemleri için ödeme altyapısı sağlayıcıları (Iyzico, Stripe) ile,
+5.2. Kimlik doğrulama hizmetleri için güvenlik altyapısı sağlayıcıları ile,
 5.3. Push bildirim hizmeti için bildirim altyapısı sağlayıcıları ile,
 5.4. Veri depolama için bulut altyapısı sağlayıcıları ile,
 5.5. Yasal zorunluluk halinde yetkili kamu kurum ve kuruluşları ile paylaşılabilir.
@@ -184,7 +184,7 @@ Kişisel verileriniz, yukarıda belirtilen amaçlar doğrultusunda:
 
 6.1. Hesap verileri: Üyelik süresince ve hesap kapatılmasını takip eden 3 (üç) yıl süreyle.
 6.2. Trafik verileri: 5651 sayılı Kanun uyarınca 2 (iki) yıl süreyle.
-6.3. Fatura ve ödeme verileri: Vergi mevzuatı uyarınca 10 (on) yıl süreyle.
+6.3. İşlem verileri: İlgili mevzuat uyarınca 5 (beş) yıl süreyle.
 6.4. Eşleşme verileri: Eşleşme tarihinden itibaren 5 (beş) yıl süreyle.
 6.5. Yetki belgesi görselleri: Hesap kapatılmasını takip eden 1 (bir) yıl süreyle.
 
@@ -209,7 +209,7 @@ Yukarıda sıralanan haklarınıza ilişkin taleplerinizi, kimliğinizi tespit e
 - E-posta yoluyla: kvkk@berabersatalim.com adresine, kayıtlı e-posta adresinizden gönderilecek e-posta ile,
 - Yazılı olarak: Platform'un güncel adresine noter kanalıyla veya iadeli taahhütlü posta ile.
 
-Başvurularınız, talebin niteliğine göre en kısa sürede ve en geç 30 (otuz) gün içinde ücretsiz olarak sonuçlandırılır. İşlemin ayrıca bir maliyet gerektirmesi halinde, Kişisel Verileri Koruma Kurulu tarafından belirlenen tarife üzerinden ücret talep edilebilir.`;
+Başvurularınız, talebin niteliğine göre en kısa sürede ve en geç 30 (otuz) gün içinde sonuçlandırılır.`;
 
 // ─── 3. AÇIK RIZA BEYANI ────────────────────────────
 
@@ -247,7 +247,7 @@ Kişisel verilerimin, Platform'un KVKK Aydınlatma Metni'nde belirtilen amaçlar
 İşbu Açık Rıza Beyanı'nı dilediğim zaman, herhangi bir gerekçe göstermeksizin geri çekme hakkına sahip olduğumu biliyorum. Açık rızamı geri çekmem halinde:
 
 - Geri çekme işlemi, geri çekme tarihinden önce rızaya dayanılarak gerçekleştirilen veri işleme faaliyetlerinin hukuka uygunluğunu etkilemez.
-- Açık rızanın geri çekilmesi, Platform hizmetlerinin kısmen veya tamamen sunulamamasına yol açabilir. Bu durumda Platform'un hizmet kısıtlaması uygulaması veya üyeliği sonlandırması meşru bir işlem olarak değerlendirilir.
+- Açık rızanın geri çekilmesi halinde Platform üyeliğiniz sonlandırılabilir.
 
 Rıza geri çekme taleplerimi kvkk@berabersatalim.com adresine veya uygulama içi ayarlar bölümünden iletebilirim.
 
@@ -255,95 +255,69 @@ Rıza geri çekme taleplerimi kvkk@berabersatalim.com adresine veya uygulama iç
 
 İşbu Açık Rıza Beyanı'nı, KVKK Aydınlatma Metni'ni okuyup anladıktan sonra, özgür iradem ile herhangi bir baskı veya zorunluluk altında kalmaksızın veriyorum.`;
 
-// ─── 4. MESAFELİ SATIŞ SÖZLEŞMESİ ─────────────────
+// ─── 4. GİZLİLİK POLİTİKASI ─────────────────────────
 
-export const LEGAL_SUBSCRIPTION = `MESAFELİ SATIŞ SÖZLEŞMESİ (ABONELİK)
+export const LEGAL_PRIVACY = `GİZLİLİK POLİTİKASI
 
 Son Güncelleme: 18 Haziran 2026
 
-İşbu Sözleşme, 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve Mesafeli Sözleşmeler Yönetmeliği hükümlerine uygun olarak düzenlenmiştir.
+"Beraber Satalım" ticari adıyla hizmet veren platform işletmecisi olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamındaki aydınlatma yükümlülüğümüzü yerine getirmek amacıyla işbu Aydınlatma Metni'ni bilginize sunmaktayız.
 
-1. TARAFLAR
+1. VERİ SORUMLUSU
 
-1.1. Satıcı:
-Ticari Unvan: Beraber Satalım
-Adres: Merdivenköy Mahallesi Emin Çınarpaşa Sokak Dicle Apt. No:6 D:19 Kadıköy/İstanbul
-Telefon: 0533 295 13 03
-E-posta: baristuncer80@hotmail.com
+Platform, 5651 sayılı Kanun kapsamında "Yer Sağlayıcı" konumundadır ve Kullanıcılar tarafından yüklenen içerikler bakımından KVKK anlamında "Veri İşleyen" sıfatını taşır. Platform, yalnızca kendi Kullanıcılarına ait kişisel verilerin işlenmesi bakımından "Veri Sorumlusu" sıfatını taşır.
 
-1.2. Alıcı:
-Platform'a kayıt olan ve abonelik satın alan Kullanıcı. Alıcı'nın kimlik ve iletişim bilgileri, kayıt sırasında Platform'a beyan ettiği bilgilerden oluşmaktadır.
+2. İŞLENEN KİŞİSEL VERİLER
 
-2. SÖZLEŞMENİN KONUSU
+• Kimlik Verileri: Ad, soyad, firma adı.
+• İletişim Verileri: E-posta adresi, telefon numarası.
+• Mesleki Veriler: Gayrimenkul danışmanlığı yetki belgesi görseli, yetki belgesi numarası, firma bilgileri.
+• Hesap Verileri: Kullanıcı kimlik numarası, şifrelenmiş parola, hesap oluşturma ve son giriş tarihleri.
+• İşlem Verileri: Yayımlanan ilanlar, talepler, eşleştirme talepleri ve durumları, bildirim kayıtları.
+• Teknik Veriler: IP adresi, cihaz bilgileri, uygulama sürümü, push bildirim token'i, oturum bilgileri.
 
-İşbu Sözleşme, Alıcı'nın Platform üzerinden elektronik ortamda satın aldığı abonelik hizmetinin satışına ilişkin tarafların hak ve yükümlülüklerini düzenler.
+3. KİŞİSEL VERİLERİN İŞLENME AMAÇLARI
 
-3. ABONELİK DETAYLARI
+• Üyelik hesabının oluşturulması ve yönetimi
+• Yetki belgesi doğrulamasının gerçekleştirilmesi
+• Platform hizmetlerinin sunulması (ilan yayımlama, talep oluşturma, eşleştirme)
+• Eşleştirme gerçekleştiğinde tarafların birbiriyle iletişim kurmasının sağlanması
+• Bildirim hizmetlerinin sunulması
+• Platform güvenliğinin sağlanması ve kötüye kullanımının önlenmesi
+• Yasal yükümlülüklerin yerine getirilmesi
 
-3.1. Hizmet Adı: Beraber Satalım Platform Aboneliği
-3.2. Aylık Abonelik Ücreti: 1.000 TL (Bin Türk Lirası) + KDV
-3.3. Abonelik Süresi: Aylık, taahhütsüz
-3.4. Yenileme: Her ay otomatik olarak yenilenir
-3.5. Ödeme Yöntemi: Kredi kartı veya banka kartı (Iyzico/Stripe ödeme altyapısı aracılığıyla)
+4. KİŞİSEL VERİLERİN AKTARILMASI
 
-3.6. Abonelik kapsamında sunulan hizmetler:
-  a) Kör ilan yayımlama (sınırsız),
-  b) Alıcı talebi oluşturma (sınırsız),
-  c) Eşleşme talebi gönderme ve alma,
-  d) Mahalle bazlı bildirim alma,
-  e) Tüm Platform özelliklerine erişim.
+Kişisel verileriniz, aşağıdaki durumlarda üçüncü kişilerle paylaşılabilir:
+• Eşleştirme kabul edildiğinde, eşleşen diğer Kullanıcı ile (ad, soyad, telefon numarası, yetki belgesi numarası)
+• Push bildirim hizmeti için bildirim altyapısı sağlayıcıları ile
+• Veri depolama için bulut altyapısı sağlayıcıları ile
+• Yasal zorunluluk halinde yetkili kamu kurum ve kuruluşları ile
 
-4. ÖDEME VE FATURALAMA
+5. KİŞİSEL VERİLERİN SAKLAMA SÜRESİ
 
-4.1. Abonelik ücreti, abonelik başlangıç tarihinde ve her yenileme tarihinde Alıcı'nın kayıtlı ödeme yönteminden otomatik olarak tahsil edilir.
+• Hesap verileri: Üyelik süresince ve hesap kapatılmasını takip eden 3 yıl süreyle
+• Trafik verileri: 5651 sayılı Kanun uyarınca 2 yıl süreyle
+• Eşleştirme verileri: Eşleştirme tarihinden itibaren 5 yıl süreyle
+• Yetki belgesi görselleri: Hesap kapatılmasını takip eden 1 yıl süreyle
 
-4.2. Ödeme işlemleri, Iyzico ve/veya Stripe ödeme altyapısı aracılığıyla gerçekleştirilir. Kredi kartı bilgileri Platform tarafından saklanmaz; tüm ödeme verileri PCI DSS uyumlu ödeme altyapısı sağlayıcıları tarafından güvenli şekilde işlenir.
+6. HAKLARINIZ
 
-4.3. Her başarılı ödeme sonrasında Alıcı'nın kayıtlı e-posta adresine elektronik fatura gönderilir.
+KVKK'nın 11. maddesi kapsamında aşağıdaki haklara sahipsiniz:
+• Kişisel verilerinizin işlenip işlenmediğini öğrenme
+• Kişisel verileriniz işlenmişse buna ilişkin bilgi talep etme
+• Kişisel verilerinizin eksik veya yanlış işlenmiş olması halinde bunların düzeltilmesini isteme
+• KVKK'nın 7. maddesinde öngörülen şartlar çerçevesinde kişisel verilerinizin silinmesini veya yok edilmesini isteme
+• İşlenen verilerinizin münhasıran otomatik sistemler vasıtasıyla analiz edilmesi suretiyle aleyhinize bir sonucun ortaya çıkmasına itiraz etme
 
-4.4. Ödeme işlemi başarısız olduğu takdirde Platform, 3 (üç) iş günü içinde yeniden deneme yapar. Üçüncü denemede de başarısız olunması halinde abonelik askıya alınır.
+7. HESAP SİLME
 
-5. CAYMA HAKKI
+Kullanıcılar, uygulama içerisindeki Profil > Hesabımı Sil seçeneğini kullanarak hesaplarını ve tüm kişisel verilerini kalıcı olarak silebilir. Silme işlemi geri alınamaz.
 
-5.1. Alıcı, abonelik satın alma tarihinden itibaren 14 (on dört) gün içinde herhangi bir gerekçe göstermeksizin ve cezai şart ödemeksizin sözleşmeden cayma hakkına sahiptir.
+8. İLETİŞİM
 
-5.2. Cayma hakkının kullanılması halinde, Alıcı'nın ödediği abonelik ücreti en geç 14 (on dört) gün içinde Alıcı'nın kullandığı ödeme aracına iade edilir.
-
-5.3. Cayma hakkı bildirimi, destek@berabersatalim.com adresine veya uygulama içi iletişim kanalından yazılı olarak yapılır.
-
-5.4. Alıcı, cayma süresi içinde Platform hizmetlerini kullanmaya başlamışsa, cayma hakkını kullandığı tarihe kadar olan süreye tekabül eden hizmet bedelini ödemeyi kabul eder.
-
-6. İPTAL VE SONLANDIRMA
-
-6.1. Alıcı, aboneliğini dilediği zaman uygulama içi ayarlar bölümünden veya destek@berabersatalim.com adresine yazılı bildirimde bulunarak iptal edebilir.
-
-6.2. İptal işlemi, mevcut abonelik döneminin sonunda geçerlilik kazanır. İptal tarihine kadar olan dönem için ödenen ücret iade edilmez.
-
-6.3. Abonelik iptal edilse dahi Alıcı, mevcut dönemin sonuna kadar Platform hizmetlerinden yararlanmaya devam eder.
-
-7. FİYAT DEĞİŞİKLİĞİ
-
-7.1. Platform, abonelik ücretinde değişiklik yapma hakkını saklı tutar.
-
-7.2. Fiyat değişiklikleri, Alıcı'ya e-posta yoluyla en az 30 (otuz) gün önceden bildirilir ve bir sonraki yenileme döneminden itibaren geçerli olur.
-
-7.3. Alıcı, yeni fiyatı kabul etmemesi halinde, yenileme tarihinden önce aboneliğini iptal edebilir.
-
-8. HİZMET SEVİYESİ
-
-8.1. Platform, hizmetin kesintisiz ve hatasız sunulacağını garanti etmez. Teknik bakım, güncelleme ve mücbir sebeplerden kaynaklanan kesintiler hizmet kapsamı dışındadır.
-
-8.2. Platform, hizmeti iyileştirmek amacıyla özelliklerde değişiklik yapabilir, yeni özellikler ekleyebilir veya mevcut özellikleri kaldırabilir.
-
-9. UYUŞMAZLIK ÇÖZÜMÜ
-
-9.1. İşbu Sözleşme, Türkiye Cumhuriyeti hukukuna tabidir.
-
-9.2. İşbu Sözleşme'den doğan uyuşmazlıklarda; Ticaret Bakanlığı tarafından ilan edilen değerin altındaki uyuşmazlıklar için Alıcı'nın yerleşim yerindeki veya işlemin yapıldığı yerdeki İl veya İlçe Tüketici Hakem Heyetleri, bu değerin üzerindeki uyuşmazlıklar için Tüketici Mahkemeleri yetkilidir.
-
-10. YÜRÜRLÜK
-
-İşbu Sözleşme, Alıcı'nın elektronik ortamda onay vermesi ve ilk ödemenin gerçekleştirilmesiyle yürürlüğe girer.`;
+Kişisel verilerinizle ilgili taleplerinizi kvkk@berabersatalim.com adresine iletebilirsiniz.
+Genel destek için: destek@berabersatalim.com`;
 
 // ─── DOCUMENT MAP ───────────────────────────────────
 
@@ -363,8 +337,8 @@ export const LEGAL_DOCUMENTS: Record<
     title: 'Açık Rıza Beyanı',
     content: LEGAL_CONSENT,
   },
-  subscription: {
-    title: 'Mesafeli Satış Sözleşmesi',
-    content: LEGAL_SUBSCRIPTION,
+  privacy: {
+    title: 'Gizlilik Politikası',
+    content: LEGAL_PRIVACY,
   },
 };
