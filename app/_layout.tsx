@@ -23,7 +23,7 @@ SplashScreen.preventAutoHideAsync();
 function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
-  const { isLoggedIn, isLoading, profileLoading, emailVerified, licenseStatus, profile } = useAuth();
+  const { isLoggedIn, isLoading, profileLoading, emailVerified, profile } = useAuth();
   const notificationCleanup = useRef<(() => void) | null>(null);
 
   // Deep link ile gelen Supabase auth callback'lerini yakala
@@ -117,7 +117,7 @@ function RootLayoutNav() {
       // E-posta doğrulanmış, ana ekrana yönlendir (lisans durumu fark etmez)
       router.replace('/(tabs)');
     }
-  }, [isLoggedIn, isLoading, profileLoading, emailVerified, segments, licenseStatus]);
+  }, [isLoggedIn, isLoading, profileLoading, emailVerified, segments]);
 
   return (
     <>

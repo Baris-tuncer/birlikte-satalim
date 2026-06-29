@@ -15,7 +15,7 @@ import type { Listing } from '@/types';
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { profile, licenseStatus } = useAuth();
+  const { profile } = useAuth();
   const { send: sendMatch, loading: matchLoading } = useMatchActions();
   const { update: updateListingStatus } = useUpdateListing();
 
@@ -138,13 +138,6 @@ export default function ListingDetailScreen() {
       ];
 
   const handleMatch = () => {
-    if (licenseStatus !== 'approved') {
-      Alert.alert('Kimlik Doğrulama Gerekli', 'Eşleşme göndermek için yetki belgenizin doğrulanması gerekmektedir.', [
-        { text: 'Belge Yükle', onPress: () => router.push('/(auth)/license-upload') },
-        { text: 'Kapat', style: 'cancel' },
-      ]);
-      return;
-    }
     Alert.alert('Müşterim Var', 'Bu ilan için müşteriniz olduğunu bildireceksiniz. Karşı taraf kabul ederse iletişim bilgileriniz paylaşılacak.', [
       { text: 'Vazgeç', style: 'cancel' },
       {

@@ -24,7 +24,6 @@ import {
 } from '@/lib/constants';
 import { formatPriceInput, checkContent } from '@/lib/format';
 import { useCreateDemand, useUpdateDemand } from '@/lib/hooks';
-import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import DropdownPicker from '@/components/ui/DropdownPicker';
 import type { TransactionType, PropertyType, BuyerDemand } from '@/types';
@@ -34,20 +33,6 @@ const ROOM_PICKER_OPTIONS = ROOM_OPTIONS.map((r) => ({ key: r, label: r }));
 
 export default function CreateDemandScreen() {
   const router = useRouter();
-  const { licenseStatus } = useAuth();
-
-  useEffect(() => {
-    if (licenseStatus !== 'approved') {
-      Alert.alert(
-        'Kimlik Doğrulama Gerekli',
-        'Talep eklemek için yetki belgenizin doğrulanması gerekmektedir.',
-        [
-          { text: 'Belge Yükle', onPress: () => router.replace('/(auth)/license-upload') },
-          { text: 'Geri Dön', style: 'cancel', onPress: () => router.back() },
-        ]
-      );
-    }
-  }, [licenseStatus]);
   const { editId } = useLocalSearchParams<{ editId?: string }>();
   const isEdit = !!editId;
   const { create, loading: createLoading } = useCreateDemand();

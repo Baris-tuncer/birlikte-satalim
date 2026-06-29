@@ -27,7 +27,6 @@ import {
 } from '@/lib/constants';
 import { formatPriceInput, checkContent } from '@/lib/format';
 import { useCreateListing, useUpdateListing } from '@/lib/hooks';
-import { useAuth } from '@/lib/auth-context';
 import { supabase } from '@/lib/supabase';
 import DropdownPicker from '@/components/ui/DropdownPicker';
 import type { TransactionType, PropertyType, Listing } from '@/types';
@@ -38,20 +37,6 @@ const HEATING_PICKER_OPTIONS = HEATING_TYPES.map((h) => ({ key: h, label: h }));
 
 export default function CreateListingScreen() {
   const router = useRouter();
-  const { licenseStatus } = useAuth();
-
-  useEffect(() => {
-    if (licenseStatus !== 'approved') {
-      Alert.alert(
-        'Kimlik Doğrulama Gerekli',
-        'İlan eklemek için yetki belgenizin doğrulanması gerekmektedir.',
-        [
-          { text: 'Belge Yükle', onPress: () => router.replace('/(auth)/license-upload') },
-          { text: 'Geri Dön', style: 'cancel', onPress: () => router.back() },
-        ]
-      );
-    }
-  }, [licenseStatus]);
   const { editId } = useLocalSearchParams<{ editId?: string }>();
   const isEdit = !!editId;
   const { create, loading: createLoading } = useCreateListing();

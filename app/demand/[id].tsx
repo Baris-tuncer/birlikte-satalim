@@ -15,7 +15,7 @@ import type { BuyerDemand } from '@/types';
 export default function DemandDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { profile, licenseStatus } = useAuth();
+  const { profile } = useAuth();
   const { send: sendMatch, loading: matchLoading } = useMatchActions();
   const { update: updateDemandStatus } = useUpdateDemand();
 
@@ -129,13 +129,6 @@ export default function DemandDetailScreen() {
   const hasCriteria = criteria.some((c) => c.value !== null);
 
   const handleMatch = () => {
-    if (licenseStatus !== 'approved') {
-      Alert.alert('Kimlik Doğrulama Gerekli', 'Eşleşme göndermek için yetki belgenizin doğrulanması gerekmektedir.', [
-        { text: 'Belge Yükle', onPress: () => router.push('/(auth)/license-upload') },
-        { text: 'Kapat', style: 'cancel' },
-      ]);
-      return;
-    }
     Alert.alert('Eşleşme Talebi', 'Bu talep için portföyünüzden eşleşme gönderilecek.', [
       { text: 'Vazgeç', style: 'cancel' },
       {

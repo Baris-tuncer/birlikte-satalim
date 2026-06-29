@@ -31,7 +31,7 @@ export default function VerifyEmailScreen() {
   // E-posta doğrulandığında yönlendir
   useEffect(() => {
     if (emailVerified) {
-      router.replace('/(auth)/license-upload');
+      router.replace('/(tabs)');
     }
   }, [emailVerified, router]);
 
@@ -40,7 +40,7 @@ export default function VerifyEmailScreen() {
   useEffect(() => {
     if (SKIP_AUTH_IN_DEV) {
       const timeout = setTimeout(() => {
-        router.replace('/(auth)/license-upload');
+        router.replace('/(tabs)');
       }, 3000);
       return () => clearTimeout(timeout);
     }
@@ -57,7 +57,7 @@ export default function VerifyEmailScreen() {
         if (!error && data.session?.user?.email_confirmed_at) {
           if (pollRef.current) clearInterval(pollRef.current);
           clearPendingAuth();
-          router.replace('/(auth)/license-upload');
+          router.replace('/(tabs)');
         }
       } catch {
         // Ağ hatası — polling devam eder, kullanıcı tekrar gönder butonunu kullanabilir
