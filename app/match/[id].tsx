@@ -43,7 +43,7 @@ export default function MatchDetailScreen() {
       .then(({ data }) => {
         setMatch(data as Match | null);
         setLoading(false);
-      });
+      }, () => setLoading(false));
   }, [id]);
 
   if (loading) {

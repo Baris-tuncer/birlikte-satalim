@@ -38,7 +38,7 @@ export default function DemandDetailScreen() {
       .then(({ data }) => {
         setDemand(data as BuyerDemand | null);
         setLoading(false);
-      });
+      }, () => setLoading(false));
   }, [id]);
 
   if (loading) {

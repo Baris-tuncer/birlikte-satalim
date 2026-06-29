@@ -38,7 +38,7 @@ export default function ListingDetailScreen() {
       .then(({ data }) => {
         setListing(data as Listing | null);
         setLoading(false);
-      });
+      }, () => setLoading(false));
   }, [id]);
 
   if (loading) {

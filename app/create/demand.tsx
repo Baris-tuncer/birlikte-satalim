@@ -91,7 +91,7 @@ export default function CreateDemandScreen() {
           setNotes(d.notes ?? '');
         }
         setInitialLoading(false);
-      });
+      }, () => setInitialLoading(false));
   }, [editId]);
 
   const isLand = propertyType === 'LAND';

@@ -5,6 +5,7 @@ import type { TransactionType, PropertyType } from '@/types';
 export const CITIES = [
   'İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Kocaeli', 'Muğla',
   'Tekirdağ', 'Eskişehir', 'Sakarya', 'Samsun', 'Edirne', 'Kayseri', 'Konya',
+  'Kuzey Kıbrıs',
 ] as const;
 export type City = (typeof CITIES)[number];
 
@@ -95,6 +96,9 @@ export const CITY_DISTRICTS: Record<string, string[]> = {
     'Karapınar', 'Karatay', 'Kulu', 'Meram', 'Sarayönü',
     'Selçuklu', 'Seydişehir', 'Taşkent', 'Tuzlukçu', 'Yalıhüyük',
     'Yunak',
+  ],
+  'Kuzey Kıbrıs': [
+    'Lefkoşa', 'Gazimağusa', 'Girne', 'Güzelyurt', 'İskele', 'Lefke',
   ],
 };
 

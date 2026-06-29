@@ -110,7 +110,7 @@ export default function CreateListingScreen() {
           setDescription(l.description ?? '');
         }
         setInitialLoading(false);
-      });
+      }, () => setInitialLoading(false));
   }, [editId]);
 
   const isLand = propertyType === 'LAND';
