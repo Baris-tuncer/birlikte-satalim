@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beraber Satalım — Kullanıcı Kılavuzu</title>
+<style>
+  @page { margin: 22mm 20mm; size: A4; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'SF Pro Display', -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1a1a2e; line-height: 1.75; font-size: 13.5px; -webkit-font-smoothing: antialiased; }
+
+  /* ─── KAPAK ─── */
+  .cover {
+    page-break-after: always;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; text-align: center;
+    background: #ffffff; color: #1a1a2e; padding: 80px 40px;
+  }
+  .cover-icon { width: 120px; height: 120px; border-radius: 28px; margin-bottom: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.10); }
+  .cover h1 { font-size: 44px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 8px; color: #0a1628; }
+  .cover .tagline { font-size: 18px; color: #00C9A7; font-weight: 600; margin-bottom: 48px; letter-spacing: 0.5px; }
+  .cover .desc { font-size: 15px; color: #666; max-width: 480px; line-height: 1.9; margin-bottom: 64px; }
+  .cover .meta { font-size: 12px; color: #bbb; letter-spacing: 1px; text-transform: uppercase; }
+  .cover .divider-line { width: 48px; height: 3px; background: #00C9A7; margin: 32px auto; border-radius: 2px; }
+
+  /* ─── BÖLÜMLER ─── */
+  .section { page-break-before: always; padding: 0; }
+  .section:first-of-type { page-break-before: avoid; }
+
+  h2 { font-size: 26px; font-weight: 800; color: #0a1628; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .section-subtitle { font-size: 14px; color: #999; margin-bottom: 28px; font-weight: 400; }
+  .h2-accent { display: block; width: 40px; height: 3px; background: #00C9A7; border-radius: 2px; margin-bottom: 24px; }
+
+  h3 { font-size: 18px; font-weight: 700; color: #1a1a2e; margin: 32px 0 12px; }
+  h4 { font-size: 15px; font-weight: 700; color: #0a1628; margin: 24px 0 8px; }
+  p { margin-bottom: 12px; color: #333; }
+
+  /* ─── ÖZELLIK KARTLARI ─── */
+  .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+  .card { background: #fafbfc; border: 1px solid #eef0f2; border-radius: 12px; padding: 24px; }
+  .card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; font-size: 18px; font-weight: 800; color: #fff; }
+  .card-icon.green { background: #00C9A7; }
+  .card-icon.blue { background: #1DA1F2; }
+  .card-icon.purple { background: #7C5CFC; }
+  .card-icon.orange { background: #F5A623; }
+  .card h4 { margin: 0 0 6px; font-size: 15px; }
+  .card p { font-size: 12.5px; color: #666; margin: 0; line-height: 1.6; }
+
+  /* ─── ADIMLAR ─── */
+  .steps { counter-reset: step; margin: 20px 0; }
+  .step { display: flex; gap: 16px; margin-bottom: 18px; align-items: flex-start; }
+  .step-num { counter-increment: step; width: 28px; height: 28px; border-radius: 50%; background: #0a1628; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+  .step-content { flex: 1; padding-top: 3px; }
+  .step-content strong { display: block; font-size: 14px; color: #0a1628; margin-bottom: 2px; }
+  .step-content span { font-size: 12.5px; color: #666; }
+
+  /* ─── BİLGİ KUTULARI ─── */
+  .note { border-radius: 10px; padding: 16px 20px; margin: 20px 0; font-size: 13px; }
+  .note strong { display: block; margin-bottom: 4px; font-size: 13.5px; }
+  .note p { margin: 0; font-size: 12.5px; line-height: 1.7; }
+  .note-green { background: #f0faf7; border: 1px solid #d0efe6; }
+  .note-green strong { color: #00A88A; }
+  .note-amber { background: #fefbf3; border: 1px solid #f0e6c8; }
+  .note-amber strong { color: #C8900A; }
+  .note-blue { background: #f3f9fe; border: 1px solid #d0e4f5; }
+  .note-blue strong { color: #1A8BD6; }
+
+  /* ─── TABLOLAR ─── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 12.5px; }
+  th { background: #0a1628; color: #fff; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; letter-spacing: 0.3px; }
+  th:first-child { border-radius: 6px 0 0 0; }
+  th:last-child { border-radius: 0 6px 0 0; }
+  td { padding: 10px 14px; border-bottom: 1px solid #eef0f2; color: #444; }
+  tr:nth-child(even) td { background: #fafbfc; }
+
+  /* ─── LİSTE ─── */
+  .flist { list-style: none; margin: 16px 0; }
+  .flist li { padding: 7px 0 7px 24px; position: relative; font-size: 13px; color: #444; }
+  .flist li::before { content: ""; position: absolute; left: 0; top: 13px; width: 6px; height: 6px; background: #00C9A7; border-radius: 50%; }
+  .flist li strong { color: #1a1a2e; }
+
+  /* ─── ROZET ─── */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: #e8f8f5; color: #00A88A; }
+  .badge-orange { background: #fef5e7; color: #D4940A; }
+  .badge-red { background: #fdeaea; color: #D44; }
+
+  /* ─── FİYATLANDIRMA ─── */
+  .pricing { background: linear-gradient(135deg, #0a1628 0%, #16213e 100%); color: #fff; border-radius: 16px; padding: 36px 32px; margin: 24px 0; text-align: center; }
+  .pricing h3 { color: #00C9A7; margin: 0 0 8px; font-size: 20px; }
+  .pricing .price-row { display: flex; justify-content: center; align-items: baseline; gap: 6px; margin: 16px 0 8px; }
+  .pricing .price-big { font-size: 42px; font-weight: 800; color: #fff; }
+  .pricing .price-unit { font-size: 16px; color: rgba(255,255,255,0.6); }
+  .pricing .price-note { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+  .pricing .price-features { list-style: none; text-align: left; max-width: 360px; margin: 0 auto; }
+  .pricing .price-features li { padding: 6px 0; font-size: 13px; color: rgba(255,255,255,0.85); border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .pricing .price-features li:last-child { border: none; }
+  .pricing .checkmark { color: #00C9A7; font-weight: 700; margin-right: 8px; }
+
+  /* ─── ALT BİLGİ ─── */
+  .footer { text-align: center; padding: 48px 0 20px; font-size: 12px; color: #bbb; border-top: 1px solid #eef0f2; margin-top: 48px; }
+  .footer strong { color: #666; }
+
+  @media print {
+    .cover { min-height: 100vh; }
+    .section { page-break-before: always; }
+    body { font-size: 12px; }
+    .pricing { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .card-icon { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .step-num { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ KAPAK ═══════════════════ -->
+<div class="cover">
+  <img src="../assets/images/icon.png" alt="Beraber Satalım" class="cover-icon" />
+  <h1>Beraber Satalım</h1>
+  <div class="tagline">Portföyünüz Burada Buluşuyor</div>
+  <div class="divider-line"></div>
+  <div class="desc">
+    Gayrimenkul danışmanlarının portföylerini paylaştığı, alıcı taleplerini
+    eşleştirdiği ve güvenli iş birliği kurduğu profesyonel platform.
+  </div>
+  <div class="meta">Kullanıcı Kılavuzu &bull; Temmuz 2026 &bull; v1.0</div>
+</div>
+
+<!-- ═══════════════════ TANITIM ═══════════════════ -->
+<div class="section">
+  <h2>Beraber Satalım Nedir?</h2>
+  <div class="h2-accent"></div>
+  <p>
+    Beraber Satalım, gayrimenkul danışmanlarının mülk portföylerini paylaşmasını ve alıcı taleplerini
+    eşleştirmesini sağlayan profesyonel bir B2B platformudur. Uygulama ile danışmanlar arası
+    iş birliği kurarak satış sürecinizi hızlandırır, portföyünüzü büyütürsünüz.
+  </p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon green">IH</div>
+      <h4>İlan Havuzu</h4>
+      <p>Satılık ve kiralık mülk portföyünüzü paylaşın. Diğer danışmanlar müşterileriyle eşleştirsin.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon blue">TH</div>
+      <h4>Talep Havuzu</h4>
+      <p>Alıcı müşteri taleplerinizi yayınlayın. Uygun portföye sahip danışmanlar sizi bulsun.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon purple">İB</div>
+      <h4>İş Birliği Sistemi</h4>
+      <p>İlan ve talepleri eşleştirin, karşılıklı onay ile iletişim bilgilerini paylaşın.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon orange">AB</div>
+      <h4>Anlık Bildirimler</h4>
+      <p>Bölgenizde yeni ilan veya talep eklendiğinde anında haberdar olun.</p>
+    </div>
+  </div>
+
+  <h3>Nasıl Çalışır?</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Kayıt Olun</strong>
+        <span>Ad soyad, firma adı, e-posta ve telefon bilgilerinizle hesap oluşturun.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>İlan veya Talep Ekleyin</strong>
+        <span>Satılık/kiralık mülklerinizi veya alıcı müşterilerinizin taleplerini yayınlayın.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Portföyleri Keşfedin</strong>
+        <span>Bölge, mülk tipi ve bütçe filtrelerini kullanarak uygun ilanları ve talepleri bulun.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <strong>İş Birliği Talebi Gönderin</strong>
+        <span>"Müşterim Var" veya "Portföyümden Eşle" butonuyla iş birliği talebi gönderin.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <strong>İletişime Geçin</strong>
+        <span>Karşı taraf kabul ettiğinde iletişim bilgileri açılır. WhatsApp veya telefon ile iletişime geçin.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ KAYIT VE GİRİŞ ═══════════════════ -->
+<div class="section">
+  <h2>1. Kayıt ve Giriş</h2>
+  <div class="h2-accent"></div>
+
+  <h3>Yeni Hesap Oluşturma</h3>
+  <p>Uygulamayı indirdikten sonra "Kayıt Ol" butonuna basarak yeni hesap oluşturabilirsiniz.</p>
+
+  <table>
+    <tr><th>Alan</th><th>Açıklama</th><th>Zorunlu</th></tr>
+    <tr><td>Ad Soyad</td><td>Tam adınız (min. 2 karakter)</td><td>Evet</td></tr>
+    <tr><td>Firma Adı</td><td>Gayrimenkul ofisi / şirket adı</td><td>Evet</td></tr>
+    <tr><td>E-posta</td><td>Geçerli e-posta adresi</td><td>Evet</td></tr>
+    <tr><td>Telefon</td><td>05XX XXX XX XX formatı</td><td>Evet</td></tr>
+    <tr><td>Şifre</td><td>Min. 8 karakter, 1 büyük harf, 1 rakam</td><td>Evet</td></tr>
+    <tr><td>Yasal Onaylar</td><td>Kullanım koşulları, KVKK, açık rıza</td><td>Evet</td></tr>
+  </table>
+
+  <div class="note note-amber">
+    <strong>E-posta Doğrulaması</strong>
+    <p>Kayıt sonrası e-posta adresinize doğrulama linki gönderilir. Spam/gereksiz klasörünü de kontrol edin. Linke tıklayarak hesabınızı aktif edin.</p>
+  </div>
+
+  <h3>Giriş Yapma</h3>
+  <p>Mevcut hesabınızla giriş yapmak için e-posta ve şifrenizi girin. "Beni Hatırla" seçeneğini işaretlerseniz e-postanız sonraki girişte otomatik doldurulur.</p>
+  <p>"Şifremi Unuttum" linkine tıklayarak şifre sıfırlama e-postası alabilirsiniz.</p>
+</div>
+
+<!-- ═══════════════════ İLAN EKLEME ═══════════════════ -->
+<div class="section">
+  <h2>2. İlan Ekleme</h2>
+  <div class="h2-accent"></div>
+  <p>Alt menüdeki <strong>İlanlar</strong> sekmesinde sağ üstteki <strong>"+"</strong> butonuna basarak yeni ilan ekleyebilirsiniz.</p>
+
+  <h3>İlan Formu Alanları</h3>
+  <table>
+    <tr><th>Alan</th><th>Açıklama</th><th>Zorunlu</th></tr>
+    <tr><td>İşlem Tipi</td><td>Satılık veya Kiralık</td><td>Evet</td></tr>
+    <tr><td>Mülk Tipi</td><td>Konut, Ticari, Arsa, Kentsel Dönüşüm</td><td>Evet</td></tr>
+    <tr><td>İl / İlçe / Mahalle</td><td>Mülkün konumu</td><td>İl ve ilçe zorunlu</td></tr>
+    <tr><td>Oda Sayısı</td><td>1+0, 1+1, 2+1, 3+1 vb.</td><td>Hayır</td></tr>
+    <tr><td>Net / Brüt Alan</td><td>Metrekare cinsinden</td><td>Hayır</td></tr>
+    <tr><td>Kat / Toplam Kat</td><td>Bulunduğu kat ve bina toplam katı</td><td>Hayır</td></tr>
+    <tr><td>Bina Yaşı</td><td>0-5, 6-10, 11-15, 16-20, 21+ yıl</td><td>Hayır</td></tr>
+    <tr><td>Otopark / Asansör</td><td>Var/Yok seçeneği</td><td>Hayır</td></tr>
+    <tr><td>Isıtma Tipi</td><td>Merkezi, bireysel vb.</td><td>Hayır</td></tr>
+    <tr><td>Fiyat</td><td>TL cinsinden satış fiyatı veya kira bedeli</td><td>Evet</td></tr>
+    <tr><td>Açıklama</td><td>Mülk hakkında ek bilgi (maks. 500 karakter)</td><td>Hayır</td></tr>
+  </table>
+
+  <div class="note note-green">
+    <strong>İpucu</strong>
+    <p>Ne kadar detaylı ilan girerseniz, diğer danışmanların müşterileriyle eşleştirme şansınız o kadar artar. Oda sayısı, alan ve kat bilgilerini mutlaka girin.</p>
+  </div>
+
+  <h3>İlan Yönetimi</h3>
+  <p>Kendi ilanınızın detay sayfasında şunları yapabilirsiniz:</p>
+  <ul class="flist">
+    <li><strong>Düzenle:</strong> İlan bilgilerini güncelleme</li>
+    <li><strong>Durum Değiştir:</strong> Aktif, Durduruldu, Satıldı veya Kiralandı olarak değiştirin</li>
+    <li><strong>Sil:</strong> İlanı kalıcı olarak kaldırın</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════ TALEP EKLEME ═══════════════════ -->
+<div class="section">
+  <h2>3. Talep Ekleme</h2>
+  <div class="h2-accent"></div>
+  <p>Alt menüdeki <strong>Talepler</strong> sekmesinde sağ üstteki <strong>"+"</strong> butonuna basarak yeni müşteri talebi ekleyebilirsiniz.</p>
+
+  <h3>Talep Formu Alanları</h3>
+  <table>
+    <tr><th>Alan</th><th>Açıklama</th><th>Zorunlu</th></tr>
+    <tr><td>İşlem Tipi</td><td>Satılık veya Kiralık</td><td>Evet</td></tr>
+    <tr><td>Mülk Tipi</td><td>Konut, Ticari, Arsa, Kentsel Dönüşüm</td><td>Evet</td></tr>
+    <tr><td>İl / İlçe</td><td>Aranan bölge</td><td>Evet</td></tr>
+    <tr><td>Mahalleler</td><td>Birden fazla mahalle seçilebilir (maks. 20)</td><td>Hayır</td></tr>
+    <tr><td>Min — Max Bütçe</td><td>TL cinsinden bütçe aralığı</td><td>Evet</td></tr>
+    <tr><td>Min. Oda Sayısı</td><td>En az kaç oda istendiği</td><td>Hayır</td></tr>
+    <tr><td>Min. Alan</td><td>Minimum metrekare</td><td>Hayır</td></tr>
+    <tr><td>Max. Kat</td><td>En fazla kaçıncı kat kabul edildiği</td><td>Hayır</td></tr>
+    <tr><td>Bina Yaşı</td><td>Tercih edilen bina yaşı aralıkları (çoklu seçim)</td><td>Hayır</td></tr>
+    <tr><td>Notlar</td><td>Müşteri tercihleri ve özel istekler (maks. 500 karakter)</td><td>Hayır</td></tr>
+  </table>
+
+  <div class="note note-green">
+    <strong>İpucu</strong>
+    <p>Notlar alanına müşterinizin özel isteklerini yazın (örneğin: "Deniz manzaralı, site içi, güney cephe"). Bu bilgiler diğer danışmanların eşleştirme yapmasını kolaylaştırır.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ İŞ BİRLİĞİ ═══════════════════ -->
+<div class="section">
+  <h2>4. İş Birliği Sistemi</h2>
+  <div class="h2-accent"></div>
+  <p>
+    Beraber Satalım'ın temel özelliği, danışmanlar arası iş birliği kurma sistemidir.
+    İletişim bilgileri ancak her iki tarafın da onay vermesiyle paylaşılır.
+    Bu sayede güvenliği sağlayarak verimli iş birlikleri kurabilirsiniz.
+  </p>
+
+  <h4>Senaryo 1: Bir İlana Müşteri Eşleştirme</h4>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>İlanı İnceleyin</strong>
+        <span>İlanlar sekmesinde veya ilan detay sayfasında mülkü inceleyin.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>"Müşterim Var" Butonuna Basın</strong>
+        <span>Müşteriniz bu mülkle ilgileniyorsa iş birliği talebi gönderin.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Onay Bekleyin</strong>
+        <span>İlan sahibi talebi kabul ettiği anda iletişim bilgileri açılır.</span>
+      </div>
+    </div>
+  </div>
+
+  <h4>Senaryo 2: Bir Talebe Portföyden Eşleştirme</h4>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Talebi İnceleyin</strong>
+        <span>Talepler sekmesinde müşterinin isteklerini inceleyin.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>"Portföyümden Eşle" Butonuna Basın</strong>
+        <span>Portföyünüzden uygun bir ilan seçerek iş birliği talebi gönderin.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Onay Bekleyin</strong>
+        <span>Talep sahibi kabul ettiği anda iletişim bilgileri paylaşılır.</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>İş Birliği Durumları</h3>
+  <table>
+    <tr><th>Durum</th><th>Açıklama</th></tr>
+    <tr><td><span class="badge badge-orange">Beklemede</span></td><td>Talep gönderildi, karşı tarafın yanıtı bekleniyor</td></tr>
+    <tr><td><span class="badge badge-green">Kabul Edildi</span></td><td>Her iki tarafın iletişim bilgileri açıldı, WhatsApp/telefon ile iletişim kurulabilir</td></tr>
+    <tr><td><span class="badge badge-red">Reddedildi</span></td><td>Karşı taraf iş birliği talebini reddetti</td></tr>
+  </table>
+
+  <div class="note note-green">
+    <strong>Kabul Sonrası</strong>
+    <p>İş birliği kabul edildikten sonra detay sayfasında WhatsApp ve Ara butonları görünür. WhatsApp butonuna bastığınızda ilan/talep detaylarıyla otomatik bir mesaj oluşturulur.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ BİLDİRİMLER ═══════════════════ -->
+<div class="section">
+  <h2>5. Bildirimler</h2>
+  <div class="h2-accent"></div>
+  <p>Alt menüdeki <strong>Bildirimler</strong> sekmesinde tüm geçmiş bildirimlerinizi görebilirsiniz. Okunmamış bildirimler tab ikonunda sayı olarak gösterilir.</p>
+
+  <h3>Bildirim Türleri</h3>
+  <table>
+    <tr><th>Tür</th><th>Açıklama</th></tr>
+    <tr><td>İş Birliği Talebi</td><td>Birisi ilanınıza veya talebinize iş birliği talebi gönderdi</td></tr>
+    <tr><td>Talep Kabul Edildi</td><td>Gönderdiğiniz iş birliği talebi kabul edildi</td></tr>
+    <tr><td>Talep Reddedildi</td><td>Gönderdiğiniz iş birliği talebi reddedildi</td></tr>
+    <tr><td>Yeni İlan Bildirimi</td><td>Uzmanlık bölgenizde yeni bir ilan eklendi</td></tr>
+    <tr><td>Yeni Talep Bildirimi</td><td>Portföyünüze uygun yeni bir talep eklendi</td></tr>
+  </table>
+
+  <h3>Bildirim İşlemleri</h3>
+  <ul class="flist">
+    <li><strong>Okuma:</strong> Bildirime dokunarak okundu olarak işaretleyin ve ilgili sayfaya gidin</li>
+    <li><strong>Tümünü Oku:</strong> Sağ üstteki "Tümünü Oku" butonuyla tüm bildirimleri okundu işaretleyin</li>
+    <li><strong>Tek Silme:</strong> Bildirime uzun basarak silme onay penceresiyle silin</li>
+    <li><strong>Toplu Silme:</strong> Sağ üstteki çöp kutusu ikonuyla tüm bildirimleri silin</li>
+  </ul>
+
+  <div class="note note-green">
+    <strong>Push Bildirimleri</strong>
+    <p>Uygulama kapalı olsa bile push bildirimleri alabilirsiniz. Profil sayfanızdan "Bildirim İzinlerini Yönet" butonuyla bildirim ayarlarınızı kontrol edin.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ PROFİL VE YETKİ BELGESİ ═══════════════════ -->
+<div class="section">
+  <h2>6. Profil ve Yetki Belgesi</h2>
+  <div class="h2-accent"></div>
+
+  <h3>Profil Yönetimi</h3>
+  <p>Alt menüdeki <strong>Profil</strong> sekmesinde hesap bilgilerinizi yönetebilirsiniz.</p>
+  <ul class="flist">
+    <li><strong>Profil Fotoğrafı:</strong> Galeriden seçin veya kamerayla çekin</li>
+    <li><strong>Bilgi Düzenleme:</strong> Sağ üstteki "Düzenle" butonuyla ad, firma ve telefon güncelleme</li>
+    <li><strong>Uzmanlık Bölgesi:</strong> İl ve ilçe bazında uzmanlık bölgenizi belirleyin. Bölgenizde yeni ilan/talep eklendiğinde bildirim alırsınız</li>
+    <li><strong>Şifre Değiştirme:</strong> Mevcut şifrenizi güncelleyin</li>
+    <li><strong>İş Birliklerim:</strong> Tüm iş birliklerinizi görüntüleyin ve yönetin</li>
+  </ul>
+
+  <h3>Yetki Belgesi ve Mavi Tik</h3>
+  <p>
+    Profilinizde "Yetki Belgesi Ekle" butonuna basarak gayrimenkul yetki belge numaranızı girebilirsiniz.
+    Belgeniz onaylandığında profilinizde ve ilanlarınızda
+    <span style="color:#1DA1F2; font-weight:700;">Onaylı Danışman</span> mavi tik rozeti gösterilir.
+  </p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <strong>Profil &rarr; Yetki Belgesi Ekle</strong>
+        <span>Profil sayfanızdan "Yetki Belgesi Ekle" butonuna basın.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <strong>Belge Numarası Girin</strong>
+        <span>QR kod okutarak veya manuel olarak yetki belge numaranızı girin.</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <strong>Onay Bekleyin</strong>
+        <span>Belgeniz ekibimiz tarafından 24 saat içinde doğrulanır. Onaylı danışmanlar mavi tik ile gösterilir.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="note note-blue">
+    <strong>Mavi Tik Avantajları</strong>
+    <p>Onaylı danışmanlar ilan ve talep kartlarında mavi tik rozeti ile gösterilir. Bu, diğer danışmanların size olan güvenini artırır ve iş birliği taleplerinizin kabul edilme oranını yükseltir.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ PORTFÖYÜM ═══════════════════ -->
+<div class="section">
+  <h2>7. Portföyüm</h2>
+  <div class="h2-accent"></div>
+  <p>Alt menüdeki <strong>Portföyüm</strong> sekmesinde kendi ilanlarınızı ve taleplerinizi tek bir yerden yönetebilirsiniz.</p>
+
+  <ul class="flist">
+    <li><strong>İlanlarım:</strong> Eklemiş olduğunuz tüm ilanlar</li>
+    <li><strong>Taleplerim:</strong> Eklemiş olduğunuz tüm müşteri talepleri</li>
+    <li>Her birini düzenleyebilir, durumunu değiştirebilir veya silebilirsiniz</li>
+    <li>Aktif, durdurulmuş veya tamamlanmış olarak filtreleyebilirsiniz</li>
+  </ul>
+
+  <h2 style="margin-top:48px;">8. Arama ve Filtreleme</h2>
+  <div class="h2-accent"></div>
+  <p>İlanlar ve Talepler sekmelerinde üst kısımda bulunan filtreler ile arama yapabilirsiniz.</p>
+
+  <table>
+    <tr><th>Filtre</th><th>Seçenekler</th></tr>
+    <tr><td>İl</td><td>İstanbul (varsayılan) ve diğer iller</td></tr>
+    <tr><td>İlçe</td><td>Seçilen ile göre ilçeler</td></tr>
+    <tr><td>Mahalle</td><td>Seçilen ilçeye göre mahalleler</td></tr>
+    <tr><td>İşlem Tipi</td><td>Tümü, Satılık, Kiralık</td></tr>
+    <tr><td>Mülk Tipi</td><td>Tümü, Konut, Ticari, Arsa, Kentsel Dönüşüm</td></tr>
+  </table>
+
+  <div class="note note-green">
+    <strong>İpucu</strong>
+    <p>Uzmanlık bölgenizi profil sayfanızdan ayarlayın. Bu sayede bölgenizde yeni ilan veya talep eklendiğinde otomatik bildirim alırsınız.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ GÜVENLİK ═══════════════════ -->
+<div class="section">
+  <h2>9. Güvenlik ve Raporlama</h2>
+  <div class="h2-accent"></div>
+
+  <h3>İlan/Talep Raporlama</h3>
+  <p>Uygunsuz veya yanıltıcı içerikle karşılaşırsanız, detay sayfasındaki bayrak ikonuna basarak şikâyet edebilirsiniz.</p>
+  <table>
+    <tr><th>Şikâyet Nedeni</th><th>Açıklama</th></tr>
+    <tr><td>Yanıltıcı Bilgi</td><td>Yanlış veya gerçek dışı ilan/talep bilgileri</td></tr>
+    <tr><td>Uygunsuz İçerik</td><td>Kurallara aykırı veya saldırgan içerik</td></tr>
+    <tr><td>Spam</td><td>Tekrarlayan veya reklam amaçlı içerik</td></tr>
+    <tr><td>Diğer</td><td>Yukarıdakilerin dışında bir neden</td></tr>
+  </table>
+
+  <h3>Kullanıcı Engelleme</h3>
+  <p>Bir kullanıcının ilanlarını ve taleplerini görmek istemiyorsanız, iş birliği detay sayfasındaki bayrak ikonundan "Kullanıcıyı Engelle" seçeneğini kullanabilirsiniz. Engellenen kullanıcının içerikleri size gösterilmez.</p>
+
+  <div class="note note-amber">
+    <strong>İletişim Güvenliği</strong>
+    <p>İletişim bilgileri (telefon, e-posta) yalnızca iş birliği kabul edildikten sonra paylaşılır. İlan ve talep açıklamalarına kişisel iletişim bilgisi yazılamaz.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ FİYATLANDIRMA ═══════════════════ -->
+<div class="section">
+  <h2>10. Fiyatlandırma</h2>
+  <div class="h2-accent"></div>
+
+  <div class="pricing">
+    <h3>Beraber Satalım Pro</h3>
+    <p style="color:rgba(255,255,255,0.6); font-size:14px; margin-bottom:20px;">İlk 90 gün tamamen ücretsiz</p>
+    <div class="price-row">
+      <span class="price-big">599</span>
+      <span class="price-unit">TL / ay</span>
+    </div>
+    <div class="price-note">Deneme süresi sonrasında</div>
+    <ul class="price-features">
+      <li><span class="checkmark">&#10003;</span> İlk 90 gün ücretsiz kullanım</li>
+      <li><span class="checkmark">&#10003;</span> Sınırsız ilan ve talep ekleme</li>
+      <li><span class="checkmark">&#10003;</span> Sınırsız iş birliği talebi</li>
+      <li><span class="checkmark">&#10003;</span> Anlık push bildirimleri</li>
+      <li><span class="checkmark">&#10003;</span> Onaylı danışman mavi tik rozeti</li>
+      <li><span class="checkmark">&#10003;</span> Taahhüt yok — istediğiniz zaman iptal edin</li>
+    </ul>
+  </div>
+
+  <div class="note note-green">
+    <strong>Taahhütsüz Üyelik</strong>
+    <p>Herhangi bir taahhüt istenmemektedir. Üyeliğinizi istediğiniz zaman iptal edebilirsiniz. İptal sonrası mevcut dönem sonuna kadar erişiminiz devam eder.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════ SSS ═══════════════════ -->
+<div class="section">
+  <h2>11. Sıkça Sorulan Sorular</h2>
+  <div class="h2-accent"></div>
+
+  <h3>Uygulama ücretli mi?</h3>
+  <p>İlk 90 gün tamamen ücretsizdir. Deneme süresi sonrasında aylık 599 TL abonelik ücreti uygulanır. Herhangi bir taahhüt bulunmaz, istediğiniz zaman iptal edebilirsiniz.</p>
+
+  <h3>Yetki belgesi eklemek zorunlu mu?</h3>
+  <p>Hayır. Yetki belgesi tamamen isteğe bağlıdır. Belge eklemeden de ilan ve talep oluşturabilir, iş birliği kurabilirsiniz. Ancak belge ekleyip onaylattığınızda profilinizde mavi tik rozeti görünür.</p>
+
+  <h3>İletişim bilgilerim herkese açık mı?</h3>
+  <p>Hayır. İletişim bilgileriniz yalnızca iş birliği talebi kabul edildikten sonra karşı tarafa gösterilir. Onay olmadan kimse telefon numaranızı veya e-posta adresinizi göremez.</p>
+
+  <h3>Aynı anda kaç ilan ekleyebilirim?</h3>
+  <p>İlan ve talep sayısında herhangi bir limit yoktur. Dilediğiniz kadar ilan ve talep ekleyebilirsiniz.</p>
+
+  <h3>Bildirimler gelmiyor, ne yapmalıyım?</h3>
+  <p>Profil sayfanızdan "Bildirim İzinlerini Yönet" butonuna basarak bildirim izinlerini kontrol edin. Telefonunuzun bildirim ayarlarından da uygulamaya izin verdiğinizden emin olun.</p>
+
+  <h3>Hesabımı nasıl silebilirim?</h3>
+  <p>Profil sayfasının en altında "Hesabımı Sil" butonuna basarak hesabınızı kalıcı olarak silebilirsiniz. Bu işlem geri alınamaz; tüm ilanlarınız, talepleriniz ve iş birlikleriniz silinir.</p>
+
+  <h3>Üyeliğimi nasıl iptal ederim?</h3>
+  <p>Üyeliğinizi uygulama üzerinden veya destek ekibimize ulaşarak iptal edebilirsiniz. Herhangi bir taahhüt bulunmamaktadır.</p>
+</div>
+
+<!-- ═══════════════════ YAKINDA ═══════════════════ -->
+<div class="section">
+  <h2>12. Yakında</h2>
+  <div class="h2-accent"></div>
+  <p>Çok yakında akıllı özellikler uygulamamıza eklenecektir. Takipte kalın.</p>
+</div>
+
+<!-- ═══════════════════ DESTEK ═══════════════════ -->
+<div class="section">
+  <h2>13. Destek</h2>
+  <div class="h2-accent"></div>
+  <p>Herhangi bir sorun veya sorunuz için aşağıdaki kanaldan bize ulaşabilirsiniz:</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon green">@</div>
+      <h4>E-posta</h4>
+      <p>baristuncer80@hotmail.com adresine e-posta göndererek destek alabilirsiniz.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon blue">W</div>
+      <h4>WhatsApp Destek Hattı</h4>
+      <p>Uygulama içi Profil sayfanızdan "Destek Hattı" butonuna basarak WhatsApp üzerinden bize ulaşabilirsiniz.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p><strong>Beraber Satalım</strong> — Gayrimenkul Danışmanları İçin Ortak Portföy Platformu</p>
+    <p>&copy; 2026 Beraber Satalım. Tüm hakları saklıdır.</p>
+  </div>
+</div>
+
+</body>
+</html>
