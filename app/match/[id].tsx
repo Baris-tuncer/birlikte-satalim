@@ -178,6 +178,57 @@ export default function MatchDetailScreen() {
               {[match.listing.district, match.listing.neighborhood].filter(Boolean).join(', ')}
             </Text>
             <Text style={styles.summaryPrice}>{formatPrice(match.listing.price)}</Text>
+
+            {/* Detay bilgileri */}
+            <View style={styles.detailGrid}>
+              {match.listing.room_count && (
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Oda</Text>
+                  <Text style={styles.detailValue}>{match.listing.room_count}</Text>
+                </View>
+              )}
+              {(match.listing.net_area || match.listing.gross_area) && (
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Alan</Text>
+                  <Text style={styles.detailValue}>
+                    {match.listing.net_area ? `${match.listing.net_area}m² net` : `${match.listing.gross_area}m² brüt`}
+                  </Text>
+                </View>
+              )}
+              {match.listing.floor != null && (
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Kat</Text>
+                  <Text style={styles.detailValue}>
+                    {match.listing.floor}{match.listing.total_floors ? `/${match.listing.total_floors}` : ''}
+                  </Text>
+                </View>
+              )}
+              {match.listing.building_age && (
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Bina Yaşı</Text>
+                  <Text style={styles.detailValue}>{match.listing.building_age}</Text>
+                </View>
+              )}
+            </View>
+            {(match.listing.has_parking || match.listing.has_elevator) && (
+              <View style={styles.featureRow}>
+                {match.listing.has_parking && (
+                  <View style={styles.featureBadge}>
+                    <Ionicons name="car-outline" size={14} color={Colors.text.secondary} />
+                    <Text style={styles.featureText}>Otopark</Text>
+                  </View>
+                )}
+                {match.listing.has_elevator && (
+                  <View style={styles.featureBadge}>
+                    <Ionicons name="arrow-up-outline" size={14} color={Colors.text.secondary} />
+                    <Text style={styles.featureText}>Asansör</Text>
+                  </View>
+                )}
+              </View>
+            )}
+            {match.listing.description && (
+              <Text style={styles.descriptionText} numberOfLines={3}>{match.listing.description}</Text>
+            )}
           </View>
         )}
 
@@ -198,9 +249,45 @@ export default function MatchDetailScreen() {
               </View>
             </View>
             <Text style={styles.summaryLocation}>{match.demand.district}</Text>
+            {match.demand.neighborhoods?.length > 0 && (
+              <Text style={styles.summaryNeighborhoods}>
+                {match.demand.neighborhoods.join(', ')}
+              </Text>
+            )}
             <Text style={styles.summaryPrice}>
               {formatBudget(match.demand.min_budget)} – {formatBudget(match.demand.max_budget)}
             </Text>
+
+            {/* Detay bilgileri */}
+            <View style={styles.detailGrid}>
+              {match.demand.min_rooms && (
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Min. Oda</Text>
+                  <Text style={styles.detailValue}>{match.demand.min_rooms}+</Text>
+                </View>
+              )}
+              {match.demand.min_area != null && (
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Min. Alan</Text>
+                  <Text style={styles.detailValue}>{match.demand.min_area}m²</Text>
+                </View>
+              )}
+              {match.demand.max_floor != null && (
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Max. Kat</Text>
+                  <Text style={styles.detailValue}>{match.demand.max_floor}</Text>
+                </View>
+              )}
+              {match.demand.building_ages && match.demand.building_ages.length > 0 && (
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Bina Yaşı</Text>
+                  <Text style={styles.detailValue}>{match.demand.building_ages.join(', ')}</Text>
+                </View>
+              )}
+            </View>
+            {match.demand.notes && (
+              <Text style={styles.descriptionText} numberOfLines={3}>{match.demand.notes}</Text>
+            )}
           </View>
         )}
 
@@ -345,7 +432,16 @@ const styles = StyleSheet.create({
   propertyBadge: { backgroundColor: Colors.primary + '0A', paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.sm },
   propertyBadgeText: { ...Typography.caption1, color: Colors.primary, fontWeight: '600' },
   summaryLocation: { ...Typography.subhead, color: Colors.text.secondary, marginBottom: Spacing.xs },
+  summaryNeighborhoods: { ...Typography.footnote, color: Colors.text.tertiary, marginBottom: Spacing.xs },
   summaryPrice: { ...Typography.title3, color: Colors.primary, fontWeight: '700' },
+  detailGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md, marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.borderLight },
+  detailItem: { minWidth: '40%' as any },
+  detailLabel: { ...Typography.caption1, color: Colors.text.tertiary, marginBottom: 2 },
+  detailValue: { ...Typography.subhead, color: Colors.text.primary, fontWeight: '600' },
+  featureRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.sm },
+  featureBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.primary + '0A', paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.sm },
+  featureText: { ...Typography.caption1, color: Colors.text.secondary },
+  descriptionText: { ...Typography.footnote, color: Colors.text.secondary, marginTop: Spacing.md, lineHeight: 20 },
   messageText: { ...Typography.body, color: Colors.text.primary, fontStyle: 'italic', lineHeight: 24 },
   contactCard: { backgroundColor: Colors.success + '0A', borderRadius: Radius.lg, padding: Spacing.lg, marginBottom: Spacing.lg, borderWidth: 1, borderColor: Colors.success + '28' },
   contactHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.md },
