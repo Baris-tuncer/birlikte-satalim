@@ -151,7 +151,7 @@ export default function ListingDetailScreen() {
           if (error) {
             Alert.alert('Hata', error);
           } else {
-            Alert.alert('Başarılı', 'Eşleşme talebi gönderildi.');
+            Alert.alert('Başarılı', 'İş birliği talebi gönderildi.');
           }
         },
       },
@@ -229,7 +229,7 @@ export default function ListingDetailScreen() {
         <View style={styles.card}>
           <AgentInfo agent={listing.agent} size="full" />
           <Text style={styles.agentBlindText}>
-            Eşleşme sonrası iletişim bilgileri görünür
+            İş birliği sonrası iletişim bilgileri görünür
           </Text>
         </View>
 

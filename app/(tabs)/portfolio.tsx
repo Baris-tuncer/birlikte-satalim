@@ -137,7 +137,7 @@ export default function PortfolioScreen() {
           <Text style={[styles.statValue, { color: Colors.accent }]}>
             {myMatches.length}
           </Text>
-          <Text style={styles.statLabel}>Eşleşme</Text>
+          <Text style={styles.statLabel}>İş Birliği</Text>
         </View>
       </View>
 

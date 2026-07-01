@@ -232,7 +232,7 @@ export default function ProfileScreen() {
   const handleDeleteAccount = () => {
     Alert.alert(
       'Hesabı Sil',
-      'Hesabınız ve tüm verileriniz (ilanlar, talepler, eşleşmeler) kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+      'Hesabınız ve tüm verileriniz (ilanlar, talepler, iş birlikleri) kalıcı olarak silinecek. Bu işlem geri alınamaz.',
       [
         { text: 'Vazgeç', style: 'cancel' },
         {
@@ -379,7 +379,7 @@ export default function ProfileScreen() {
             <View style={styles.cardRow}>
               <View style={styles.cardRowLeft}>
                 <Ionicons name="git-compare-outline" size={18} color={Colors.text.tertiary} />
-                <Text style={styles.cardLabel}>Eşleşmelerim</Text>
+                <Text style={styles.cardLabel}>İş Birliklerim</Text>
               </View>
               <View style={styles.matchRight}>
                 {pendingCount > 0 && (

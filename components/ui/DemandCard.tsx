@@ -36,6 +36,7 @@ export default function DemandCard({
 
   return (
     <View style={styles.card}>
+      <Pressable onPress={() => router.push(`/demand/${demand.id}` as any)} style={({ pressed }) => pressed && { opacity: 0.7 }}>
       {/* Top row: badges + time */}
       <View style={styles.topRow}>
         <View style={styles.badgesRow}>
@@ -107,6 +108,16 @@ export default function DemandCard({
             <Text style={styles.chipText}>Max {demand.max_floor}. kat</Text>
           </View>
         )}
+        {demand.building_ages && demand.building_ages.length > 0 && (
+          <View style={styles.chip}>
+            <Ionicons
+              name="calendar-outline"
+              size={14}
+              color={Colors.text.secondary}
+            />
+            <Text style={styles.chipText}>{demand.building_ages.join(', ')} yıl</Text>
+          </View>
+        )}
       </View>
 
       {/* Notes */}
@@ -115,6 +126,8 @@ export default function DemandCard({
           {demand.notes}
         </Text>
       ) : null}
+
+      </Pressable>
 
       {/* Divider */}
       <View style={styles.divider} />

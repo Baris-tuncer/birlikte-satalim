@@ -1,9 +1,9 @@
 // Supabase Edge Function: auto-match-notify
-// Yeni ilan veya talep olusturuldugunda eslesen kullanicilara push bildirim gonderir.
+// Yeni ilan veya talep olusturuldugunda uygun kullanicilara push bildirim gonderir.
 //
 // Tetiklenir:
-// 1. listings tablosuna INSERT → eslesen buyer_demands sahiplerine bildirim
-// 2. buyer_demands tablosuna INSERT → eslesen listings sahiplerine bildirim
+// 1. listings tablosuna INSERT → uygun buyer_demands sahiplerine bildirim
+// 2. buyer_demands tablosuna INSERT → uygun listings sahiplerine bildirim
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
 
       let demandUserIds: string[] = [];
 
-      // 1. Eşleşen talepleri bul ve bildir (admin kullanıcıları hariç tut)
+      // 1. Uygun talepleri bul ve bildir (admin kullanıcıları hariç tut)
       const { data: adminIds } = await supabase.from('users').select('id').eq('is_admin', true);
       const adminIdList = (adminIds ?? []).map((u: { id: string }) => u.id);
 
@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
             .select('user_id, token')
             .in('user_id', demandUserIds);
 
-          const title = `Talebinizle eşleşen${roomText} ${typeText} ${propText}`;
+          const title = `Talebinize uygun${roomText} ${typeText} ${propText}`;
           const body = `${locationText}'da${priceVal ? ` ${priceVal} fiyatla` : ''} yeni ilan eklendi. Hemen inceleyin!`;
 
           await sendPushMessages(tokens ?? [], title, body, { listingId: listing.id, type: 'auto_match_listing' });
@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 2. Uzmanlık bölgesi bildirimi — talep eşleşmesi olsun olmasın her zaman çalışır
+      // 2. Uzmanlık bölgesi bildirimi — talep bildirimi olsun olmasın her zaman çalışır
       const { data: experts } = await supabase
         .from('users')
         .select('id')
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
         .neq('id', agentId);
 
       if (experts && experts.length > 0) {
-        // Talep eşleşmesi zaten bildirim almış kullanıcıları hariç tut
+        // Talep bildirimi zaten almış kullanıcıları hariç tut
         const expertIds = experts
           .map((e: { id: string }) => e.id)
           .filter((eid: string) => !demandUserIds.includes(eid));
@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
       const { data: adminIds } = await supabase.from('users').select('id').eq('is_admin', true);
       const adminIdList = (adminIds ?? []).map((u: { id: string }) => u.id);
 
-      // 1. Eşleşen ilanları bul ve bildir
+      // 1. Uygun ilanları bul ve bildir
       const { data: listings } = await supabase
         .from('listings')
         .select('id, agent_id, district, neighborhood')
@@ -209,8 +209,8 @@ Deno.serve(async (req) => {
             .select('user_id, token')
             .in('user_id', listingUserIds);
 
-          const title = `İlanınızla eşleşen yeni ${typeText} talebi`;
-          const body = `${district}'da ${typeText} ${propText} arayan bir müşteri var${budgetText}. İlanınız bu taleple eşleşiyor!`;
+          const title = `İlanınıza uygun yeni ${typeText} talebi`;
+          const body = `${district}'da ${typeText} ${propText} arayan bir müşteri var${budgetText}. İlanınız bu talebe uygun!`;
 
           await sendPushMessages(tokens ?? [], title, body, { demandId: demand.id, type: 'auto_match_demand' });
 
@@ -225,7 +225,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 2. Uzmanlık bölgesi bildirimi — ilan eşleşmesi olsun olmasın her zaman çalışır (admin hariç)
+      // 2. Uzmanlık bölgesi bildirimi — ilan bildirimi olsun olmasın her zaman çalışır (admin hariç)
       const { data: experts } = await supabase
         .from('users')
         .select('id')

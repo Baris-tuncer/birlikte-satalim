@@ -29,7 +29,7 @@ export default function MatchesScreen() {
         Alert.alert('Hata', error);
         return;
       }
-      Alert.alert('Eşleşme Kabul Edildi', 'İletişim bilgileri artık görünür.');
+      Alert.alert('İş Birliği Kabul Edildi', 'İletişim bilgileri artık görünür.');
       refetch();
     },
     [respond, refetch]
@@ -42,7 +42,7 @@ export default function MatchesScreen() {
         Alert.alert('Hata', error);
         return;
       }
-      Alert.alert('Eşleşme Reddedildi', 'Eşleşme reddedildi.');
+      Alert.alert('İş Birliği Reddedildi', 'İş birliği reddedildi.');
       refetch();
     },
     [respond, refetch]
@@ -66,7 +66,7 @@ export default function MatchesScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Eşleşmelerim',
+          title: 'İş Birliklerim',
           headerShown: true,
           headerStyle: { backgroundColor: Colors.background },
           headerTintColor: Colors.text.primary,
@@ -95,9 +95,9 @@ export default function MatchesScreen() {
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Ionicons name="git-compare-outline" size={48} color={Colors.text.tertiary} />
-                <Text style={styles.emptyTitle}>Henüz eşleşme yok</Text>
+                <Text style={styles.emptyTitle}>Henüz iş birliği yok</Text>
                 <Text style={styles.emptySubtitle}>
-                  İlan ve talepleri eşleştirmeye başladığınızda burada görünecek.
+                  İlan ve talepler için iş birliği yapmaya başladığınızda burada görünecek.
                 </Text>
               </View>
             }

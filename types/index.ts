@@ -74,6 +74,7 @@ export interface BuyerDemand {
   min_rooms: string | null;
   min_area: number | null;
   max_floor: number | null;
+  building_ages: string[] | null;
   notes: string | null;
   status: DemandStatus;
   expires_at: string | null;
@@ -82,7 +83,7 @@ export interface BuyerDemand {
   agent?: User;
 }
 
-// ─── MATCH (Eşleşme) ─────────────────────────────────
+// ─── MATCH (İş Birliği) ──────────────────────────────
 
 export interface Match {
   id: string;

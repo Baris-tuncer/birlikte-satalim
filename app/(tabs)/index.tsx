@@ -92,7 +92,7 @@ export default function ListingsScreen() {
     if (!listing) return;
 
     Alert.alert(
-      'Eşleşme Talebi',
+      'İş Birliği Talebi',
       'Müşteriniz olduğu bildirimi gönderilecek.',
       [
         { text: 'Vazgeç', style: 'cancel' },
@@ -107,7 +107,7 @@ export default function ListingsScreen() {
             if (error) {
               Alert.alert('Hata', error);
             } else {
-              Alert.alert('Başarılı', 'Eşleşme talebi gönderildi.');
+              Alert.alert('Başarılı', 'İş birliği talebi gönderildi.');
             }
           },
         },

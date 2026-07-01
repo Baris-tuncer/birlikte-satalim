@@ -46,7 +46,7 @@ export async function registerForPushNotifications(userId: string, silent = true
       if (!silent) {
         Alert.alert(
           'Bildirim İzni Gerekli',
-          'Eşleşme ve bölge bildirimlerini alabilmek için bildirim iznini ayarlardan açmanız gerekiyor.',
+          'İş birliği ve bölge bildirimlerini alabilmek için bildirim iznini ayarlardan açmanız gerekiyor.',
         );
       }
       return null;

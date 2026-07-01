@@ -90,11 +90,11 @@ Deno.serve(async (req) => {
     }
 
     const title = isListing
-      ? `${requesterName} ilanınızla eşleşmek istiyor`
-      : `${requesterName} portföyünden eşleşme gönderdi`;
+      ? `${requesterName} ilanınızla iş birliği yapmak istiyor`
+      : `${requesterName} portföyünden bir ilan önerdi`;
 
     const body = isListing
-      ? `Müşterisi için ilanınızı${detailText} eşleştirmek istiyor. Talebi inceleyip kabul edebilirsiniz.`
+      ? `Müşterisi için ilanınızı${detailText} talep ediyor. Talebi inceleyip kabul edebilirsiniz.`
       : `Talebiniz${detailText} için portföyünden bir ilan önerdi. Talebi inceleyip kabul edebilirsiniz.`;
 
     // Bildirim kaydini her zaman yaz (token olmasa bile)

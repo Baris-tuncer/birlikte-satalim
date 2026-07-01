@@ -42,6 +42,7 @@ export default function ListingCard({
 
   return (
     <View style={styles.card}>
+      <Pressable onPress={() => router.push(`/listing/${listing.id}` as any)} style={({ pressed }) => pressed && { opacity: 0.7 }}>
       {/* Top row: badges + time */}
       <View style={styles.topRow}>
         <View style={styles.badgesRow}>
@@ -168,6 +169,8 @@ export default function ListingCard({
           {listing.description}
         </Text>
       ) : null}
+
+      </Pressable>
 
       {/* Divider */}
       <View style={styles.divider} />

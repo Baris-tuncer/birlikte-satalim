@@ -82,7 +82,7 @@ export default function DemandPoolScreen() {
             if (error) {
               Alert.alert('Hata', error);
             } else {
-              Alert.alert('Başarılı', 'Eşleşme talebi gönderildi.');
+              Alert.alert('Başarılı', 'İş birliği talebi gönderildi.');
             }
           },
         },

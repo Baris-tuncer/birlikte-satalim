@@ -227,7 +227,7 @@ export async function sendMatchRequest(match: {
   if (existing) {
     const statusText = existing.status === 'PENDING' ? 'beklemede' :
       existing.status === 'ACCEPTED' ? 'kabul edilmiş' : 'reddedilmiş';
-    return { data: null, error: `Bu eşleşme talebi zaten gönderildi (${statusText}).` };
+    return { data: null, error: `Bu iş birliği talebi zaten gönderildi (${statusText}).` };
   }
 
   // Günlük toplam eşleşme talep limiti (10)
@@ -241,7 +241,7 @@ export async function sendMatchRequest(match: {
     .gte('created_at', startOfDay.toISOString());
 
   if ((dailyCount ?? 0) >= 10) {
-    return { data: null, error: 'Günlük eşleşme talep limitine ulaştınız (10). Yarın tekrar deneyin.' };
+    return { data: null, error: 'Günlük iş birliği talep limitine ulaştınız (10). Yarın tekrar deneyin.' };
   }
 
   // Aynı kullanıcıya günlük limit (2)
@@ -253,7 +253,7 @@ export async function sendMatchRequest(match: {
     .gte('created_at', startOfDay.toISOString());
 
   if ((targetDailyCount ?? 0) >= 2) {
-    return { data: null, error: 'Bu kullanıcıya bugün zaten 2 eşleşme talebi gönderdiniz.' };
+    return { data: null, error: 'Bu kullanıcıya bugün zaten 2 iş birliği talebi gönderdiniz.' };
   }
 
   const { data, error } = await supabase

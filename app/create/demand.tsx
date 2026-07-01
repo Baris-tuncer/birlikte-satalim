@@ -20,6 +20,7 @@ import {
   TRANSACTION_TYPES,
   PROPERTY_TYPES,
   ROOM_OPTIONS,
+  BUILDING_AGE_OPTIONS,
   getNeighborhoodsForDistrict,
 } from '@/lib/constants';
 import { formatPriceInput, checkContent } from '@/lib/format';
@@ -51,6 +52,7 @@ export default function CreateDemandScreen() {
   const [minRooms, setMinRooms] = useState('');
   const [minArea, setMinArea] = useState('');
   const [maxFloor, setMaxFloor] = useState('');
+  const [selectedBuildingAges, setSelectedBuildingAges] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
 
   useEffect(() => {
@@ -73,6 +75,7 @@ export default function CreateDemandScreen() {
           setMinRooms(d.min_rooms ?? '');
           setMinArea(d.min_area?.toString() ?? '');
           setMaxFloor(d.max_floor?.toString() ?? '');
+          setSelectedBuildingAges(d.building_ages ?? []);
           setNotes(d.notes ?? '');
         }
         setInitialLoading(false);
@@ -93,6 +96,12 @@ export default function CreateDemandScreen() {
   const toggleNeighborhood = (n: string) => {
     setSelectedNeighborhoods((prev) =>
       prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n]
+    );
+  };
+
+  const toggleBuildingAge = (key: string) => {
+    setSelectedBuildingAges((prev) =>
+      prev.includes(key) ? prev.filter((x) => x !== key) : [...prev, key]
     );
   };
 
@@ -143,6 +152,7 @@ export default function CreateDemandScreen() {
       min_rooms: minRooms || null,
       min_area: minArea ? Number(minArea) : null,
       max_floor: maxFloor ? Number(maxFloor) : null,
+      building_ages: selectedBuildingAges.length > 0 ? selectedBuildingAges : null,
       notes: notes || null,
     };
 
@@ -349,6 +359,41 @@ export default function CreateDemandScreen() {
                 </View>
               </View>
             </View>
+
+            {/* Bina Yaşı (multi-select) */}
+            {!isLand && propertyType !== 'URBAN_RENEWAL' && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  Bina Yaşı ({selectedBuildingAges.length} seçili)
+                </Text>
+                <View style={styles.card}>
+                  <View style={styles.neighborhoodWrap}>
+                    {BUILDING_AGE_OPTIONS.map((opt) => {
+                      const sel = selectedBuildingAges.includes(opt.key);
+                      return (
+                        <Pressable
+                          key={opt.key}
+                          style={[
+                            styles.chipSmall,
+                            sel && styles.chipSmallSelected,
+                          ]}
+                          onPress={() => toggleBuildingAge(opt.key)}
+                        >
+                          <Text
+                            style={[
+                              styles.chipSmallText,
+                              sel && styles.chipSmallTextSelected,
+                            ]}
+                          >
+                            {opt.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                </View>
+              </View>
+            )}
 
             {/* Notlar */}
             <View style={styles.section}>

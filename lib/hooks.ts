@@ -319,7 +319,7 @@ export function useMyMatches() {
       // Eşleşmeler yüklenemedi
       setData([]);
       setPendingCount(0);
-      setError(e?.message ?? 'Eşleşmeler yüklenirken hata oluştu');
+      setError(e?.message ?? 'İş birlikleri yüklenirken hata oluştu');
     }
     setLoading(false);
   }, [userId]);

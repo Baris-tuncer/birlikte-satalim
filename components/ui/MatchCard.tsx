@@ -56,12 +56,12 @@ export default function MatchCard({
   const isAccepted = match.status === 'ACCEPTED';
 
   const matchTypeLabel =
-    match.match_type === 'DEMAND' ? 'Talep Eşleşmesi' : 'İlan Eşleşmesi';
+    match.match_type === 'DEMAND' ? 'Talep İş Birliği' : 'İlan İş Birliği';
 
   // Karşı tarafın bilgisi
   const otherParty = isTarget ? match.requester : match.target;
   const otherPartyRole = isTarget
-    ? (match.match_type === 'LISTING' ? 'Müşterisi Var' : 'Portföyünden Eşledi')
+    ? (match.match_type === 'LISTING' ? 'Müşterisi Var' : 'Portföyünden Önerdi')
     : (match.match_type === 'LISTING' ? 'İlan Sahibi' : 'Talep Sahibi');
 
   return (
@@ -156,6 +156,22 @@ export default function MatchCard({
         const cleanPhone = otherPhone
           ? otherPhone.replace(/\s/g, '').replace(/^\+90/, '90').replace(/^0/, '90')
           : null;
+
+        // WhatsApp mesajı — ilan/talep detayı ile
+        let whatsappMsg = 'Merhaba, Beraber Satalım üzerinden ';
+        if (match.listing) {
+          const l = match.listing;
+          const info = [l.district, TRANSACTION_LABELS[l.transaction_type], PROPERTY_LABELS[l.property_type]].filter(Boolean).join(', ');
+          const extra = [l.room_count, l.price > 0 ? formatPrice(l.price) : null].filter(Boolean).join(', ');
+          whatsappMsg += `${info}${extra ? ` (${extra})` : ''} ilanı hakkında iletişime geçiyorum.`;
+        } else if (match.demand) {
+          const d = match.demand;
+          const info = [d.district, TRANSACTION_LABELS[d.transaction_type], PROPERTY_LABELS[d.property_type]].filter(Boolean).join(', ');
+          whatsappMsg += `${info} talebi hakkında iletişime geçiyorum.`;
+        } else {
+          whatsappMsg += 'iletişime geçiyorum.';
+        }
+
         return (
           <View style={styles.contactBox}>
             <View style={styles.contactRow}>
@@ -176,7 +192,7 @@ export default function MatchCard({
               <View style={styles.contactActions}>
                 <Pressable
                   style={({ pressed }) => [styles.whatsappBtn, pressed && { opacity: 0.85 }]}
-                  onPress={() => Linking.openURL(`https://wa.me/${cleanPhone}?text=${encodeURIComponent('Merhaba, Beraber Satalım üzerinden eşleşmemiz hakkında iletişime geçiyorum.')}`)}
+                  onPress={() => Linking.openURL(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappMsg)}`)}
                 >
                   <Ionicons name="logo-whatsapp" size={16} color="#fff" />
                   <Text style={styles.whatsappBtnText}>WhatsApp</Text>

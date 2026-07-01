@@ -49,7 +49,7 @@ export default function MatchDetailScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Eşleşme Detayı', headerShown: true }} />
+        <Stack.Screen options={{ title: 'İş Birliği Detayı', headerShown: true }} />
         <View style={styles.emptyContainer}>
           <ActivityIndicator size="large" color={Colors.accent} />
         </View>
@@ -60,10 +60,10 @@ export default function MatchDetailScreen() {
   if (!match) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Eşleşme Detayı', headerShown: true }} />
+        <Stack.Screen options={{ title: 'İş Birliği Detayı', headerShown: true }} />
         <View style={styles.emptyContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={Colors.text.tertiary} />
-          <Text style={styles.emptyTitle}>Eşleşme Bulunamadı</Text>
+          <Text style={styles.emptyTitle}>İş Birliği Bulunamadı</Text>
           <Pressable style={styles.backBtn} onPress={() => router.back()}>
             <Text style={styles.backBtnText}>Geri Dön</Text>
           </Pressable>
@@ -84,7 +84,7 @@ export default function MatchDetailScreen() {
       return;
     }
     setMatch((prev) => prev ? { ...prev, status: 'ACCEPTED', responded_at: new Date().toISOString() } : null);
-    Alert.alert('Eşleşme Kabul Edildi', 'İletişim bilgileri artık görünür.');
+    Alert.alert('İş Birliği Kabul Edildi', 'İletişim bilgileri artık görünür.');
   };
 
   const handleReject = async () => {
@@ -94,14 +94,14 @@ export default function MatchDetailScreen() {
       return;
     }
     setMatch((prev) => prev ? { ...prev, status: 'REJECTED', responded_at: new Date().toISOString() } : null);
-    Alert.alert('Eşleşme Reddedildi', 'Eşleşme reddedildi.');
+    Alert.alert('İş Birliği Reddedildi', 'İş birliği reddedildi.');
   };
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: 'Eşleşme Detayı',
+          title: 'İş Birliği Detayı',
           headerShown: true,
           headerStyle: { backgroundColor: Colors.background },
           headerTintColor: Colors.text.primary,
@@ -155,7 +155,7 @@ export default function MatchDetailScreen() {
 
         {/* Match Type */}
         <Text style={styles.matchType}>
-          {match.match_type === 'DEMAND' ? 'Talep Eşleşmesi' : 'İlan Eşleşmesi'}
+          {match.match_type === 'DEMAND' ? 'Talep İş Birliği' : 'İlan İş Birliği'}
         </Text>
 
         {/* Listing Summary */}
@@ -217,6 +217,21 @@ export default function MatchDetailScreen() {
           const otherAgent = isTarget ? match.requester : match.target;
           const otherPhone = otherAgent?.phone?.replace(/\s/g, '').replace('+90', '90').replace(/^0/, '90') ?? '';
 
+          // WhatsApp mesajı — ilan/talep detayı ile
+          let whatsappMsg = 'Merhaba, Beraber Satalım üzerinden ';
+          if (match.listing) {
+            const l = match.listing;
+            const info = [l.district, TRANSACTION_LABELS[l.transaction_type], PROPERTY_LABELS[l.property_type]].filter(Boolean).join(', ');
+            const extra = [l.room_count, l.price > 0 ? formatPrice(l.price) : null].filter(Boolean).join(', ');
+            whatsappMsg += `${info}${extra ? ` (${extra})` : ''} ilanı hakkında iletişime geçiyorum.`;
+          } else if (match.demand) {
+            const d = match.demand;
+            const info = [d.district, TRANSACTION_LABELS[d.transaction_type], PROPERTY_LABELS[d.property_type]].filter(Boolean).join(', ');
+            whatsappMsg += `${info} talebi hakkında iletişime geçiyorum.`;
+          } else {
+            whatsappMsg += 'iletişime geçiyorum.';
+          }
+
           return (
             <>
               <View style={styles.contactCard}>
@@ -249,7 +264,7 @@ export default function MatchDetailScreen() {
                 <View style={styles.contactActions}>
                   <Pressable
                     style={({ pressed }) => [styles.whatsappButton, pressed && { opacity: 0.85 }]}
-                    onPress={() => Linking.openURL(`https://wa.me/${otherPhone}?text=${encodeURIComponent('Merhaba, Beraber Satalım üzerinden eşleştik.')}`)}
+                    onPress={() => Linking.openURL(`https://wa.me/${otherPhone}?text=${encodeURIComponent(whatsappMsg)}`)}
                   >
                     <Ionicons name="logo-whatsapp" size={20} color="#fff" />
                     <Text style={styles.whatsappButtonText}>WhatsApp</Text>

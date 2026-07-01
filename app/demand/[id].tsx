@@ -124,12 +124,13 @@ export default function DemandDetailScreen() {
     { label: 'Min Oda', value: demand.min_rooms },
     { label: 'Min Alan', value: demand.min_area ? `${demand.min_area} m²` : null },
     { label: 'Max Kat', value: demand.max_floor != null ? `${demand.max_floor}. kat` : null },
+    { label: 'Bina Yaşı', value: demand.building_ages && demand.building_ages.length > 0 ? demand.building_ages.join(', ') + ' yıl' : null },
   ];
 
   const hasCriteria = criteria.some((c) => c.value !== null);
 
   const handleMatch = () => {
-    Alert.alert('Eşleşme Talebi', 'Bu talep için portföyünüzden eşleşme gönderilecek.', [
+    Alert.alert('İş Birliği Talebi', 'Bu talep için portföyünüzden bir ilan önerilecek.', [
       { text: 'Vazgeç', style: 'cancel' },
       {
         text: 'Gönder',
@@ -142,7 +143,7 @@ export default function DemandDetailScreen() {
           if (error) {
             Alert.alert('Hata', error);
           } else {
-            Alert.alert('Başarılı', 'Eşleşme talebi gönderildi.');
+            Alert.alert('Başarılı', 'İş birliği talebi gönderildi.');
           }
         },
       },
@@ -220,7 +221,7 @@ export default function DemandDetailScreen() {
         <View style={styles.card}>
           <AgentInfo agent={demand.agent} size="full" />
           <Text style={styles.agentBlindText}>
-            Eşleşme sonrası iletişim bilgileri görünür
+            İş birliği sonrası iletişim bilgileri görünür
           </Text>
         </View>
 

@@ -65,10 +65,10 @@ Deno.serve(async (req) => {
 
     const title = isAccepted
       ? `${responderName} talebinizi kabul etti!`
-      : `Eşleşme talebi reddedildi`;
+      : `İş birliği talebi reddedildi`;
     const body = isAccepted
       ? `Artık iletişim bilgilerini görüntüleyebilir ve doğrudan iletişime geçebilirsiniz.`
-      : `${responderName} eşleşme talebinizi reddetti. Diğer ilanları incelemeye devam edebilirsiniz.`;
+      : `${responderName} iş birliği talebinizi reddetti. Diğer ilanları incelemeye devam edebilirsiniz.`;
 
     // Bildirim kaydini her zaman yaz (token olmasa bile)
     await supabase.from('notifications').insert({

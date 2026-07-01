@@ -135,11 +135,11 @@ export function checkContent(text: string): string | null {
   }
 
   if (PHONE_RE.test(text)) {
-    return 'Açıklamaya telefon numarası yazılamaz. İletişim bilgileri eşleşme sonrası paylaşılır.';
+    return 'Açıklamaya telefon numarası yazılamaz. İletişim bilgileri iş birliği sonrası paylaşılır.';
   }
 
   if (EMAIL_RE.test(text)) {
-    return 'Açıklamaya e-posta adresi yazılamaz. İletişim bilgileri eşleşme sonrası paylaşılır.';
+    return 'Açıklamaya e-posta adresi yazılamaz. İletişim bilgileri iş birliği sonrası paylaşılır.';
   }
 
   if (URL_RE.test(text)) {
