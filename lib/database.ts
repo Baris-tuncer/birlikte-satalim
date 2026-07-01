@@ -5,6 +5,7 @@ import type {
   Listing,
   BuyerDemand,
   Match,
+  AppNotification,
   NeighborhoodPrice,
   TransactionType,
   PropertyType,
@@ -447,6 +448,48 @@ export async function getBlockedUserIds(blockerId: string): Promise<string[]> {
     .select('blocked_id')
     .eq('blocker_id', blockerId);
   return (data ?? []).map((row: any) => row.blocked_id);
+}
+
+// ─── NOTIFICATIONS ──────────────────────────────────
+
+export async function getNotifications(userId: string) {
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  return { data: (data as AppNotification[]) ?? [], error: error?.message };
+}
+
+export async function markNotificationRead(notificationId: string) {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ status: 'read', read_at: new Date().toISOString() })
+    .eq('id', notificationId);
+
+  return { error: error?.message };
+}
+
+export async function markAllNotificationsRead(userId: string) {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ status: 'read', read_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .neq('status', 'read');
+
+  return { error: error?.message };
+}
+
+export async function getUnreadNotificationCount(userId: string) {
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .neq('status', 'read');
+
+  return { count: count ?? 0, error: error?.message };
 }
 
 // ─── NEIGHBORHOOD PRICES ──────────────────────────────

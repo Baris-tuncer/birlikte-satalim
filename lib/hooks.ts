@@ -14,6 +14,9 @@ import {
   updateListing,
   updateDemand,
   getBlockedUserIds,
+  getNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
 } from './database';
 import { supabase } from './supabase';
 import { useAuth } from './auth-context';
@@ -575,6 +578,44 @@ export function usePlatformStats() {
 }
 
 // ─── UNREAD NOTIFICATION COUNT ───────────────────────
+
+export function useNotifications() {
+  const { profile } = useAuth();
+  const [data, setData] = useState<import('@/types').AppNotification[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const userId = profile?.id;
+
+  const fetch = useCallback(async () => {
+    if (__DEV__) {
+      setData([]);
+      setLoading(false);
+      return;
+    }
+    if (!userId) return;
+    setLoading(true);
+    const { data: result } = await getNotifications(userId);
+    setData(result);
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => {
+    fetch();
+  }, [fetch]);
+
+  const markRead = useCallback(async (notificationId: string) => {
+    await markNotificationRead(notificationId);
+    setData((prev) => prev.map((n) => n.id === notificationId ? { ...n, status: 'read' as const, read_at: new Date().toISOString() } : n));
+  }, []);
+
+  const markAllRead = useCallback(async () => {
+    if (!userId) return;
+    await markAllNotificationsRead(userId);
+    setData((prev) => prev.map((n) => ({ ...n, status: 'read' as const, read_at: n.read_at ?? new Date().toISOString() })));
+  }, [userId]);
+
+  return { data, loading, refetch: fetch, markRead, markAllRead };
+}
 
 export function useUnreadNotificationCount() {
   const { profile } = useAuth();

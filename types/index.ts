@@ -102,6 +102,22 @@ export interface Match {
   demand?: BuyerDemand;
 }
 
+// ─── NOTIFICATION (Bildirim) ─────────────────────────
+
+export type NotificationStatus = 'pending' | 'sent' | 'read' | 'digest';
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  title: string;
+  body: string;
+  type: string;
+  reference_id: string | null;
+  status: NotificationStatus;
+  read_at: string | null;
+  created_at: string;
+}
+
 // ─── NEIGHBORHOOD PRICE (Mahalle Fiyat Endeksi) ──────
 
 export interface NeighborhoodPrice {

@@ -404,7 +404,7 @@ export default function ProfileScreen() {
           />
         </View>
 
-        {/* Bildirimler */}
+        {/* Bildirim Ayarları */}
         <Pressable
           style={({ pressed }) => [
             styles.adminButton,
@@ -419,7 +419,7 @@ export default function ProfileScreen() {
           }}
         >
           <Ionicons name="notifications-outline" size={20} color={Colors.accent} />
-          <Text style={styles.adminButtonText}>Bildirimleri Etkinleştir</Text>
+          <Text style={styles.adminButtonText}>Bildirim İzinlerini Yönet</Text>
           <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
         </Pressable>
 
