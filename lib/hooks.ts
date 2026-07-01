@@ -17,6 +17,8 @@ import {
   getNotifications,
   markNotificationRead,
   markAllNotificationsRead,
+  deleteNotification,
+  deleteAllNotifications,
 } from './database';
 import { supabase } from './supabase';
 import { useAuth } from './auth-context';
@@ -614,7 +616,18 @@ export function useNotifications() {
     setData((prev) => prev.map((n) => ({ ...n, status: 'read' as const, read_at: n.read_at ?? new Date().toISOString() })));
   }, [userId]);
 
-  return { data, loading, refetch: fetch, markRead, markAllRead };
+  const deleteOne = useCallback(async (notificationId: string) => {
+    await deleteNotification(notificationId);
+    setData((prev) => prev.filter((n) => n.id !== notificationId));
+  }, []);
+
+  const deleteAll = useCallback(async () => {
+    if (!userId) return;
+    await deleteAllNotifications(userId);
+    setData([]);
+  }, [userId]);
+
+  return { data, loading, refetch: fetch, markRead, markAllRead, deleteOne, deleteAll };
 }
 
 export function useUnreadNotificationCount() {

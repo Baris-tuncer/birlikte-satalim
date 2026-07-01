@@ -7,6 +7,7 @@ import {
   Pressable,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -50,7 +51,7 @@ function formatTimeAgo(dateStr: string): string {
 
 export default function NotificationsScreen() {
   const router = useRouter();
-  const { data: notifications, loading, refetch, markRead, markAllRead } = useNotifications();
+  const { data: notifications, loading, refetch, markRead, markAllRead, deleteOne, deleteAll } = useNotifications();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const unreadCount = notifications.filter((n) => n.status !== 'read').length;
@@ -71,6 +72,20 @@ export default function NotificationsScreen() {
     }
   }, [markRead, router]);
 
+  const handleLongPress = useCallback((notification: AppNotification) => {
+    Alert.alert('Bildirimi Sil', 'Bu bildirim silinecek.', [
+      { text: 'Vazgeç', style: 'cancel' },
+      { text: 'Sil', style: 'destructive', onPress: () => deleteOne(notification.id) },
+    ]);
+  }, [deleteOne]);
+
+  const handleDeleteAll = useCallback(() => {
+    Alert.alert('Tüm Bildirimleri Sil', 'Tüm bildirimler kalıcı olarak silinecek. Emin misiniz?', [
+      { text: 'Vazgeç', style: 'cancel' },
+      { text: 'Tümünü Sil', style: 'destructive', onPress: deleteAll },
+    ]);
+  }, [deleteAll]);
+
   const renderItem = useCallback(({ item }: { item: AppNotification }) => {
     const isUnread = item.status !== 'read';
     const iconConfig = NOTIFICATION_ICONS[item.type] ?? { name: 'notifications-outline' as const, color: Colors.text.secondary };
@@ -83,6 +98,7 @@ export default function NotificationsScreen() {
           pressed && { opacity: 0.7 },
         ]}
         onPress={() => handleTap(item)}
+        onLongPress={() => handleLongPress(item)}
       >
         {isUnread && <View style={styles.unreadDot} />}
         <View style={[styles.iconContainer, { backgroundColor: iconConfig.color + '14' }]}>
@@ -120,11 +136,18 @@ export default function NotificationsScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Bildirimler</Text>
-        {unreadCount > 0 && (
-          <Pressable onPress={markAllRead} hitSlop={8}>
-            <Text style={styles.markAllText}>Tümünü Oku</Text>
-          </Pressable>
-        )}
+        <View style={styles.headerActions}>
+          {unreadCount > 0 && (
+            <Pressable onPress={markAllRead} hitSlop={8}>
+              <Text style={styles.markAllText}>Tümünü Oku</Text>
+            </Pressable>
+          )}
+          {notifications.length > 0 && (
+            <Pressable onPress={handleDeleteAll} hitSlop={8}>
+              <Ionicons name="trash-outline" size={20} color={Colors.text.tertiary} />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <FlatList
@@ -161,6 +184,7 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.borderLight,
   },
   headerTitle: { ...Typography.title2, color: Colors.text.primary },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
   markAllText: { ...Typography.subhead, color: Colors.accent, fontWeight: '600' },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   list: { paddingVertical: Spacing.sm },

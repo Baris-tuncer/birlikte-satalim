@@ -482,6 +482,24 @@ export async function markAllNotificationsRead(userId: string) {
   return { error: error?.message };
 }
 
+export async function deleteNotification(notificationId: string) {
+  const { error } = await supabase
+    .from('notifications')
+    .delete()
+    .eq('id', notificationId);
+
+  return { error: error?.message };
+}
+
+export async function deleteAllNotifications(userId: string) {
+  const { error } = await supabase
+    .from('notifications')
+    .delete()
+    .eq('user_id', userId);
+
+  return { error: error?.message };
+}
+
 export async function getUnreadNotificationCount(userId: string) {
   const { count, error } = await supabase
     .from('notifications')
