@@ -8,10 +8,10 @@
     },
     "info": {
       "tr": {
-        "description": "Beraber Satalım, emlak danışmanlarının portföylerini paylaştığı ve alıcı taleplerini eşleştirdiği profesyonel bir platformdur.\n\nÖzellikler:\n• İlan Havuzu: Satılık ve kiralık mülk portföyünüzü paylaşın\n• Talep Havuzu: Alıcı müşteri taleplerinizi yayınlayın\n• Akıllı Eşleşme: İlan ve talepleri otomatik eşleştirin\n• Bölge Filtresi: İl, ilçe ve mahalle bazında arama yapın\n• Güvenli İletişim: Eşleşme onaylandığında iletişim bilgileri paylaşılır\n• Anlık Bildirimler: Yeni eşleşmelerden anında haberdar olun\n\nNasıl Çalışır:\n1. Kayıt olun ve emlak yetki belgenizi yükleyin\n2. İlanlarınızı veya müşteri taleplerinizi ekleyin\n3. Bölgenizdeki portföyleri keşfedin\n4. Eşleşme talebi gönderin, onaylandığında iletişime geçin\n\nBeraber Satalım ile emlak sektöründe iş birliği yapın, portföyünüzü büyütün.",
+        "description": "Beraber Satalım, gayrimenkul danışmanlarının portföylerini paylaştığı ve alıcı taleplerini eşleştirdiği profesyonel bir platformdur.\n\nÖzellikler:\n• İlan Havuzu: Satılık ve kiralık mülk portföyünüzü paylaşın\n• Talep Havuzu: Alıcı müşteri taleplerinizi yayınlayın\n• Akıllı Eşleşme: İlan ve talepleri otomatik eşleştirin\n• Bölge Filtresi: İl, ilçe ve mahalle bazında arama yapın\n• Güvenli İletişim: İş birliği onaylandığında iletişim bilgileri paylaşılır\n• Anlık Bildirimler: Yeni iş birliği fırsatlarından anında haberdar olun\n\nNasıl Çalışır:\n1. Kayıt olun ve yetki belgenizi yükleyin\n2. İlanlarınızı veya müşteri taleplerinizi ekleyin\n3. Bölgenizdeki portföyleri keşfedin\n4. İş birliği talebi gönderin, onaylandığında iletişime geçin\n\nBeraber Satalım ile gayrimenkul sektöründe iş birliği yapın, portföyünüzü büyütün.",
         "keywords": [
           "emlak",
-          "emlakçı",
+          "danışman",
           "portföy",
           "gayrimenkul",
           "satılık",
@@ -21,10 +21,10 @@
           "ilan",
           "talep"
         ],
-        "promoText": "Emlakçılar arası portföy paylaşım platformu. İlan ve talepleri eşleştirin.",
+        "promoText": "Gayrimenkul danışmanları arası portföy paylaşım platformu. İlan ve talepleri eşleştirin.",
         "supportUrl": "https://baris-tuncer.github.io/birlikte-satalim/",
         "title": "Beraber Satalım",
-        "subtitle": "Emlakçılar için ortak portföy",
+        "subtitle": "Danışmanlar için ortak portföy",
         "privacyPolicyUrl": "https://baris-tuncer.github.io/birlikte-satalim/gizlilik.html",
         "screenshots": {
           "APP_IPHONE_65": [
