@@ -71,10 +71,7 @@ Deno.serve(async (req) => {
 
       let demandUserIds: string[] = [];
 
-      // 1. Uygun talepleri bul ve bildir (admin kullanıcıları hariç tut)
-      const { data: adminIds } = await supabase.from('users').select('id').eq('is_admin', true);
-      const adminIdList = (adminIds ?? []).map((u: { id: string }) => u.id);
-
+      // 1. Uygun talepleri bul ve bildir
       const { data: demands } = await supabase
         .from('buyer_demands')
         .select('id, agent_id, district, neighborhoods')
@@ -96,7 +93,7 @@ Deno.serve(async (req) => {
         });
 
         if (matchingDemands.length > 0) {
-          demandUserIds = [...new Set(matchingDemands.map((d) => d.agent_id))].filter((id) => !adminIdList.includes(id));
+          demandUserIds = [...new Set(matchingDemands.map((d) => d.agent_id))];
           const { data: tokens } = await supabase
             .from('push_tokens')
             .select('user_id, token')
@@ -124,7 +121,6 @@ Deno.serve(async (req) => {
         .select('id')
         .eq('expertise_city', city)
         .contains('expertise_districts', [district])
-        .eq('is_admin', false)
         .neq('id', agentId);
 
       if (experts && experts.length > 0) {
@@ -178,8 +174,6 @@ Deno.serve(async (req) => {
       const budgetText = maxBudget ? ` (${(minBudget / 1000000).toFixed(1)}-${(maxBudget / 1000000).toFixed(1)}M TL)` : '';
 
       let listingUserIds: string[] = [];
-      const { data: adminIds } = await supabase.from('users').select('id').eq('is_admin', true);
-      const adminIdList = (adminIds ?? []).map((u: { id: string }) => u.id);
 
       // 1. Uygun ilanları bul ve bildir
       const { data: listings } = await supabase
@@ -203,7 +197,7 @@ Deno.serve(async (req) => {
         });
 
         if (matchingListings.length > 0) {
-          listingUserIds = [...new Set(matchingListings.map((l) => l.agent_id))].filter((id) => !adminIdList.includes(id));
+          listingUserIds = [...new Set(matchingListings.map((l) => l.agent_id))];
           const { data: tokens } = await supabase
             .from('push_tokens')
             .select('user_id, token')
@@ -225,13 +219,12 @@ Deno.serve(async (req) => {
         }
       }
 
-      // 2. Uzmanlık bölgesi bildirimi — ilan bildirimi olsun olmasın her zaman çalışır (admin hariç)
+      // 2. Uzmanlık bölgesi bildirimi — ilan bildirimi olsun olmasın her zaman çalışır
       const { data: experts } = await supabase
         .from('users')
         .select('id')
         .eq('expertise_city', city)
         .contains('expertise_districts', [district])
-        .eq('is_admin', false)
         .neq('id', agentId);
 
       if (experts && experts.length > 0) {
