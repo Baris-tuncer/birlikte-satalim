@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       .eq('id', match.requester_id)
       .single();
 
-    const requesterName = requester?.name ?? 'Bir emlakçı';
+    const requesterName = requester?.name ?? 'Bir danışman';
     const isListing = match.match_type === 'LISTING';
 
     // İlan/talep detaylarını al

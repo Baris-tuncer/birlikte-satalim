@@ -163,7 +163,7 @@ export default function DemandCard({
             onPress={() => {
               Alert.alert(
                 'Talebi Kaldır',
-                'Bu talep kaldırılacak ve artık diğer emlakçılar tarafından görülmeyecek. Emin misiniz?',
+                'Bu talep kaldırılacak ve artık diğer danışmanlar tarafından görülmeyecek. Emin misiniz?',
                 [
                   { text: 'Vazgeç', style: 'cancel' },
                   {

@@ -140,7 +140,7 @@ export default function LicenseUploadScreen() {
           </View>
           <Text style={styles.title}>Yetki Belgesi</Text>
           <Text style={styles.subtitle}>
-            Yetkili emlakçı olarak doğrulanmak için yetki belge numaranızı girin
+            Onaylı gayrimenkul danışmanı olarak doğrulanmak için yetki belge numaranızı girin
           </Text>
         </View>
 

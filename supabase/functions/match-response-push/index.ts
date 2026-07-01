@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       .eq('id', match.target_id)
       .single();
 
-    const responderName = responder?.name ?? 'Bir emlakçı';
+    const responderName = responder?.name ?? 'Bir danışman';
     const isAccepted = match.status === 'ACCEPTED';
 
     const title = isAccepted

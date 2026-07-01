@@ -71,12 +71,17 @@ export default function AgentInfo({ agent, size = 'compact', showContactActions 
       {/* Info */}
       <View style={styles.info}>
         {agent?.name && (
-          <Text
-            style={isCompact ? styles.nameCompact : styles.nameFull}
-            numberOfLines={1}
-          >
-            {agent.name}
-          </Text>
+          <View style={styles.nameRow}>
+            <Text
+              style={isCompact ? styles.nameCompact : styles.nameFull}
+              numberOfLines={1}
+            >
+              {agent.name}
+            </Text>
+            {agent.license_status === 'approved' && (
+              <Ionicons name="checkmark-circle" size={isCompact ? 14 : 16} color="#1DA1F2" />
+            )}
+          </View>
         )}
         {agent?.license_number && (
           <Text style={isCompact ? styles.licenseCompact : styles.licenseFull}>
@@ -88,10 +93,17 @@ export default function AgentInfo({ agent, size = 'compact', showContactActions 
             {expertiseText}
           </Text>
         )}
-        <View style={styles.badge}>
-          <Ionicons name="checkmark-circle" size={13} color={Colors.accent} />
-          <Text style={styles.badgeText}>Yetkili Emlakçı</Text>
-        </View>
+        {agent?.license_status === 'approved' ? (
+          <View style={styles.badge}>
+            <Ionicons name="checkmark-circle" size={13} color="#1DA1F2" />
+            <Text style={[styles.badgeText, { color: '#1DA1F2' }]}>Onaylı Danışman</Text>
+          </View>
+        ) : (
+          <View style={styles.badge}>
+            <Ionicons name="person-outline" size={13} color={Colors.text.tertiary} />
+            <Text style={[styles.badgeText, { color: Colors.text.tertiary }]}>Gayrimenkul Danışmanı</Text>
+          </View>
+        )}
       </View>
 
       {/* Contact actions */}
@@ -147,6 +159,11 @@ const styles = StyleSheet.create({
   info: {
     flex: 1,
     gap: 2,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   nameCompact: {
     ...Typography.footnote,

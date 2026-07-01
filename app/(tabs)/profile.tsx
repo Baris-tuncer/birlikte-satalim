@@ -58,7 +58,7 @@ export default function ProfileScreen() {
 
   // DEV modda mock, production'da gerçek profil
   const devUser = __DEV__ ? mockUsers[0] : null;
-  const displayName = profile?.name ?? devUser?.name ?? user?.user_metadata?.name ?? 'Emlakçı';
+  const displayName = profile?.name ?? devUser?.name ?? user?.user_metadata?.name ?? 'Gayrimenkul Danışmanı';
   const companyName = profile?.company_name ?? devUser?.company_name ?? null;
   const email = profile?.email ?? user?.email ?? '';
   const phone = profile?.phone ?? devUser?.phone ?? '';
@@ -299,7 +299,12 @@ export default function ProfileScreen() {
               <Ionicons name="camera" size={14} color={Colors.text.inverse} />
             </View>
           </Pressable>
-          <Text style={styles.name}>{displayName}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.name}>{displayName}</Text>
+            {licenseStatus === 'approved' && (
+              <Ionicons name="checkmark-circle" size={18} color="#1DA1F2" />
+            )}
+          </View>
           {companyName && (
             <Text style={styles.companyName}>{companyName}</Text>
           )}
@@ -307,12 +312,19 @@ export default function ProfileScreen() {
             <Text style={styles.email}>{email}</Text>
           ) : null}
 
-          <View style={[styles.badge, { backgroundColor: licenseColor + '14' }]}>
-            <Ionicons name={licenseIcon} size={14} color={licenseColor} />
-            <Text style={[styles.badgeText, { color: licenseColor }]}>
-              {licenseLabel}
-            </Text>
-          </View>
+          {licenseStatus === 'approved' ? (
+            <View style={[styles.badge, { backgroundColor: '#1DA1F2' + '14' }]}>
+              <Ionicons name="checkmark-circle" size={14} color="#1DA1F2" />
+              <Text style={[styles.badgeText, { color: '#1DA1F2' }]}>Onaylı Danışman</Text>
+            </View>
+          ) : (
+            <View style={[styles.badge, { backgroundColor: licenseColor + '14' }]}>
+              <Ionicons name={licenseIcon} size={14} color={licenseColor} />
+              <Text style={[styles.badgeText, { color: licenseColor }]}>
+                {licenseLabel}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Bilgi kartı */}
@@ -347,12 +359,32 @@ export default function ProfileScreen() {
               <View style={styles.divider} />
             </>
           )}
-          <ProfileRow
-            icon="document-text-outline"
-            label="Yetki Belgesi"
-            value={licenseLabel}
-            valueColor={licenseColor}
-          />
+          {licenseStatus === 'none' || licenseStatus === 'rejected' ? (
+            <Pressable
+              style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+              onPress={() => router.push('/profile/license-upload' as any)}
+            >
+              <View style={styles.cardRow}>
+                <View style={styles.cardRowLeft}>
+                  <Ionicons name="shield-checkmark-outline" size={18} color={Colors.accent} />
+                  <Text style={[styles.cardLabel, { color: Colors.accent }]}>Yetki Belgesi Ekle</Text>
+                </View>
+                <View style={styles.matchRight}>
+                  <Text style={[styles.cardValue, { color: Colors.text.tertiary, maxWidth: 140 }]} numberOfLines={1}>
+                    {licenseStatus === 'rejected' ? 'Reddedildi' : 'Belge ekleyerek onaylı danışman olun'}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={16} color={Colors.accent} />
+                </View>
+              </View>
+            </Pressable>
+          ) : (
+            <ProfileRow
+              icon="document-text-outline"
+              label="Yetki Belgesi"
+              value={licenseLabel}
+              valueColor={licenseColor}
+            />
+          )}
           <View style={styles.divider} />
           <Pressable
             style={({ pressed }) => [pressed && { opacity: 0.7 }]}
@@ -757,6 +789,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: Colors.background,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   name: {
     ...Typography.title3,

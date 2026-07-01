@@ -188,7 +188,7 @@ export default function ListingsScreen() {
             <View style={styles.header}>
               <View>
                 <Text style={styles.title}>İlanlar</Text>
-                <Text style={styles.subtitle}>Emlakçıların mülk portföyü</Text>
+                <Text style={styles.subtitle}>Gayrimenkul danışmanlarının portföyü</Text>
               </View>
               <Pressable
                 style={({ pressed }) => [
