@@ -44,3 +44,9 @@ google-service-account.json
 # generated native folders
 /ios
 /android
+
+# Supabase CLI temp
+supabase/.temp/
+
+# App Store assets
+store/
