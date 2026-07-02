@@ -3,9 +3,9 @@ import type { TransactionType, PropertyType } from '@/types';
 // ─── Şehirler ─────────────────────────────────────────
 
 export const CITIES = [
-  'İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Kocaeli', 'Muğla',
-  'Tekirdağ', 'Eskişehir', 'Sakarya', 'Samsun', 'Edirne', 'Kayseri', 'Konya',
-  'Kuzey Kıbrıs',
+  'İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Balıkesir', 'Kocaeli',
+  'Mersin', 'Muğla', 'Tekirdağ', 'Eskişehir', 'Sakarya', 'Samsun', 'Edirne',
+  'Kayseri', 'Konya', 'Kuzey Kıbrıs',
 ] as const;
 export type City = (typeof CITIES)[number];
 
@@ -46,10 +46,21 @@ export const CITY_DISTRICTS: Record<string, string[]> = {
     'Kepez', 'Konyaaltı', 'Korkuteli', 'Kumluca', 'Manavgat',
     'Muratpaşa', 'Serik',
   ],
+  'Balıkesir': [
+    'Altıeylül', 'Ayvalık', 'Balya', 'Bandırma', 'Bigadiç',
+    'Burhaniye', 'Dursunbey', 'Edremit', 'Erdek', 'Gömeç',
+    'Gönen', 'Havran', 'İvrindi', 'Karesi', 'Kepsut',
+    'Manyas', 'Marmara', 'Savaştepe', 'Sındırgı', 'Susurluk',
+  ],
   'Kocaeli': [
     'Başiskele', 'Çayırova', 'Darıca', 'Derince', 'Dilovası',
     'Gebze', 'Gölcük', 'İzmit', 'Kandıra', 'Karamürsel',
     'Kartepe', 'Körfez',
+  ],
+  'Mersin': [
+    'Akdeniz', 'Anamur', 'Aydıncık', 'Bozyazı', 'Çamlıyayla',
+    'Erdemli', 'Gülnar', 'Mezitli', 'Mut', 'Silifke',
+    'Tarsus', 'Toroslar', 'Yenişehir',
   ],
   'Muğla': [
     'Bodrum', 'Dalaman', 'Datça', 'Fethiye', 'Kavaklıdere',
