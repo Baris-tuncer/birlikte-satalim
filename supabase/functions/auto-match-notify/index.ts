@@ -15,7 +15,13 @@ interface WebhookPayload {
   record: Record<string, unknown>;
 }
 
-async function sendPushMessages(tokens: { user_id: string; token: string }[], title: string, body: string, data: Record<string, unknown>) {
+async function sendPushMessages(
+  supabase: ReturnType<typeof createClient>,
+  tokens: { user_id: string; token: string }[],
+  title: string,
+  body: string,
+  data: Record<string, unknown>,
+) {
   if (!tokens || tokens.length === 0) return;
   const messages = tokens.map((t) => ({
     to: t.token,
@@ -25,7 +31,7 @@ async function sendPushMessages(tokens: { user_id: string; token: string }[], ti
     data,
     channelId: 'default',
   }));
-  await fetch(EXPO_PUSH_URL, {
+  const expoResponse = await fetch(EXPO_PUSH_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -35,6 +41,20 @@ async function sendPushMessages(tokens: { user_id: string; token: string }[], ti
     },
     body: JSON.stringify(messages),
   });
+  const result = await expoResponse.json();
+
+  // Gecersiz token'lari temizle
+  if (result.data && Array.isArray(result.data)) {
+    const invalidTokens: string[] = [];
+    result.data.forEach((ticket: { status: string; details?: { error?: string } }, i: number) => {
+      if (ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered') {
+        invalidTokens.push(messages[i].to);
+      }
+    });
+    if (invalidTokens.length > 0) {
+      await supabase.from('push_tokens').delete().in('token', invalidTokens);
+    }
+  }
 }
 
 Deno.serve(async (req) => {
@@ -102,7 +122,7 @@ Deno.serve(async (req) => {
           const title = `Talebinize uygun${roomText} ${typeText} ${propText}`;
           const body = `${locationText}'da${priceVal ? ` ${priceVal} fiyatla` : ''} yeni ilan eklendi. Hemen inceleyin!`;
 
-          await sendPushMessages(tokens ?? [], title, body, { listingId: listing.id, type: 'auto_match_listing' });
+          await sendPushMessages(supabase, tokens ?? [], title, body, { listingId: listing.id, type: 'auto_match_listing' });
 
           await supabase.from('notifications').insert(
             demandUserIds.map((uid) => ({
@@ -138,7 +158,7 @@ Deno.serve(async (req) => {
           const expertTitle = `Bölgenizde yeni${roomText} ${typeText} ${propText}`;
           const expertBody = `${locationText}'da${priceVal ? ` ${priceVal} fiyatla` : ''} yeni ilan eklendi. Uzmanlık bölgenize uygun!`;
 
-          await sendPushMessages(expertTokens ?? [], expertTitle, expertBody, { listingId: listing.id, type: 'expertise_listing' });
+          await sendPushMessages(supabase, expertTokens ?? [], expertTitle, expertBody, { listingId: listing.id, type: 'expertise_listing' });
 
           await supabase.from('notifications').insert(
             expertIds.map((uid: string) => ({
@@ -206,7 +226,7 @@ Deno.serve(async (req) => {
           const title = `İlanınıza uygun yeni ${typeText} talebi`;
           const body = `${district}'da ${typeText} ${propText} arayan bir müşteri var${budgetText}. İlanınız bu talebe uygun!`;
 
-          await sendPushMessages(tokens ?? [], title, body, { demandId: demand.id, type: 'auto_match_demand' });
+          await sendPushMessages(supabase, tokens ?? [], title, body, { demandId: demand.id, type: 'auto_match_demand' });
 
           await supabase.from('notifications').insert(
             listingUserIds.map((uid) => ({
@@ -241,7 +261,7 @@ Deno.serve(async (req) => {
           const expertTitle = `Bölgenizde yeni ${typeText} ${propText} talebi`;
           const expertBody = `${district}'da ${typeText} ${propText} arayan bir müşteri var${budgetText}. Uzmanlık bölgenize uygun!`;
 
-          await sendPushMessages(expertTokens ?? [], expertTitle, expertBody, { demandId: demand.id, type: 'expertise_demand' });
+          await sendPushMessages(supabase, expertTokens ?? [], expertTitle, expertBody, { demandId: demand.id, type: 'expertise_demand' });
 
           await supabase.from('notifications').insert(
             expertIds.map((uid: string) => ({
