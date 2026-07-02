@@ -97,6 +97,19 @@ Deno.serve(async (req) => {
 
     const result = await expoResponse.json();
 
+    // Gecersiz token'lari temizle
+    if (result.data && Array.isArray(result.data)) {
+      const invalidTokens: string[] = [];
+      result.data.forEach((ticket: { status: string; details?: { error?: string } }, i: number) => {
+        if (ticket.status === 'error' && ticket.details?.error === 'DeviceNotRegistered') {
+          invalidTokens.push(messages[i].to);
+        }
+      });
+      if (invalidTokens.length > 0) {
+        await supabase.from('push_tokens').delete().in('token', invalidTokens);
+      }
+    }
+
     return new Response(
       JSON.stringify({ success: true, tickets: result.data }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
