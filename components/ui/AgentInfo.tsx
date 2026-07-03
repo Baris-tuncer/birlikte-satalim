@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, Pressable, Linking } from 'react-native';
+import { StyleSheet, Text, View, Image, Pressable, Linking, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius } from '@/constants/Theme';
 import { getInitials } from '@/lib/format';
@@ -23,6 +23,10 @@ export default function AgentInfo({ agent, size = 'compact', showContactActions 
 
   const handleWhatsApp = () => {
     if (!agent?.phone) return;
+    if (agent.is_mock) {
+      Alert.alert('Bilgi', 'Bu ilan kullanıcı tarafından yayından kaldırılmıştır.');
+      return;
+    }
     const phone = agent.phone.replace(/\D/g, '');
     const phoneNumber = phone.startsWith('0') ? '9' + phone : phone.startsWith('90') ? phone : '90' + phone;
     const senderName = currentUserName ?? '';
@@ -32,6 +36,10 @@ export default function AgentInfo({ agent, size = 'compact', showContactActions 
 
   const handlePhone = () => {
     if (!agent?.phone) return;
+    if (agent.is_mock) {
+      Alert.alert('Bilgi', 'Bu ilan kullanıcı tarafından yayından kaldırılmıştır.');
+      return;
+    }
     const phone = agent.phone.replace(/\D/g, '');
     Linking.openURL(`tel:${phone}`);
   };
