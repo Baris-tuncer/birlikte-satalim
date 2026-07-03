@@ -350,7 +350,7 @@ export async function reviewLicense(
 // ─── PLATFORM STATS ──────────────────────────────────
 
 export async function getPlatformStats() {
-  const [listingsResult, demandsResult] = await Promise.all([
+  const [listingsResult, demandsResult, usersResult] = await Promise.all([
     supabase
       .from('listings')
       .select('*', { count: 'exact', head: true })
@@ -359,11 +359,16 @@ export async function getPlatformStats() {
       .from('buyer_demands')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'ACTIVE'),
+    supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_active', true),
   ]);
 
   return {
     activeListings: listingsResult.count ?? 0,
     activeDemands: demandsResult.count ?? 0,
+    totalUsers: usersResult.count ?? 0,
   };
 }
 

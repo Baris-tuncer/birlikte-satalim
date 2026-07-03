@@ -40,7 +40,7 @@ export default function ListingsScreen() {
   });
   const { send: sendMatch } = useMatchActions();
   const { update: updateListingStatus } = useUpdateListing();
-  const { activeListings, activeDemands } = usePlatformStats();
+  const { activeListings, activeDemands, totalUsers } = usePlatformStats();
 
   const [refreshing, setRefreshing] = useState(false);
   const [showNotifBanner, setShowNotifBanner] = useState(false);
@@ -170,16 +170,23 @@ export default function ListingsScreen() {
             {(activeListings > 0 || activeDemands > 0) && (
               <View style={styles.statsBar}>
                 <View style={styles.statItem}>
-                  <Ionicons name="business-outline" size={14} color={Colors.accent} />
+                  <Ionicons name="people-outline" size={14} color={Colors.accent} />
                   <Text style={styles.statText}>
-                    <Text style={styles.statNumber}>{activeListings}</Text> aktif ilan
+                    <Text style={styles.statNumber}>{totalUsers}</Text> danışman
                   </Text>
                 </View>
                 <View style={styles.statDot} />
                 <View style={styles.statItem}>
-                  <Ionicons name="people-outline" size={14} color={Colors.accent} />
+                  <Ionicons name="business-outline" size={14} color={Colors.accent} />
                   <Text style={styles.statText}>
-                    <Text style={styles.statNumber}>{activeDemands}</Text> müşteri talebi
+                    <Text style={styles.statNumber}>{activeListings}</Text> ilan
+                  </Text>
+                </View>
+                <View style={styles.statDot} />
+                <View style={styles.statItem}>
+                  <Ionicons name="search-outline" size={14} color={Colors.accent} />
+                  <Text style={styles.statText}>
+                    <Text style={styles.statNumber}>{activeDemands}</Text> talep
                   </Text>
                 </View>
               </View>
