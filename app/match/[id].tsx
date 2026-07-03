@@ -351,14 +351,26 @@ export default function MatchDetailScreen() {
                 <View style={styles.contactActions}>
                   <Pressable
                     style={({ pressed }) => [styles.whatsappButton, pressed && { opacity: 0.85 }]}
-                    onPress={() => Linking.openURL(`https://wa.me/${otherPhone}?text=${encodeURIComponent(whatsappMsg)}`)}
+                    onPress={() => {
+                      if (otherAgent?.is_mock) {
+                        Alert.alert('Bilgi', 'Bu ilan kullanıcı tarafından yayından kaldırılmıştır.');
+                        return;
+                      }
+                      Linking.openURL(`https://wa.me/${otherPhone}?text=${encodeURIComponent(whatsappMsg)}`);
+                    }}
                   >
                     <Ionicons name="logo-whatsapp" size={20} color="#fff" />
                     <Text style={styles.whatsappButtonText}>WhatsApp</Text>
                   </Pressable>
                   <Pressable
                     style={({ pressed }) => [styles.callButton, pressed && { opacity: 0.85 }]}
-                    onPress={() => Linking.openURL(`tel:${otherPhone}`)}
+                    onPress={() => {
+                      if (otherAgent?.is_mock) {
+                        Alert.alert('Bilgi', 'Bu ilan kullanıcı tarafından yayından kaldırılmıştır.');
+                        return;
+                      }
+                      Linking.openURL(`tel:${otherPhone}`);
+                    }}
                   >
                     <Ionicons name="call" size={20} color={Colors.primary} />
                     <Text style={styles.callButtonText}>Ara</Text>

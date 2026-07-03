@@ -138,6 +138,10 @@ export default function ListingDetailScreen() {
       ];
 
   const handleMatch = () => {
+    if (listing.agent?.is_mock) {
+      Alert.alert('Bilgi', 'Bu ilan kullanıcı tarafından yayından kaldırılmıştır.');
+      return;
+    }
     Alert.alert('Müşterim Var', 'Bu ilan için müşteriniz olduğunu bildireceksiniz. Karşı taraf kabul ederse iletişim bilgileriniz paylaşılacak.', [
       { text: 'Vazgeç', style: 'cancel' },
       {

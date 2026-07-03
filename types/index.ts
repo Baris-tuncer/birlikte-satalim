@@ -26,6 +26,7 @@ export interface User {
   expertise_neighborhoods: Record<string, string[]>;
   is_active: boolean;
   is_admin: boolean;
+  is_mock: boolean;
   created_at: string;
   updated_at: string;
 }

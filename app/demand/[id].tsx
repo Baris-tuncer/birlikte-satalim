@@ -130,6 +130,10 @@ export default function DemandDetailScreen() {
   const hasCriteria = criteria.some((c) => c.value !== null);
 
   const handleMatch = () => {
+    if (demand.agent?.is_mock) {
+      Alert.alert('Bilgi', 'Bu ilan kullanıcı tarafından yayından kaldırılmıştır.');
+      return;
+    }
     Alert.alert('İş Birliği Talebi', 'Bu talep için portföyünüzden bir ilan önerilecek.', [
       { text: 'Vazgeç', style: 'cancel' },
       {
