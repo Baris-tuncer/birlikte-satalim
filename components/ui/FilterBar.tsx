@@ -94,9 +94,9 @@ export default function FilterBar({
   const [searchQuery, setSearchQuery] = useState('');
 
   // Derived data
-  const districts = useMemo(() => getDistrictsForCity(selectedCity || 'İstanbul'), [selectedCity]);
+  const districts = useMemo(() => selectedCity ? getDistrictsForCity(selectedCity) : [], [selectedCity]);
   const neighborhoods = useMemo(
-    () => (selectedDistrict ? getNeighborhoodsForDistrict(selectedCity || 'İstanbul', selectedDistrict) : []),
+    () => (selectedCity && selectedDistrict ? getNeighborhoodsForDistrict(selectedCity, selectedDistrict) : []),
     [selectedCity, selectedDistrict],
   );
 
@@ -197,6 +197,7 @@ export default function FilterBar({
   const propertyDisplay = PROPERTY_LABELS[propertyType] || 'Tümü';
 
   const hasAnyFilter =
+    selectedCity !== 'İstanbul' ||
     selectedDistrict !== '' ||
     selectedNeighborhood !== '' ||
     (transactionType !== 'ALL' && transactionType !== '') ||
@@ -216,7 +217,10 @@ export default function FilterBar({
     switch (openDropdown) {
       case 'city':
         title = 'Şehir Seçin';
-        items = CITIES.map((c) => ({ key: c, label: c }));
+        items = [
+          { key: '', label: 'Tüm Şehirler' },
+          ...CITIES.map((c) => ({ key: c, label: c })),
+        ];
         selectedKey = selectedCity;
         onSelect = selectCity;
         break;
@@ -348,6 +352,8 @@ export default function FilterBar({
         icon="business-outline"
         onPress={() => openPicker('district')}
         isFiltered={selectedDistrict !== ''}
+        disabled={!selectedCity}
+        disabledText="Önce şehir seçin"
       />
 
       {/* Mahalle */}
@@ -357,7 +363,7 @@ export default function FilterBar({
         icon="map-outline"
         onPress={() => openPicker('neighborhood')}
         isFiltered={selectedNeighborhood !== ''}
-        disabled={!selectedDistrict}
+        disabled={!selectedCity || !selectedDistrict}
       />
 
       {/* İşlem Tipi */}
@@ -400,6 +406,7 @@ function DropdownRow({
   onPress,
   isFiltered,
   disabled,
+  disabledText,
 }: {
   label: string;
   value: string;
@@ -407,6 +414,7 @@ function DropdownRow({
   onPress: () => void;
   isFiltered: boolean;
   disabled?: boolean;
+  disabledText?: string;
 }) {
   return (
     <Pressable
@@ -436,7 +444,7 @@ function DropdownRow({
           ]}
           numberOfLines={1}
         >
-          {disabled ? 'Önce ilçe seçin' : value}
+          {disabled ? (disabledText || 'Önce ilçe seçin') : value}
         </Text>
         <Ionicons
           name="chevron-down"
