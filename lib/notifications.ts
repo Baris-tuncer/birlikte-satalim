@@ -58,23 +58,21 @@ export async function registerForPushNotifications(userId: string, silent = true
     });
     const token = tokenData.data;
 
-    // Token'ı Supabase'e kaydet — başarısız olursa 1 kez tekrar dene
+    // Eski token'ları sil, yeni token'ı kaydet (kullanıcı başına tek token)
+    await supabase.from('push_tokens').delete().eq('user_id', userId);
+
     let upsertError = null;
     for (let attempt = 0; attempt < 2; attempt++) {
-      const { error } = await supabase.from('push_tokens').upsert(
-        {
-          user_id: userId,
-          token,
-          platform: Platform.OS,
-        },
-        { onConflict: 'user_id,token' }
-      );
+      const { error } = await supabase.from('push_tokens').insert({
+        user_id: userId,
+        token,
+        platform: Platform.OS,
+      });
       if (!error) {
         upsertError = null;
         break;
       }
       upsertError = error;
-      // İlk denemede hata olduysa 1sn bekle tekrar dene
       if (attempt === 0) await new Promise(r => setTimeout(r, 1000));
     }
 
