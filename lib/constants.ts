@@ -31,8 +31,12 @@ export const CITY_DISTRICTS: Record<string, string[]> = {
     'Keçiören', 'Mamak', 'Pursaklar', 'Sincan', 'Yenimahalle',
   ],
   'İzmir': [
-    'Balçova', 'Bayraklı', 'Bornova', 'Buca', 'Çiğli',
-    'Gaziemir', 'Karabağlar', 'Karşıyaka', 'Konak', 'Narlıdere',
+    'Aliağa', 'Balçova', 'Bayındır', 'Bayraklı', 'Bergama',
+    'Beydağ', 'Bornova', 'Buca', 'Çeşme', 'Çiğli',
+    'Dikili', 'Foça', 'Gaziemir', 'Güzelbahçe', 'Karabağlar',
+    'Karaburun', 'Karşıyaka', 'Kemalpaşa', 'Kınık', 'Kiraz',
+    'Konak', 'Menderes', 'Menemen', 'Narlıdere', 'Ödemiş',
+    'Seferihisar', 'Selçuk', 'Tire', 'Torbalı', 'Urla',
   ],
   'Bursa': [
     'Büyükorhan', 'Gemlik', 'Gürsu', 'Harmancık', 'İnegöl',
@@ -180,16 +184,167 @@ export const ANKARA_NEIGHBORHOODS: Record<string, string[]> = {
 };
 
 export const IZMIR_NEIGHBORHOODS: Record<string, string[]> = {
-  'Balçova': ['Bahçelerarası', 'Çetin Emeç', 'Ege', 'Fevzi Çakmak', 'İnciraltı', 'Korutürk', 'Onur', 'Teleferik'],
-  'Bayraklı': ['Adalet', 'Bayraklı', 'Çiçek', 'Manavkuyu', 'Mansuroğlu', 'Onur', 'Osmangazi', 'Salhane', 'Turan'],
-  'Bornova': ['Altındağ', 'Çamdibi', 'Doğanlar', 'Ergene', 'Evka-3', 'Kazımdirik', 'Kemalpaşa', 'Laka', 'Mevlana', 'Yeşilova'],
-  'Buca': ['Adatepe', 'Çamlıkule', 'Efes', 'Gaziler', 'İnkılap', 'Kozağaç', 'Şirinyer', 'Tınaztepe', 'Yasin'],
-  'Çiğli': ['Atatürk', 'Balatçık', 'Egekent', 'Evka-5', 'Harmandere', 'Küçükçiğli', 'Ova'],
-  'Gaziemir': ['Aktepe', 'Atıfbey', 'Binbaşı Reşatbey', 'Gazi', 'Sakarya', 'Sevgi', 'Yeşil'],
-  'Karabağlar': ['Bozyaka', 'Cennetçeşme', 'Günaltay', 'Limontepe', 'Peker', 'Salih Omurtak', 'Üçkuyular', 'Uzundere'],
-  'Karşıyaka': ['Aksoy', 'Alaybey', 'Bostanlı', 'Çarşı', 'Dedebaşı', 'Donanmacı', 'Mavişehir', 'Nergiz', 'Tersane', 'Yalı'],
-  'Konak': ['Alsancak', 'Basmane', 'Çankaya', 'Güzelyalı', 'Hatay', 'Kahramanlar', 'Kemeraltı', 'Konak', 'Pasaport', 'Üçkuyular'],
-  'Narlıdere': ['Atatürk', 'Çatalkaya', 'Huzur', 'Limanreis', 'Narlı', 'Sahilevleri'],
+  'Aliağa': [
+    'Aliağa', 'Arapçiftliği', 'Bozköy', 'Çakmaklı', 'Çaltılıdere',
+    'Güzelhisar', 'Hacıömerli', 'Helvacı', 'Horozgediği', 'Kalabak',
+    'Karakuzu', 'Samurlu', 'Siteler', 'Yeniköy', 'Yenişakran',
+  ],
+  'Balçova': [
+    'Bahçelerarası', 'Çetin Emeç', 'Ege', 'Fevzi Çakmak', 'Görece',
+    'İnciraltı', 'Korutürk', 'Onur', 'Teleferik',
+  ],
+  'Bayındır': [
+    'Bayındır', 'Çırpı', 'Dereköy', 'Ergenli', 'Hisarlık',
+    'Karaköy', 'Kızılcaova', 'Mersinli', 'Pınarlı', 'Sancaklı',
+    'Sarıyurt', 'Sudere', 'Tralleis', 'Yeniköy', 'Yusuflu',
+  ],
+  'Bayraklı': [
+    'Adalet', 'Alparslan', 'Bayraklı', 'Cennetçeşme', 'Çiçek',
+    'Emrez', 'Fuat Edip Baksı', 'Gümüşpala', 'Manavkuyu', 'Mansuroğlu',
+    'Nafiz Gürman', 'Onur', 'Osmangazi', 'Postacılar', 'Salhane',
+    'Smyrna', 'Soğukkuyu', 'Turan', 'Yamanlar',
+  ],
+  'Bergama': [
+    'Bergama', 'Bölcek', 'Çamavlu', 'Çandarlı', 'Göçbeyli',
+    'İsmailli', 'Kadıköy', 'Kesikköprü', 'Kınık', 'Kozak',
+    'Kurşunlu', 'Maltepe', 'Merkez', 'Mürselli', 'Sevindikli',
+    'Yenikent', 'Zeytindağ',
+  ],
+  'Beydağ': [
+    'Beydağ', 'Çamköy', 'Çıtak', 'Dereli', 'Dölekli',
+    'Gökçen', 'İncealan', 'Kılıçlar', 'Subatan', 'Yeniköy',
+  ],
+  'Bornova': [
+    'Altındağ', 'Birlik', 'Büyük Park', 'Çamdibi', 'Doğanlar',
+    'Ege', 'Ergene', 'Erzene', 'Evka-3', 'Evka-4',
+    'Gürçeşme', 'İnönü', 'Karaçam', 'Kazımdirik', 'Kemalpaşa',
+    'Kızılay', 'Laka', 'Mevlana', 'Naldöken', 'Rafetpaşa',
+    'Sakarya', 'Türkçeşme', 'Ümit', 'Yeşilova',
+  ],
+  'Buca': [
+    'Adatepe', 'Buca Koop', 'Çaldıran', 'Çamlıkule', 'Dumlupınar',
+    'Efes', 'Fırat', 'Gaziler', 'Göksu', 'Hasanağa',
+    'İnkılap', 'İstiklal', 'Kaynaklar', 'Kozağaç', 'Kuruçeşme',
+    'Menderes', 'Şirinyer', 'Tınaztepe', 'Yasin', 'Yıldız',
+  ],
+  'Çeşme': [
+    'Alaçatı', 'Altınyunus', 'Boyalık', 'Çeşme', 'Çiftlikköy',
+    'Dalyan', 'Germiyan', 'Hacımemiş', 'Ilıca', 'Musalla',
+    'Ovacık', 'Paşalimanı', 'Reisdere', 'Şifne', 'Yeniliman',
+  ],
+  'Çiğli': [
+    'Atatürk', 'Balatçık', 'Büyükçiğli', 'Egekent', 'Evka-2',
+    'Evka-5', 'Günerli', 'Harmandere', 'Harmandalı', 'Kakılıç',
+    'Küçükçiğli', 'Maltepe', 'Ova', 'Sasalı', 'Yeni Mahalle',
+  ],
+  'Dikili': [
+    'Bademli', 'Çandarlı', 'Deliktaş', 'Denizköy', 'Dikili',
+    'Gazipaşa', 'İsmetpaşa', 'Kabakum', 'Kocaoba', 'Koyuneli',
+    'Nebiler', 'Salihleraltı', 'Salimbey', 'Yahşibey', 'Yeniköy',
+  ],
+  'Foça': [
+    'Atatürk', 'Bağarası', 'Cumhuriyet', 'Fatih', 'Fevzipaşa',
+    'Foça', 'Gerenköy', 'İsmetpaşa', 'Kozbeyli', 'Yenifoça',
+    'Yeniliman',
+  ],
+  'Gaziemir': [
+    'Akçay', 'Aktepe', 'Atıfbey', 'Beyazevler', 'Binbaşı Reşatbey',
+    'Emrez', 'Gazi', 'Gazikent', 'Önder', 'Sakarya',
+    'Sarnıç', 'Sevgi', 'Yeşil',
+  ],
+  'Güzelbahçe': [
+    'Atatürk', 'Çamlı', 'Güzelbahçe', 'Kahramandere', 'Maltepe',
+    'Mustafabeyli', 'Payamlı', 'Siteler', 'Yaka', 'Yalı',
+  ],
+  'Karabağlar': [
+    'Başıbüyük', 'Bozyaka', 'Cennetçeşme', 'Çamkule', 'Devrim',
+    'Esenyalı', 'Günaltay', 'Güneş', 'Kırkçeşme', 'Limontepe',
+    'Muammer Akar', 'Peker', 'Poligon', 'Salih Omurtak', 'Üçkuyular',
+    'Umut', 'Uzundere', 'Yalçın', 'Yaşar Kemal', 'Yunus Emre',
+  ],
+  'Karaburun': [
+    'Ambarseki', 'Bozköy', 'Eğlenhoca', 'Haseki', 'İnecik',
+    'Karaburun', 'Küçükbahçe', 'Merkez', 'Mordoğan', 'Saip',
+    'Salman', 'Tepeboz',
+  ],
+  'Karşıyaka': [
+    'Aksoy', 'Alaybey', 'Atakent', 'Bahariye', 'Bahçelievler',
+    'Bostanlı', 'Cumhuriyet', 'Çarşı', 'Dedebaşı', 'Donanmacı',
+    'Goncalar', 'İnönü', 'Latife Hanım', 'Mavişehir', 'Nergiz',
+    'Örnekköy', 'Şemikler', 'Tersane', 'Tuna', 'Yalı',
+  ],
+  'Kemalpaşa': [
+    'Armutlu', 'Bağyurdu', 'Cumhuriyet', 'Damlacık', 'Halilbeyli',
+    'Kemalpaşa', 'Kızılüzüm', 'Merkez', 'Örnekköy', 'Sinancılar',
+    'Sütçüler', 'Ulucak', 'Yukarıkızılca', 'Yenmiş',
+  ],
+  'Kınık': [
+    'Değirmendere', 'İlyaslar', 'İsmailli', 'Karakılıç', 'Kınık',
+    'Kocaömer', 'Merkez', 'Ovacık', 'Poyracık', 'Savaşköy',
+    'Yağcılar',
+  ],
+  'Kiraz': [
+    'Başköy', 'Cevizli', 'Çamlıca', 'Eşme', 'Gökçeören',
+    'Karaburç', 'Kiraz', 'Konakpınar', 'Merkez', 'Pınarcık',
+    'Sığırtmaçlı', 'Umurlu', 'Yeniköy',
+  ],
+  'Konak': [
+    'Akdeniz', 'Alsancak', 'Basmane', 'Bozyaka', 'Çankaya',
+    'Eşrefpaşa', 'Fatih', 'Göztepe', 'Güzelyalı', 'Güneş',
+    'Hatay', 'İsmet Kaptan', 'Kahramanlar', 'Kemeraltı', 'Kılıç Reis',
+    'Konak', 'Kubilay', 'Mimar Kemalettin', 'Pasaport',
+    'Sümer', 'Üçkuyular', 'Yenişehir',
+  ],
+  'Menderes': [
+    'Atatürk', 'Çamönü', 'Çileme', 'Cumaovası', 'Develi',
+    'Gölcükler', 'Görece', 'Gümüldür', 'Değirmendere', 'Küner',
+    'Menderes', 'Oğlananası', 'Özdere', 'Turan',
+  ],
+  'Menemen': [
+    'Asarlık', 'Atatürk', 'Çınarlı', 'Emiralem', 'Esatpaşa',
+    'Gümüşçay', 'Hatundere', 'Kasımpaşa', 'Koyundere', 'Maltepe',
+    'Menemen', 'Seyrek', 'Türkelli', 'Ulukent', 'Villakent',
+    'Yahşelli', 'Yenikent',
+  ],
+  'Narlıdere': [
+    'Atatürk', 'Çamtepe', 'Çatalkaya', 'Huzur', 'İlkbahar',
+    'Limanreis', 'Mithatpaşa', 'Narlı', 'Sahilevleri', 'Çetin Emeç',
+    '2. İnönü',
+  ],
+  'Ödemiş': [
+    'Atatürk', 'Birgi', 'Bademli', 'Beydağ', 'Bıçakçı',
+    'Bozdağ', 'Cumhuriyet', 'Çaylı', 'Çökelek', 'Fatih',
+    'Gölcük', 'Güney', 'İnönü', 'Kaymakçı', 'Kurtuluş',
+    'Lübbey', 'Ödemiş', 'Ovakent', 'Tire', 'Üzümlü',
+  ],
+  'Seferihisar': [
+    'Camikebir', 'Çamtepe', 'Doğanbey', 'Düzce', 'Gödence',
+    'Hıdırlık', 'Mersinalanı', 'Orhanlı', 'Payamlı', 'Seferihisar',
+    'Sığacık', 'Turgut Reis', 'Ürkmez',
+  ],
+  'Selçuk': [
+    'Atatürk', 'Belevi', 'Çamlık', 'Efes', 'Gökçealan',
+    'Habiller', 'İsabey', 'Pamucak', 'Selçuk', 'Şirince',
+    'Zafer',
+  ],
+  'Tire': [
+    'Akçaşehir', 'Atatürk', 'Boynuyoğun', 'Cumhuriyet', 'Dağkızılca',
+    'Fatih', 'Gökçen', 'Işıklı', 'İstiklal', 'Kahrat',
+    'Kurtuluş', 'Merkez', 'Peşrefli', 'Subaşı', 'Tire',
+    'Turan', 'Yeniçiftlik', 'Yenişehir',
+  ],
+  'Torbalı': [
+    'Ayrancılar', 'Çapak', 'Çaybaşı', 'Cumhuriyet', 'Düver',
+    'Ertuğrul', 'Fetrek', 'İnönü', 'Karakuyu', 'Kemalpaşa',
+    'Muratbey', 'Pancar', 'Subaşı', 'Şehitler', 'Tepeköy',
+    'Torbalı', 'Türkmen', 'Yassıtepe', 'Yazıbaşı',
+  ],
+  'Urla': [
+    'Altıntaş', 'Bademler', 'Barbaros', 'Birgi', 'Çeşmealtı',
+    'Demircili', 'Denizli', 'Güvendik', 'İçmeler', 'İskele',
+    'Kalabak', 'Kuşçular', 'Nohutalan', 'Ovacık', 'Özbek',
+    'Sıra', 'Urla', 'Yağcılar', 'Zeytinalanı', 'Zeytinler',
+  ],
 };
 
 // ─── Bursa Mahalleler (17 ilçe) ─────────────────────
