@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title>E-posta Doğrulama - Beraber Satalım</title>
+  <title>E-posta Dogrulama - Beraber Satalim</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f5f5f5;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 32px 0;">
@@ -18,29 +18,39 @@
                 <div style="width: 56px; height: 56px; background-color: #0A2540; border-radius: 28px; display: inline-block; line-height: 56px; margin-bottom: 16px;">
                   <span style="color: #ffffff; font-size: 24px; font-weight: bold;">BS</span>
                 </div>
-                <h1 style="font-size: 22px; color: #0A2540; margin: 0;">Beraber Satalım</h1>
+                <h1 style="font-size: 22px; color: #0A2540; margin: 0;">Beraber Satalim</h1>
               </div>
 
-              <h2 style="font-size: 18px; color: #1a1a1a; margin-bottom: 12px;">Hoş Geldiniz!</h2>
+              <h2 style="font-size: 18px; color: #1a1a1a; margin-bottom: 12px;">Hos Geldiniz!</h2>
 
               <p style="font-size: 15px; color: #4a4a4a; line-height: 1.6; margin-bottom: 24px;">
-                Beraber Satalım'a kayıt olduğunuz için teşekkürler. Hesabınızı aktifleştirmek için aşağıdaki butona tıklayın.
+                Beraber Satalim'a kayit oldugunuz icin tesekkurler. Hesabinizi aktif hale getirmek icin asagidaki dogrulama kodunu uygulamaya girin.
+              </p>
+
+              <div style="text-align: center; margin-bottom: 24px; background-color: #f8f9fa; border-radius: 8px; padding: 20px;">
+                <p style="font-size: 13px; color: #666666; margin: 0 0 8px 0;">Dogrulama Kodunuz</p>
+                <p style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #0A2540; margin: 0; font-family: monospace;">{{ .Token }}</p>
+              </div>
+
+              <p style="font-size: 13px; color: #4a4a4a; line-height: 1.5; margin-bottom: 24px; text-align: center;">
+                Bu kodu uygulamadaki dogrulama ekranina girin.
               </p>
 
               <div style="text-align: center; margin-bottom: 24px;">
-                <a href="{{ .ConfirmationURL }}" style="display: inline-block; background-color: #FF6B4A; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 15px; font-weight: 600;">
-                  E-postamı Doğrula
+                <p style="font-size: 12px; color: #999999; margin-bottom: 8px;">Alternatif olarak asagidaki butona da tiklayabilirsiniz:</p>
+                <a href="{{ .ConfirmationURL }}" style="display: inline-block; background-color: #FF6B4A; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 8px; font-size: 14px; font-weight: 600;">
+                  E-postami Dogrula
                 </a>
               </div>
 
               <p style="font-size: 13px; color: #999999; line-height: 1.5; margin-bottom: 8px;">
-                Bu bağlantı 24 saat geçerlidir. Eğer bu hesabı siz oluşturmadıysanız bu e-postayı dikkate almayın.
+                Bu kod 1 saat gecerlidir. Eger bu hesabi siz olusturmadiyseniz bu e-postayi dikkate almayin.
               </p>
 
               <hr style="border: none; border-top: 1px solid #eaeaea; margin: 24px 0;" />
 
               <p style="font-size: 12px; color: #cccccc; text-align: center; margin: 0;">
-                Beraber Satalım — Portföyünüz burada buluşuyor
+                Beraber Satalim — Portfolyonuz burada bulusuyor
               </p>
 
             </td>

@@ -4,25 +4,11 @@ import type { TransactionType, PropertyType } from '@/types';
 
 export function formatBudget(amount: number | null | undefined): string {
   if (amount == null) return '—';
-  if (amount >= 1_000_000) {
-    const val = amount / 1_000_000;
-    return val % 1 === 0 ? `${val}M TL` : `${val.toFixed(1)}M TL`;
-  }
-  if (amount >= 1_000) {
-    return `${(amount / 1_000).toFixed(0)}K TL`;
-  }
   return `${amount.toLocaleString('tr-TR')} TL`;
 }
 
 export function formatPrice(price: number | null | undefined): string {
   if (price == null) return '—';
-  if (price >= 1_000_000) {
-    const val = price / 1_000_000;
-    return `₺${val % 1 === 0 ? val : val.toFixed(1)}M`;
-  }
-  if (price >= 1_000) {
-    return `₺${(price / 1_000).toFixed(0)}K`;
-  }
   return `₺${price.toLocaleString('tr-TR')}`;
 }
 

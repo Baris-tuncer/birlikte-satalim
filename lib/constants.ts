@@ -27,8 +27,11 @@ export const ISTANBUL_DISTRICTS = [
 export const CITY_DISTRICTS: Record<string, string[]> = {
   'İstanbul': ISTANBUL_DISTRICTS,
   'Ankara': [
-    'Altındağ', 'Çankaya', 'Çubuk', 'Etimesgut', 'Gölbaşı',
-    'Keçiören', 'Mamak', 'Pursaklar', 'Sincan', 'Yenimahalle',
+    'Akyurt', 'Altındağ', 'Ayaş', 'Bala', 'Beypazarı',
+    'Çamlıdere', 'Çankaya', 'Çubuk', 'Elmadağ', 'Etimesgut',
+    'Evren', 'Gölbaşı', 'Güdül', 'Haymana', 'Kahramankazan',
+    'Kalecik', 'Keçiören', 'Kızılcahamam', 'Mamak', 'Nallıhan',
+    'Polatlı', 'Pursaklar', 'Sincan', 'Şereflikoçhisar', 'Yenimahalle',
   ],
   'İzmir': [
     'Aliağa', 'Balçova', 'Bayındır', 'Bayraklı', 'Bergama',
@@ -171,16 +174,31 @@ export const KADIKOY_NEIGHBORHOODS = DISTRICT_NEIGHBORHOODS['Kadıköy'];
 // ─── Ankara Mahalleler ────────────────────────────────
 
 export const ANKARA_NEIGHBORHOODS: Record<string, string[]> = {
-  'Altındağ': ['Aktaş', 'Aydınlıkevler', 'Başpınar', 'Battalgazi', 'Doğantepe', 'Gülpınar', 'Hacettepe', 'Karapürçek', 'Siteler', 'Ulubey'],
-  'Çankaya': ['Bahçelievler', 'Balgat', 'Çayyolu', 'Dikmen', 'Emek', 'Gaziosmanpaşa', 'Kavaklıdere', 'Kızılay', 'Oran', 'Çukurambar', 'Yaşamkent'],
-  'Çubuk': ['Aşağıçavundur', 'Cumhuriyet', 'Dumlupınar', 'Mehmet Akif Ersoy', 'Merkez'],
-  'Etimesgut': ['30 Ağustos', 'Ahi Mesut', 'Alsancak', 'Bağlıca', 'Elvankent', 'Eryaman', 'Topçu', 'Yapracık'],
-  'Gölbaşı': ['Bahçelievler', 'Eymir', 'Gaziosmanpaşa', 'İncek', 'Karşıyaka', 'Kızılcaşar', 'Tuluntaş'],
-  'Keçiören': ['Aktepe', 'Bağlum', 'Etlik', 'İncirli', 'Kalaba', 'Kanuni', 'Kuşcağız', 'Ovacık', 'Subayevleri', 'Ufuktepe'],
-  'Mamak': ['Abidinpaşa', 'Akdere', 'Boğaziçi', 'Cengizhan', 'Durali Alıç', 'Eğitim', 'Fahri Korutürk', 'Kutlu', 'Tuzluçayır'],
-  'Pursaklar': ['Altınova', 'Fatih', 'Merkez', 'Saray', 'Yukarı Murtaza'],
-  'Sincan': ['Atatürk', 'Fatih', 'Lale', 'Mareşal Çakmak', 'Pınarbaşı', 'Tandoğan', 'Törekent', 'Yenikent'],
-  'Yenimahalle': ['Batıkent', 'Çamlıca', 'Demetevler', 'Gayret', 'Karşıyaka', 'Macunköy', 'Mehmet Akif Ersoy', 'Ostim', 'Şentepe'],
+  'Akyurt': ['Ankara', 'Balıkhisar', 'Çaldağ', 'Fatih', 'Kalecik', 'Karaçam', 'Kesikköprü', 'Merkez', 'Yıldırım Beyazıt'],
+  'Altındağ': ['Aktaş', 'Aydınlıkevler', 'Başpınar', 'Battalgazi', 'Beşikkaya', 'Doğantepe', 'Gülpınar', 'Güneşevler', 'Hacettepe', 'Hıdırlıktepe', 'Karapürçek', 'Önder', 'Samanpazarı', 'Siteler', 'Ulubey'],
+  'Ayaş': ['Cumhuriyet', 'Hürriyet', 'İstiklal', 'Merkez', 'Oltan', 'Sinanlı'],
+  'Bala': ['Cumhuriyet', 'Karşıyaka', 'Kerç', 'Kesikköprü', 'Merkez', 'Üçem'],
+  'Beypazarı': ['Akçakavak', 'Cumhuriyet', 'Fatih', 'Garipçe', 'İnözü', 'Kurtuluş', 'Merkez', 'Rüstem Bey', 'Yalacık'],
+  'Çamlıdere': ['Cumhuriyet', 'Merkez', 'Peçenek'],
+  'Çankaya': ['Ahlatlıbel', 'Ayrancı', 'Bahçelievler', 'Balgat', 'Birlik', 'Cevizlidere', 'Çayyolu', 'Çukurambar', 'Dikmen', 'Emek', 'Gaziosmanpaşa', 'Hilal', 'Kavaklıdere', 'Kızılay', 'Korkutreis', 'Mustafa Kemal', 'Oran', 'Öveçler', 'Söğütözü', 'Ümitköy', 'Yaşamkent', 'Yıldız', 'Yıldızevler', 'Yukarı Ayrancı'],
+  'Çubuk': ['Aşağıçavundur', 'Cumhuriyet', 'Dumlupınar', 'Fatih Sultan Mehmet', 'Mehmet Akif Ersoy', 'Merkez', 'Subayevleri', 'Yukarıçavundur'],
+  'Elmadağ': ['Cumhuriyet', 'Fatih', 'Hasanoğlan', 'Merkez', 'Yeşildere', 'Yıldırım Beyazıt'],
+  'Etimesgut': ['30 Ağustos', 'Ahi Mesut', 'Alsancak', 'Ayyıldız', 'Bağlıca', 'Elvankent', 'Eryaman', 'Güzelkent', 'İstasyon', 'Süvari', 'Topçu', 'Yapracık'],
+  'Evren': ['Cumhuriyet', 'Merkez'],
+  'Gölbaşı': ['Bahçelievler', 'Batı Mogan', 'Eymir', 'Gaziosmanpaşa', 'Gazi', 'İncek', 'Karşıyaka', 'Kızılcaşar', 'Oğulbey', 'Şafak', 'Taşpınar', 'Tuluntaş', 'Virancık'],
+  'Güdül': ['Cumhuriyet', 'İstiklal', 'Merkez', 'Sorgun'],
+  'Haymana': ['Cumhuriyet', 'Çalış', 'Karşıyaka', 'Kerpiç', 'Merkez', 'Yenice'],
+  'Kahramankazan': ['Akıncı', 'Atatürk', 'Ciğir', 'Fatih', 'Merkez', 'Orhaniye', 'Saray', 'Yenikent'],
+  'Kalecik': ['Cumhuriyet', 'Fethi Bey', 'Merkez', 'Tabakhane'],
+  'Keçiören': ['Aktepe', 'Aşağı Eğlence', 'Bağlum', 'Basınevleri', 'Etlik', 'Esertepe', 'Hacıkadın', 'İncirli', 'Kalaba', 'Kanuni', 'Karşıyaka', 'Kuşcağız', 'Osmangazi', 'Ovacık', 'Pınarbaşı', 'Subayevleri', 'Şefkat', 'Ufuktepe', 'Yayla'],
+  'Kızılcahamam': ['Cumhuriyet', 'Güneysaray', 'Merkez', 'Pazar', 'Soğuksu', 'Taşlıca'],
+  'Mamak': ['Abidinpaşa', 'Akdere', 'Akşemsettin', 'Boğaziçi', 'Cengizhan', 'Demirlibahçe', 'Durali Alıç', 'Eğitim', 'Ege', 'Fahri Korutürk', 'General Zeki Doğan', 'Gülveren', 'Kutlu', 'Misket', 'Natoyolu', 'Şahap Gürler', 'Tuzluçayır'],
+  'Nallıhan': ['Camikebir', 'Cumhuriyet', 'Hendekyenidoğan', 'Merkez', 'Nalçacık', 'Tepe'],
+  'Polatlı': ['Cumhuriyet', 'Duatepe', 'Eskişehir', 'Fatih', 'İstiklal', 'Karşıyaka', 'Merkez', 'Yeni', 'Zafer'],
+  'Pursaklar': ['Altınova', 'Devlet', 'Fatih', 'Merkez', 'Saray', 'Sirkeli', 'Yukarı Murtaza'],
+  'Sincan': ['Akşemsettin', 'Atatürk', 'Fatih', 'Lale', 'Mareşal Çakmak', 'Osmangazi', 'Pınarbaşı', 'Tandoğan', 'Temelli', 'Törekent', 'Ulubatlı Hasan', 'Yenikent'],
+  'Şereflikoçhisar': ['Cumhuriyet', 'Fatih', 'Kızılcahamam', 'Merkez', 'Müftü', 'Topraklı'],
+  'Yenimahalle': ['Alacaatlı', 'Batıkent', 'Çamlıca', 'Demetevler', 'Derekent', 'Ergazi', 'Gayret', 'İvedik', 'Karşıyaka', 'Macunköy', 'Mehmet Akif Ersoy', 'Ostim', 'Pamuklar', 'Ragıp Tüzün', 'Şentepe', 'Yakacık'],
 };
 
 export const IZMIR_NEIGHBORHOODS: Record<string, string[]> = {
@@ -1147,7 +1165,7 @@ export const TEKIRDAG_NEIGHBORHOODS: Record<string, string[]> = {
     'Teteköy', 'Vakıfiğdemir', 'Yaylagöne', 'Yaylaköy', 'Yeni', 'Yenice',
     'Yenidibek', 'Yılanlı', 'Yörücek', 'Yörük', 'Yürük',
   ],
-  'Marmara Ereğlisi': [],
+  'Marmara Ereğlisi': ['Bahçelievler', 'Camikebir', 'Cumhuriyet', 'Değirmenaltı', 'Fatih', 'Gümüşyaka', 'Sultanköy', 'Yalıntaş', 'Yeni'],
   'Muratlı': [
     'Arzulu', 'Aşağısevindikli', 'Aydınköy', 'Balabanlı', 'Ballıhoca', 'Çevrimkaya',
     'Fatih', 'Hanoğlu', 'İnanlı', 'İstiklal-Kurtpınar', 'Kazım Dirik-Turan', 'Kepenekli',
@@ -1240,7 +1258,7 @@ export const ESKISEHIR_NEIGHBORHOODS: Record<string, string[]> = {
     'Alpagut', 'Bahçelievler', 'Bozaniç', 'Cumhuriyet', 'Demirciler', 'Dokuz Mayıs',
     'Ertuğrulgazi', 'Hürriyet', 'İstiklal', 'Karaoğlan', 'Sakarıılıca',
   ],
-  'Mihalıççık': [],
+  'Mihalıççık': ['Camikebir', 'Cumhuriyet', 'Köprübaşı', 'Merkez', 'Yunus Emre'],
   'Odunpazarı': [
     '71 Evler', '75.Yıl', 'Ağapınar', 'Akarbaşı', 'Akcami', 'Akçağlan',
     'Akçakaya', 'Akkaya', 'Akpınar', 'Ak��ağlan', 'Alanönü', 'Arifiye',
@@ -1657,7 +1675,7 @@ export const SAMSUN_NEIGHBORHOODS: Record<string, string[]> = {
     'Şehreküstü', 'Şeyhli', 'Şıhlı', 'Tatlıcak', 'Teberoğlu', 'Tüfekçidere',
     'Yenicami', 'Yukarıgölyazı', 'Yumaklı', 'Yuvacık',
   ],
-  'Ondokuzmayıs': [],
+  'Ondokuzmayıs': ['Ballıca', 'Engiz', 'Güzelyurt', 'Kurtuluş', 'Merkez', 'Yeşilyurt'],
   'Salıpazarı': [
     'Alan', 'Alanyaykın', 'Albak', 'Avut', 'Bereket', 'Biçme',
     'Cevizli', 'Çağlayan', 'Çiçekli', 'Dikencik', 'Düzköy', 'Esatçiftliği',

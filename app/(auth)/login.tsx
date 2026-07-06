@@ -19,6 +19,7 @@ import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme'
 import { useAuth } from '@/lib/auth-context';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
+import { setPendingAuth } from '@/lib/pending-auth';
 
 const REMEMBER_EMAIL_KEY = '@remember_email';
 const REMEMBER_ENABLED_KEY = '@remember_enabled';
@@ -88,9 +89,14 @@ export default function LoginScreen() {
       }
       // Supabase hata mesajlarını kullanıcı dostu Türkçeye çevir
       if (error.toLowerCase().includes('email not confirmed')) {
+        // Pending auth kaydet ve doğrulama ekranına yönlendir
+        setPendingAuth(email.trim(), password);
+        // Yeni doğrulama kodu gönder
+        supabase.auth.resend({ type: 'signup', email: email.trim() }).catch(() => {});
         Alert.alert(
           'E-posta Doğrulanmadı',
-          'Üyeliğinizi tamamlamak için lütfen e-posta adresinize gelen onay bağlantısına tıklayın. Spam/Gereksiz klasörünü de kontrol edin.',
+          'E-posta adresinize yeni bir doğrulama kodu gönderdik. Lütfen kodu girin.',
+          [{ text: 'Tamam', onPress: () => router.push('/(auth)/verify-email') }],
         );
       } else if (error.toLowerCase().includes('invalid login credentials')) {
         Alert.alert('Giriş Başarısız', 'E-posta veya şifre hatalı. Lütfen tekrar deneyin.');
