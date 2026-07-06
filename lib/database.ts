@@ -538,3 +538,18 @@ export async function getNeighborhoodPrices(district: string) {
 
   return { data: (data as NeighborhoodPrice[]) ?? [], error: error?.message };
 }
+
+// ─── APP CONFIG ─────────────────────────────────────
+
+export async function getAppConfig<T = unknown>(
+  key: string,
+): Promise<{ data: T | null; error?: string }> {
+  const { data, error } = await supabase
+    .from('app_config')
+    .select('value')
+    .eq('key', key)
+    .single();
+
+  if (error) return { data: null, error: error.message };
+  return { data: (data?.value as T) ?? null };
+}

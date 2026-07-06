@@ -19,6 +19,7 @@ import {
   markAllNotificationsRead,
   deleteNotification,
   deleteAllNotifications,
+  getAppConfig,
 } from './database';
 import { supabase } from './supabase';
 import { useAuth } from './auth-context';
@@ -657,4 +658,36 @@ export function useUnreadNotificationCount() {
   }, [userId]);
 
   return count;
+}
+
+// ─── CALCULATOR CONFIG ──────────────────────────────
+
+import type { TapuHarciConfig, KrediFaizConfig } from './calculator';
+import { DEFAULT_TAPU_HARCI_CONFIG, DEFAULT_KREDI_FAIZ_CONFIG } from './calculator';
+
+export function useCalculatorConfig() {
+  const [tapuConfig, setTapuConfig] = useState<TapuHarciConfig>(DEFAULT_TAPU_HARCI_CONFIG);
+  const [krediConfig, setKrediConfig] = useState<KrediFaizConfig>(DEFAULT_KREDI_FAIZ_CONFIG);
+  const [loading, setLoading] = useState(true);
+
+  const fetch = useCallback(async () => {
+    if (__DEV__) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const [tapuResult, krediResult] = await Promise.all([
+      getAppConfig<TapuHarciConfig>('tapu_harci'),
+      getAppConfig<KrediFaizConfig>('kredi_faiz'),
+    ]);
+    if (tapuResult.data) setTapuConfig(tapuResult.data);
+    if (krediResult.data) setKrediConfig(krediResult.data);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetch();
+  }, [fetch]);
+
+  return { tapuConfig, krediConfig, loading, refetch: fetch };
 }

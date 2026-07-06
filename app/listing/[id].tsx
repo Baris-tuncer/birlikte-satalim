@@ -229,6 +229,18 @@ export default function ListingDetailScreen() {
           </View>
         ) : null}
 
+        {/* Calculator shortcut (SALE only) */}
+        {isSale && listing.price > 0 && (
+          <Pressable
+            style={({ pressed }) => [styles.calculatorButton, pressed && { opacity: 0.85 }]}
+            onPress={() => router.push(`/tools/calculator?price=${listing.price}` as any)}
+          >
+            <Ionicons name="calculator-outline" size={18} color={Colors.accent} />
+            <Text style={styles.calculatorButtonText}>Tapu & Kredi Hesapla</Text>
+            <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+          </Pressable>
+        )}
+
         {/* Agent (blind) */}
         <View style={styles.card}>
           <AgentInfo agent={listing.agent} size="full" />
@@ -350,4 +362,6 @@ const styles = StyleSheet.create({
   matchButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.accent, borderRadius: Radius.md, paddingVertical: Spacing.lg, gap: Spacing.sm, ...Shadows.md },
   matchButtonPressed: { backgroundColor: Colors.accentDark },
   matchButtonText: { ...Typography.headline, color: Colors.text.inverse },
+  calculatorButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.accent + '0A', borderRadius: Radius.lg, padding: Spacing.lg, gap: Spacing.sm, marginBottom: Spacing.lg, borderWidth: 1, borderColor: Colors.accent + '28' },
+  calculatorButtonText: { ...Typography.subhead, color: Colors.accent, fontWeight: '600', flex: 1 },
 });

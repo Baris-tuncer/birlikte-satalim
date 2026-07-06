@@ -139,6 +139,7 @@ function RootLayoutNav() {
         <Stack.Screen name="matches" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="reset-password" />
+        <Stack.Screen name="tools" />
         <Stack.Screen name="admin" />
       </Stack>
     </>
