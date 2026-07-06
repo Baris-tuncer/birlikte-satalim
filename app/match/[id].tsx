@@ -302,7 +302,16 @@ export default function MatchDetailScreen() {
         {/* Contact Box (Accepted) */}
         {isAccepted && (() => {
           const otherAgent = isTarget ? match.requester : match.target;
-          const otherPhone = otherAgent?.phone?.replace(/\s/g, '').replace('+90', '90').replace(/^0/, '90') ?? '';
+          // Telefon numarasını WhatsApp formatına çevir (sadece rakamlar, 90 ile başlayan 12 haneli)
+          const rawPhone = otherAgent?.phone ?? '';
+          const digits = rawPhone.replace(/\D/g, '');
+          const otherPhone = digits.startsWith('90') && digits.length === 12
+            ? digits
+            : digits.startsWith('0') && digits.length === 11
+              ? '90' + digits.slice(1)
+              : digits.length === 10
+                ? '90' + digits
+                : digits;
 
           // WhatsApp mesajı — ilan/talep detayı ile
           let whatsappMsg = 'Merhaba, Beraber Satalım üzerinden ';
@@ -328,7 +337,9 @@ export default function MatchDetailScreen() {
                 </View>
                 {match.requester?.name && (
                   <View style={styles.contactRow}>
-                    <Text style={styles.contactLabel}>Talep Eden</Text>
+                    <Text style={styles.contactLabel}>
+                      {match.match_type === 'DEMAND' ? 'İlan Sahibi' : 'Talep Sahibi'}
+                    </Text>
                     <Text style={styles.contactValue}>
                       {match.requester.name}
                       {match.requester.phone ? ` — ${match.requester.phone}` : ''}
@@ -337,7 +348,9 @@ export default function MatchDetailScreen() {
                 )}
                 {match.target?.name && (
                   <View style={styles.contactRow}>
-                    <Text style={styles.contactLabel}>İlan Sahibi</Text>
+                    <Text style={styles.contactLabel}>
+                      {match.match_type === 'DEMAND' ? 'Talep Sahibi' : 'İlan Sahibi'}
+                    </Text>
                     <Text style={styles.contactValue}>
                       {match.target.name}
                       {match.target.phone ? ` — ${match.target.phone}` : ''}

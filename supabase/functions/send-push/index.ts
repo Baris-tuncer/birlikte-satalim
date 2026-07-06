@@ -97,6 +97,24 @@ Deno.serve(async (req) => {
       ? `Müşterisi için ilanınızı${detailText} talep ediyor. Talebi inceleyip kabul edebilirsiniz.`
       : `Talebiniz${detailText} için portföyünden bir ilan önerdi. Talebi inceleyip kabul edebilirsiniz.`;
 
+    // Dedup: aynı match için son 5 dk içinde bildirim gönderilmiş mi?
+    const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data: existing } = await supabase
+      .from('notifications')
+      .select('id')
+      .eq('user_id', match.target_id)
+      .eq('type', 'match_request')
+      .eq('reference_id', match.id)
+      .gte('created_at', fiveMinAgo)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      return new Response(
+        JSON.stringify({ message: 'Duplicate notification skipped' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Bildirim kaydini her zaman yaz (token olmasa bile)
     await supabase.from('notifications').insert({
       user_id: match.target_id,
@@ -128,6 +146,7 @@ Deno.serve(async (req) => {
       sound: 'default',
       data: { matchId: match.id },
       channelId: 'default',
+      priority: 'high',
     }));
 
     const expoResponse = await fetch(EXPO_PUSH_URL, {

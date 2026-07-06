@@ -14,6 +14,19 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Android bildirim kanalını uygulama başlatılır başlatılmaz oluştur
+// (push geldiğinde kanal hazır olsun)
+if (Platform.OS === 'android') {
+  Notifications.setNotificationChannelAsync('default', {
+    name: 'İş Birliği ve İlan Bildirimleri',
+    description: 'Yeni iş birliği talepleri, uygun ilanlar ve bölge bildirimleri',
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#FF6B4A',
+    showBadge: true,
+  });
+}
+
 // Push token al ve Supabase'e kaydet
 export async function registerForPushNotifications(userId: string, silent = true): Promise<string | null> {
   try {
@@ -25,10 +38,12 @@ export async function registerForPushNotifications(userId: string, silent = true
     // Android kanalı ayarla (izin istemeden önce)
     if (Platform.OS === 'android') {
       await Notifications.setNotificationChannelAsync('default', {
-        name: 'Varsayılan',
+        name: 'İş Birliği ve İlan Bildirimleri',
+        description: 'Yeni iş birliği talepleri, uygun ilanlar ve bölge bildirimleri',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF6B4A',
+        showBadge: true,
       });
     }
 
