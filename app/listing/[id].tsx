@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, Pressable, Alert, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Pressable, Alert, ActivityIndicator, Linking } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
@@ -229,6 +229,18 @@ export default function ListingDetailScreen() {
           </View>
         ) : null}
 
+        {/* Orijinal ilan linki */}
+        {listing.listing_url && (
+          <Pressable
+            style={({ pressed }) => [styles.originalLinkButton, pressed && { opacity: 0.85 }]}
+            onPress={() => Linking.openURL(listing.listing_url!)}
+          >
+            <Ionicons name="link-outline" size={18} color={Colors.primary} />
+            <Text style={styles.originalLinkText}>Orijinal İlanı Görüntüle</Text>
+            <Ionicons name="open-outline" size={16} color={Colors.text.tertiary} />
+          </Pressable>
+        )}
+
         {/* Calculator shortcut (SALE only) */}
         {isSale && listing.price > 0 && (
           <Pressable
@@ -364,4 +376,6 @@ const styles = StyleSheet.create({
   matchButtonText: { ...Typography.headline, color: Colors.text.inverse },
   calculatorButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.accent + '0A', borderRadius: Radius.lg, padding: Spacing.lg, gap: Spacing.sm, marginBottom: Spacing.lg, borderWidth: 1, borderColor: Colors.accent + '28' },
   calculatorButtonText: { ...Typography.subhead, color: Colors.accent, fontWeight: '600', flex: 1 },
+  originalLinkButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primary + '0A', borderRadius: Radius.lg, padding: Spacing.lg, gap: Spacing.sm, marginBottom: Spacing.lg, borderWidth: 1, borderColor: Colors.primary + '28' },
+  originalLinkText: { ...Typography.subhead, color: Colors.primary, fontWeight: '600', flex: 1 },
 });

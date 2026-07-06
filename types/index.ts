@@ -54,6 +54,7 @@ export interface Listing {
   ada: string | null;
   parsel: string | null;
   description: string | null;
+  listing_url: string | null;
   status: ListingStatus;
   created_at: string;
   updated_at: string;

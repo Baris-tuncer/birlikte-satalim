@@ -170,6 +170,14 @@ export default function ListingCard({
         </Text>
       ) : null}
 
+      {/* Orijinal ilan linki badge */}
+      {listing.listing_url ? (
+        <View style={styles.linkBadge}>
+          <Ionicons name="link-outline" size={12} color={Colors.primary} />
+          <Text style={styles.linkBadgeText}>Orijinal ilan linki mevcut</Text>
+        </View>
+      ) : null}
+
       </Pressable>
 
       {/* Divider */}
@@ -336,6 +344,22 @@ const styles = StyleSheet.create({
     ...Typography.footnote,
     color: Colors.text.primary,
     marginBottom: Spacing.md,
+  },
+  linkBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.primary + '0A',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.sm,
+    alignSelf: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  linkBadgeText: {
+    ...Typography.caption2,
+    color: Colors.primary,
+    fontWeight: '500',
   },
   divider: {
     height: StyleSheet.hairlineWidth,

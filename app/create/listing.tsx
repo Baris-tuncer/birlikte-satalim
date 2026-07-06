@@ -63,6 +63,7 @@ export default function CreateListingScreen() {
   const [parsel, setParsel] = useState('');
   const [priceText, setPriceText] = useState('');
   const [description, setDescription] = useState('');
+  const [listingUrl, setListingUrl] = useState('');
 
   // Düzenleme modunda mevcut veriyi yükle
   useEffect(() => {
@@ -93,6 +94,7 @@ export default function CreateListingScreen() {
           setParsel(l.parsel ?? '');
           setPriceText(l.price ? formatPriceInput(l.price.toString()) : '');
           setDescription(l.description ?? '');
+          setListingUrl(l.listing_url ?? '');
         }
         setInitialLoading(false);
       }, () => setInitialLoading(false));
@@ -138,6 +140,7 @@ export default function CreateListingScreen() {
     if (price > 50_000_000_000) return Alert.alert('Hata', 'Fiyat 50 milyar TL\'yi geçemez.');
 
     if (description.length > 500) return Alert.alert('Hata', 'Açıklama en fazla 500 karakter olabilir.');
+    if (listingUrl && !/^https?:\/\/.+\..+/.test(listingUrl)) return Alert.alert('Hata', 'Geçerli bir URL girin (https://... ile başlamalı).');
 
     const contentError = checkContent(description);
     if (contentError) return Alert.alert('Hata', contentError);
@@ -166,6 +169,7 @@ export default function CreateListingScreen() {
       parsel: isUrbanRenewal ? parsel || null : null,
       price,
       description: description || null,
+      listing_url: listingUrl || null,
     };
 
     if (isEdit && editId) {
@@ -483,6 +487,34 @@ export default function CreateListingScreen() {
               </View>
             </View>
 
+            {/* Orijinal İlan Linki (Opsiyonel) */}
+            <View style={styles.section}>
+              <View style={styles.sectionTitleRow}>
+                <Text style={styles.sectionTitle}>Orijinal İlan Linki</Text>
+                <Text style={styles.optionalLabel}>Opsiyonel</Text>
+              </View>
+              <View style={styles.card}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="https://sahibinden.com/ilan/..."
+                  placeholderTextColor={Colors.text.tertiary}
+                  value={listingUrl}
+                  onChangeText={setListingUrl}
+                  keyboardType="url"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                {listingUrl.length > 0 && (
+                  <View style={styles.urlWarning}>
+                    <Ionicons name="information-circle-outline" size={16} color={Colors.warning} />
+                    <Text style={styles.urlWarningText}>
+                      Bu link ilan kartlarında ve detay sayfasında diğer danışmanlara görünecektir.
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
             {/* Submit */}
             <Pressable
               style={({ pressed }) => [
@@ -585,5 +617,31 @@ const styles = StyleSheet.create({
   submitButtonText: {
     ...Typography.headline,
     color: Colors.text.inverse,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  optionalLabel: {
+    ...Typography.caption1,
+    color: Colors.text.tertiary,
+    fontStyle: 'italic',
+  },
+  urlWarning: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+    backgroundColor: Colors.warning + '14',
+    borderRadius: Radius.sm,
+    padding: Spacing.md,
+  },
+  urlWarningText: {
+    ...Typography.caption1,
+    color: Colors.warning,
+    flex: 1,
+    lineHeight: 18,
   },
 });
