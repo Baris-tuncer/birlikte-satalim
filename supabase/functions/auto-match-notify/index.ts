@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
       const locationText = neighborhood ? `${neighborhood}, ${district}` : district;
       const typeText = transactionType === 'SALE' ? 'satılık' : 'kiralık';
       const priceVal = price ? `${(price / 1000000).toFixed(1)}M TL` : '';
-      const roomText = roomCount ? ` ${roomCount}` : '';
+      const roomText = roomCount ? ` (${roomCount})` : '';
       const propText = propertyType === 'RESIDENTIAL' ? 'konut' : (propertyType === 'COMMERCIAL' ? 'ticari' : 'arsa');
 
       let demandUserIds: string[] = [];
@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
               .select('user_id, token')
               .in('user_id', demandUserIds);
 
-            const title = `Talebinize uygun${roomText} ${typeText} ${propText}`;
+            const title = `Talebinize uygun ${typeText} ${propText}${roomText}`;
             const body = `${locationText}'da${priceVal ? ` ${priceVal} fiyatla` : ''} yeni ilan eklendi. Hemen inceleyin!`;
 
             await sendPushMessages(supabase, tokens ?? [], title, body, { listingId: listing.id, type: 'auto_match_listing' });
@@ -182,7 +182,7 @@ Deno.serve(async (req) => {
             .select('user_id, token')
             .in('user_id', expertIds);
 
-          const expertTitle = `Bölgenizde yeni${roomText} ${typeText} ${propText}`;
+          const expertTitle = `Bölgenizde yeni ${typeText} ${propText}${roomText}`;
           const expertBody = `${locationText}'da${priceVal ? ` ${priceVal} fiyatla` : ''} yeni ilan eklendi. Uzmanlık bölgenize uygun!`;
 
           await sendPushMessages(supabase, expertTokens ?? [], expertTitle, expertBody, { listingId: listing.id, type: 'expertise_listing' });
