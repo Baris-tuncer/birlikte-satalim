@@ -21,6 +21,13 @@ const TOOLS: ToolItem[] = [
     icon: 'calculator-outline',
     route: '/tools/calculator',
   },
+  {
+    id: 'valuation',
+    title: 'Değerleme & Risk Analizi',
+    description: 'Taşınmaz değerlemesi ve hukuki risk analizi',
+    icon: 'shield-checkmark-outline',
+    route: '/tools/valuation',
+  },
 ];
 
 export default function ToolsScreen() {
