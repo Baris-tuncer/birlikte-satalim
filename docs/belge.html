@@ -3,78 +3,311 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Yer Gosterme Belgesi</title>
+  <title>Yer Gösterme Belgesi</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1A1A2E; background: #F8F9FA; min-height: 100vh; }
 
-    .header { background: linear-gradient(135deg, #0A2540 0%, #1B3A5C 100%); color: #fff; padding: 32px 24px; text-align: center; }
-    .header h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
-    .header p { font-size: 0.85rem; opacity: 0.7; }
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      color: #1A1A2E;
+      background: #E8E8E8;
+      min-height: 100vh;
+    }
 
-    .container { max-width: 520px; margin: 0 auto; padding: 24px 16px 64px; }
+    /* ─── Screen-only wrapper ─── */
+    .page-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 24px 16px 64px;
+    }
 
-    /* States */
+    /* ─── Screen-only action bar ─── */
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .action-btn:hover { opacity: 0.85; }
+    .action-btn.primary { background: #FF6B4A; color: #fff; }
+    .action-btn.secondary { background: #0A2540; color: #fff; }
+    .action-btn:disabled { background: #D1D5DB; cursor: not-allowed; }
+
+    .action-note {
+      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: -8px;
+      margin-bottom: 16px;
+    }
+
+    /* ─── States (screen only) ─── */
     .state { display: none; }
     .state.active { display: block; }
 
-    /* Loading */
-    .loading { text-align: center; padding: 80px 24px; }
-    .spinner { width: 40px; height: 40px; border: 3px solid #E5E7EB; border-top-color: #0A2540; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    .loading {
+      text-align: center;
+      padding: 120px 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #E5E7EB; border-top-color: #0A2540;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading p { color: #666; font-size: 0.95rem; }
 
-    /* Error */
-    .error { text-align: center; padding: 80px 24px; }
+    .error {
+      text-align: center;
+      padding: 120px 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
     .error-icon { font-size: 3rem; margin-bottom: 16px; }
     .error h2 { font-size: 1.2rem; color: #1A1A2E; margin-bottom: 8px; }
     .error p { color: #666; font-size: 0.9rem; line-height: 1.5; }
 
-    /* Certificate card */
-    .cert-card { background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 20px; }
-
-    .section { padding: 20px; border-bottom: 1px solid #F0F0F0; }
-    .section:last-child { border-bottom: none; }
-    .section-title { font-size: 0.75rem; font-weight: 600; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; opacity: 0.6; }
-
-    .info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; }
-    .info-label { font-size: 0.85rem; color: #666; }
-    .info-value { font-size: 0.85rem; color: #1A1A2E; font-weight: 500; text-align: right; max-width: 60%; }
-
-    /* Confirmed badge */
-    .confirmed-badge { display: flex; align-items: center; justify-content: center; gap: 8px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
-    .confirmed-badge span { color: #059669; font-weight: 600; font-size: 0.95rem; }
-
-    /* Confirm button */
-    .confirm-btn { display: block; width: 100%; background: #FF6B4A; color: #fff; border: none; border-radius: 12px; padding: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
-    .confirm-btn:hover { opacity: 0.9; }
-    .confirm-btn:disabled { background: #D1D5DB; cursor: not-allowed; }
-
-    /* Success */
-    .success { text-align: center; padding: 40px 24px; }
+    .success {
+      text-align: center;
+      padding: 60px 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
     .success-icon { font-size: 3rem; margin-bottom: 16px; }
     .success h2 { font-size: 1.2rem; color: #059669; margin-bottom: 8px; }
     .success p { color: #666; font-size: 0.9rem; line-height: 1.5; }
 
-    /* Notes */
-    .notes-text { font-size: 0.85rem; color: #1A1A2E; line-height: 1.5; white-space: pre-wrap; }
+    /* ─── Confirmed badge (screen) ─── */
+    .confirmed-badge-screen {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 12px;
+      padding: 14px; margin-bottom: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 600; color: #059669; font-size: 0.95rem;
+    }
 
-    .footer-note { text-align: center; font-size: 0.75rem; color: #999; margin-top: 24px; line-height: 1.5; }
+    /* ─── Certificate Document ─── */
+    .certificate {
+      background: #fff;
+      padding: 48px 56px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      position: relative;
+      min-height: 900px;
+    }
+
+    .cert-border {
+      position: absolute;
+      top: 12px; left: 12px; right: 12px; bottom: 12px;
+      border: 2px solid #0A2540;
+      pointer-events: none;
+    }
+    .cert-border-inner {
+      position: absolute;
+      top: 16px; left: 16px; right: 16px; bottom: 16px;
+      border: 1px solid #B8C4D0;
+      pointer-events: none;
+    }
+
+    .cert-header {
+      text-align: center;
+      padding-bottom: 24px;
+      border-bottom: 2px solid #0A2540;
+      margin-bottom: 28px;
+    }
+    .cert-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0A2540;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .cert-header .subtitle {
+      font-size: 0.85rem;
+      color: #666;
+      font-style: italic;
+    }
+    .cert-ref {
+      font-size: 0.75rem;
+      color: #999;
+      text-align: right;
+      margin-top: 8px;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    /* Sections */
+    .cert-section {
+      margin-bottom: 24px;
+    }
+    .cert-section-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #0A2540;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #D0D5DD;
+      margin-bottom: 12px;
+    }
+    .cert-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 5px 0;
+      font-size: 0.9rem;
+    }
+    .cert-label {
+      color: #555;
+      min-width: 140px;
+    }
+    .cert-value {
+      color: #1A1A2E;
+      font-weight: 600;
+      text-align: right;
+      flex: 1;
+    }
+
+    .cert-notes {
+      font-size: 0.85rem;
+      color: #333;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      padding: 10px 14px;
+      background: #FAFAFA;
+      border-left: 3px solid #0A2540;
+      margin-top: 8px;
+    }
+
+    /* Declaration text */
+    .cert-declaration {
+      margin-top: 32px;
+      padding-top: 20px;
+      border-top: 1px solid #D0D5DD;
+      font-size: 0.85rem;
+      color: #333;
+      line-height: 1.7;
+      text-align: justify;
+    }
+
+    /* Signature area */
+    .cert-signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 48px;
+      gap: 40px;
+    }
+    .cert-sig-block {
+      flex: 1;
+      text-align: center;
+    }
+    .cert-sig-line {
+      border-top: 1px solid #333;
+      margin-top: 60px;
+      padding-top: 8px;
+    }
+    .cert-sig-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1A1A2E;
+    }
+    .cert-sig-role {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* Confirmed stamp */
+    .cert-stamp {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-25deg);
+      border: 4px solid #059669;
+      border-radius: 12px;
+      padding: 12px 32px;
+      color: #059669;
+      font-size: 1.4rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      opacity: 0.18;
+      pointer-events: none;
+      display: none;
+      white-space: nowrap;
+    }
+    .cert-stamp.visible { display: block; }
+
+    /* Footer */
+    .cert-footer {
+      text-align: center;
+      font-size: 0.7rem;
+      color: #BBB;
+      margin-top: 32px;
+      padding-top: 12px;
+      border-top: 1px solid #E5E7EB;
+    }
+
+    /* ─── Print styles ─── */
+    @media print {
+      body { background: #fff; }
+
+      .action-bar,
+      .action-note,
+      .confirmed-badge-screen,
+      #confirm-area,
+      .page-wrapper { padding: 0; margin: 0; max-width: none; }
+
+      .certificate {
+        box-shadow: none;
+        padding: 36px 48px;
+        min-height: auto;
+      }
+
+      .cert-stamp { opacity: 0.15; }
+
+      @page {
+        size: A4;
+        margin: 12mm;
+      }
+    }
+
+    /* ─── Mobile ─── */
+    @media screen and (max-width: 600px) {
+      .certificate { padding: 28px 24px; }
+      .cert-border { top: 8px; left: 8px; right: 8px; bottom: 8px; }
+      .cert-border-inner { top: 12px; left: 12px; right: 12px; bottom: 12px; }
+      .cert-header h1 { font-size: 1.2rem; letter-spacing: 2px; }
+      .cert-row { flex-direction: column; gap: 2px; }
+      .cert-value { text-align: left; }
+      .cert-signatures { flex-direction: column; gap: 24px; }
+      .cert-sig-line { margin-top: 40px; }
+    }
   </style>
 </head>
 <body>
 
-  <div class="header">
-    <h1>Yer Gosterme Belgesi</h1>
-    <p>Dijital Onay Sayfasi</p>
-  </div>
+  <div class="page-wrapper">
 
-  <div class="container">
     <!-- Loading -->
     <div id="state-loading" class="state active">
       <div class="loading">
         <div class="spinner"></div>
-        <p>Belge yukleniyor...</p>
+        <p>Belge yükleniyor...</p>
       </div>
     </div>
 
@@ -82,100 +315,155 @@
     <div id="state-error" class="state">
       <div class="error">
         <div class="error-icon">&#10060;</div>
-        <h2>Belge Bulunamadi</h2>
-        <p>Bu link gecersiz veya belge silinmis olabilir. Lutfen emlak danisman&inodot;nizla iletisime gecin.</p>
+        <h2>Belge Bulunamadı</h2>
+        <p>Bu link geçersiz veya belge silinmiş olabilir.<br>Lütfen emlak danışmanınızla iletişime geçin.</p>
       </div>
     </div>
 
     <!-- Certificate -->
     <div id="state-cert" class="state">
 
-      <!-- Already confirmed -->
-      <div id="already-confirmed" style="display:none;">
-        <div class="confirmed-badge">
-          <span>&#10004; Bu belge onaylanmistir</span>
-        </div>
+      <!-- Screen-only confirmed badge -->
+      <div id="confirmed-badge-screen" class="confirmed-badge-screen" style="display:none;">
+        &#10004; Bu belge müşteri tarafından onaylanmıştır
       </div>
 
-      <div class="cert-card">
+      <!-- Screen-only actions (top) -->
+      <div class="action-bar" id="action-bar-top">
+        <button class="action-btn secondary" onclick="window.print()">
+          &#128438; PDF Olarak İndir
+        </button>
+      </div>
+      <p class="action-note" id="pdf-note">Açılan pencerede "PDF olarak kaydet" seçeneğini kullanın</p>
+
+      <!-- The certificate document -->
+      <div class="certificate" id="certificate-doc">
+        <div class="cert-border"></div>
+        <div class="cert-border-inner"></div>
+
+        <!-- Stamp (shown when confirmed) -->
+        <div class="cert-stamp" id="cert-stamp">ONAYLANDI</div>
+
+        <div class="cert-header">
+          <h1>Yer Gösterme Belgesi</h1>
+          <div class="subtitle">Taşınmaz Gösterim Tutanağı</div>
+          <div class="cert-ref" id="cert-ref"></div>
+        </div>
+
         <!-- Agent -->
-        <div class="section">
-          <div class="section-title">Emlak Danismani</div>
-          <div class="info-row">
-            <span class="info-label">Ad Soyad</span>
-            <span class="info-value" id="agent-name">-</span>
+        <div class="cert-section">
+          <div class="cert-section-title">Emlak Danışmanı Bilgileri</div>
+          <div class="cert-row">
+            <span class="cert-label">Ad Soyad</span>
+            <span class="cert-value" id="agent-name">—</span>
           </div>
-          <div class="info-row" id="agent-company-row">
-            <span class="info-label">Firma</span>
-            <span class="info-value" id="agent-company">-</span>
+          <div class="cert-row" id="agent-company-row">
+            <span class="cert-label">Firma / Ofis</span>
+            <span class="cert-value" id="agent-company">—</span>
           </div>
-          <div class="info-row" id="agent-license-row">
-            <span class="info-label">Yetki Belgesi No</span>
-            <span class="info-value" id="agent-license">-</span>
+          <div class="cert-row" id="agent-license-row">
+            <span class="cert-label">Yetki Belgesi No</span>
+            <span class="cert-value" id="agent-license">—</span>
+          </div>
+          <div class="cert-row" id="agent-phone-row">
+            <span class="cert-label">Telefon</span>
+            <span class="cert-value" id="agent-phone">—</span>
           </div>
         </div>
 
         <!-- Client -->
-        <div class="section">
-          <div class="section-title">Musteri Bilgileri</div>
-          <div class="info-row">
-            <span class="info-label">Ad Soyad</span>
-            <span class="info-value" id="client-name">-</span>
+        <div class="cert-section">
+          <div class="cert-section-title">Müşteri Bilgileri</div>
+          <div class="cert-row">
+            <span class="cert-label">Ad Soyad</span>
+            <span class="cert-value" id="client-name">—</span>
           </div>
-          <div class="info-row">
-            <span class="info-label">TC Kimlik No</span>
-            <span class="info-value" id="client-tc">-</span>
+          <div class="cert-row">
+            <span class="cert-label">TC Kimlik No</span>
+            <span class="cert-value" id="client-tc">—</span>
           </div>
         </div>
 
         <!-- Property -->
-        <div class="section">
-          <div class="section-title">Tasinmaz Bilgileri</div>
-          <div class="info-row">
-            <span class="info-label">Konum</span>
-            <span class="info-value" id="location">-</span>
+        <div class="cert-section">
+          <div class="cert-section-title">Taşınmaz Bilgileri</div>
+          <div class="cert-row">
+            <span class="cert-label">Konum</span>
+            <span class="cert-value" id="location">—</span>
           </div>
-          <div class="info-row" id="address-row" style="display:none;">
-            <span class="info-label">Adres</span>
-            <span class="info-value" id="address">-</span>
+          <div class="cert-row" id="address-row" style="display:none;">
+            <span class="cert-label">Adres Detayı</span>
+            <span class="cert-value" id="address">—</span>
           </div>
-          <div class="info-row">
-            <span class="info-label">Tur</span>
-            <span class="info-value" id="prop-type">-</span>
+          <div class="cert-row">
+            <span class="cert-label">Taşınmaz Türü</span>
+            <span class="cert-value" id="prop-type">—</span>
           </div>
-          <div class="info-row" id="ada-parsel-row" style="display:none;">
-            <span class="info-label">Ada/Parsel</span>
-            <span class="info-value" id="ada-parsel">-</span>
+          <div class="cert-row">
+            <span class="cert-label">İşlem Türü</span>
+            <span class="cert-value" id="trans-type">—</span>
+          </div>
+          <div class="cert-row" id="ada-parsel-row" style="display:none;">
+            <span class="cert-label">Ada / Parsel</span>
+            <span class="cert-value" id="ada-parsel">—</span>
           </div>
         </div>
 
         <!-- Showing -->
-        <div class="section">
-          <div class="section-title">Gosterim Bilgileri</div>
-          <div class="info-row">
-            <span class="info-label">Tarih</span>
-            <span class="info-value" id="showing-date">-</span>
+        <div class="cert-section">
+          <div class="cert-section-title">Gösterim Bilgileri</div>
+          <div class="cert-row">
+            <span class="cert-label">Gösterim Tarihi</span>
+            <span class="cert-value" id="showing-date">—</span>
           </div>
-          <div class="info-row" id="showing-time-row" style="display:none;">
-            <span class="info-label">Saat</span>
-            <span class="info-value" id="showing-time">-</span>
+          <div class="cert-row" id="showing-time-row" style="display:none;">
+            <span class="cert-label">Gösterim Saati</span>
+            <span class="cert-value" id="showing-time">—</span>
           </div>
         </div>
 
         <!-- Notes -->
-        <div class="section" id="notes-section" style="display:none;">
-          <div class="section-title">Notlar</div>
-          <div class="notes-text" id="notes"></div>
+        <div class="cert-section" id="notes-section" style="display:none;">
+          <div class="cert-section-title">Ek Notlar</div>
+          <div class="cert-notes" id="notes"></div>
+        </div>
+
+        <!-- Declaration -->
+        <div class="cert-declaration">
+          İşbu belge ile yukarıda bilgileri yer alan taşınmazın, belirtilen tarih ve saatte
+          emlak danışmanı tarafından müşteriye gösterildiği kayıt altına alınmıştır.
+          Taraflar, bu gösterim işleminin gerçekleştiğini kabul ve beyan eder.
+        </div>
+
+        <!-- Signatures -->
+        <div class="cert-signatures">
+          <div class="cert-sig-block">
+            <div class="cert-sig-line">
+              <div class="cert-sig-name" id="sig-agent">—</div>
+              <div class="cert-sig-role">Emlak Danışmanı</div>
+            </div>
+          </div>
+          <div class="cert-sig-block">
+            <div class="cert-sig-line">
+              <div class="cert-sig-name" id="sig-client">—</div>
+              <div class="cert-sig-role">Müşteri</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Confirmation info (print) -->
+        <div class="cert-footer" id="cert-footer">
+          Bu belge dijital olarak oluşturulmuştur.
         </div>
       </div>
 
-      <!-- Confirm button (only if not confirmed) -->
-      <div id="confirm-area" style="display:none;">
-        <button class="confirm-btn" id="confirm-btn" onclick="confirmCertificate()">
-          Onayliyorum
+      <!-- Confirm button (screen only, if not confirmed) -->
+      <div id="confirm-area" style="display:none; margin-top: 20px;">
+        <button class="action-btn primary" id="confirm-btn" onclick="confirmCertificate()" style="width:100%; justify-content:center; padding: 16px; font-size: 1.05rem;">
+          &#10004; Yer Gösterimini Onaylıyorum
         </button>
-        <p class="footer-note">
-          Bu butona tiklayarak, yukaridaki tasinmazin gosteriminin yapildigini onaylamis olursunuz.
+        <p class="action-note" style="margin-top: 12px;">
+          Bu butona tıklayarak, yukarıdaki taşınmazın gösteriminin yapıldığını onaylamış olursunuz.
         </p>
       </div>
     </div>
@@ -184,10 +472,16 @@
     <div id="state-success" class="state">
       <div class="success">
         <div class="success-icon">&#9989;</div>
-        <h2>Belge Onaylandi</h2>
-        <p>Yer gosterme belgesi basariyla onaylanmistir. Bu sayfayi kapatabilirsiniz.</p>
+        <h2>Belge Onaylandı</h2>
+        <p>Yer gösterme belgesi başarıyla onaylanmıştır.<br>Bu sayfayı kapatabilirsiniz.</p>
+      </div>
+      <div class="action-bar" style="margin-top: 20px;">
+        <button class="action-btn secondary" onclick="window.print()">
+          &#128438; PDF Olarak İndir
+        </button>
       </div>
     </div>
+
   </div>
 
   <script type="module">
@@ -200,9 +494,9 @@
 
     const PROPERTY_LABELS = {
       'RESIDENTIAL': 'Konut', 'COMMERCIAL': 'Ticari',
-      'LAND': 'Arsa', 'URBAN_RENEWAL': 'Kentsel Donusum'
+      'LAND': 'Arsa', 'URBAN_RENEWAL': 'Kentsel Dönüşüm'
     };
-    const TRANSACTION_LABELS = { 'SALE': 'Satilik', 'RENT': 'Kiralik' };
+    const TRANSACTION_LABELS = { 'SALE': 'Satılık', 'RENT': 'Kiralık' };
 
     let currentToken = null;
 
@@ -212,10 +506,16 @@
     }
 
     function formatDate(dateStr) {
-      if (!dateStr) return '-';
+      if (!dateStr) return '—';
       const parts = dateStr.split('-');
       if (parts.length === 3) return parts[2] + '.' + parts[1] + '.' + parts[0];
       return dateStr;
+    }
+
+    function formatDateTime(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
     }
 
     async function loadCertificate() {
@@ -228,8 +528,14 @@
 
       if (error || !data) { show('error'); return; }
 
-      // Fill data
-      document.getElementById('agent-name').textContent = data.agent_name || '-';
+      // Reference number
+      const refId = (data.id || '').substring(0, 8).toUpperCase();
+      const createdDate = formatDate(data.created_at?.substring(0, 10));
+      document.getElementById('cert-ref').textContent = 'Belge No: ' + refId + '  |  Düzenleme Tarihi: ' + createdDate;
+
+      // Agent info
+      document.getElementById('agent-name').textContent = data.agent_name || '—';
+      document.getElementById('sig-agent').textContent = data.agent_name || '—';
 
       if (data.agent_company) {
         document.getElementById('agent-company').textContent = data.agent_company;
@@ -243,9 +549,18 @@
         document.getElementById('agent-license-row').style.display = 'none';
       }
 
-      document.getElementById('client-name').textContent = data.client_name || '-';
-      document.getElementById('client-tc').textContent = data.client_tc_masked || '-';
+      if (data.agent_phone) {
+        document.getElementById('agent-phone').textContent = data.agent_phone;
+      } else {
+        document.getElementById('agent-phone-row').style.display = 'none';
+      }
 
+      // Client info
+      document.getElementById('client-name').textContent = data.client_name || '—';
+      document.getElementById('client-tc').textContent = data.client_tc_masked || '—';
+      document.getElementById('sig-client').textContent = data.client_name || '—';
+
+      // Location
       const loc = [data.city, data.district, data.neighborhood].filter(Boolean).join(' / ');
       document.getElementById('location').textContent = loc;
 
@@ -254,15 +569,16 @@
         document.getElementById('address-row').style.display = '';
       }
 
-      const propLabel = PROPERTY_LABELS[data.property_type] || data.property_type;
-      const transLabel = TRANSACTION_LABELS[data.transaction_type] || data.transaction_type;
-      document.getElementById('prop-type').textContent = propLabel + ' - ' + transLabel;
+      // Property & transaction type
+      document.getElementById('prop-type').textContent = PROPERTY_LABELS[data.property_type] || data.property_type;
+      document.getElementById('trans-type').textContent = TRANSACTION_LABELS[data.transaction_type] || data.transaction_type;
 
       if (data.ada || data.parsel) {
-        document.getElementById('ada-parsel').textContent = (data.ada || '-') + ' / ' + (data.parsel || '-');
+        document.getElementById('ada-parsel').textContent = (data.ada || '—') + ' / ' + (data.parsel || '—');
         document.getElementById('ada-parsel-row').style.display = '';
       }
 
+      // Showing info
       document.getElementById('showing-date').textContent = formatDate(data.showing_date);
 
       if (data.showing_time) {
@@ -270,15 +586,19 @@
         document.getElementById('showing-time-row').style.display = '';
       }
 
+      // Notes
       if (data.notes) {
         document.getElementById('notes').textContent = data.notes;
         document.getElementById('notes-section').style.display = '';
       }
 
-      // Check confirmation status
+      // Confirmation status
       if (data.confirmed_at) {
-        document.getElementById('already-confirmed').style.display = '';
+        document.getElementById('confirmed-badge-screen').style.display = '';
         document.getElementById('confirm-area').style.display = 'none';
+        document.getElementById('cert-stamp').classList.add('visible');
+        document.getElementById('cert-footer').textContent =
+          'Bu belge dijital olarak oluşturulmuş ve ' + formatDateTime(data.confirmed_at) + ' tarihinde müşteri tarafından onaylanmıştır.';
       } else {
         document.getElementById('confirm-area').style.display = '';
       }
@@ -289,16 +609,21 @@
     window.confirmCertificate = async function() {
       const btn = document.getElementById('confirm-btn');
       btn.disabled = true;
-      btn.textContent = 'Onaylaniyor...';
+      btn.innerHTML = 'Onaylanıyor...';
 
       const { data, error } = await supabase.rpc('confirm_certificate', { p_token: currentToken });
 
       if (error || !data) {
         btn.disabled = false;
-        btn.textContent = 'Onayliyorum';
-        alert('Bir hata olustu. Lutfen tekrar deneyin.');
+        btn.innerHTML = '&#10004; Yer Gösterimini Onaylıyorum';
+        alert('Bir hata oluştu. Lütfen tekrar deneyin.');
         return;
       }
+
+      // Update stamp and footer
+      document.getElementById('cert-stamp').classList.add('visible');
+      document.getElementById('cert-footer').textContent =
+        'Bu belge dijital olarak oluşturulmuş ve müşteri tarafından onaylanmıştır.';
 
       show('success');
     };
