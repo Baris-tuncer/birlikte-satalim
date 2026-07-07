@@ -7,6 +7,7 @@ import type {
   Match,
   AppNotification,
   NeighborhoodPrice,
+  ShowingCertificate,
   TransactionType,
   PropertyType,
   MatchStatus,
@@ -552,4 +553,35 @@ export async function getAppConfig<T = unknown>(
 
   if (error) return { data: null, error: error.message };
   return { data: (data?.value as T) ?? null };
+}
+
+// ─── SHOWING CERTIFICATES (Yer Gösterme Belgesi) ────
+
+export async function createShowingCertificate(
+  cert: Omit<ShowingCertificate, 'id' | 'confirmation_token' | 'confirmed_at' | 'created_at' | 'updated_at'>,
+) {
+  const { data, error } = await supabase
+    .from('showing_certificates')
+    .insert(cert)
+    .select()
+    .single();
+  return { data: data as ShowingCertificate | null, error: error?.message };
+}
+
+export async function getMyShowingCertificates(agentId: string) {
+  const { data, error } = await supabase
+    .from('showing_certificates')
+    .select('*')
+    .eq('agent_id', agentId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  return { data: (data as ShowingCertificate[]) ?? [], error: error?.message };
+}
+
+export async function deleteShowingCertificate(id: string) {
+  const { error } = await supabase
+    .from('showing_certificates')
+    .delete()
+    .eq('id', id);
+  return { error: error?.message };
 }

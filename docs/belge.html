@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yer Gosterme Belgesi</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1A1A2E; background: #F8F9FA; min-height: 100vh; }
+
+    .header { background: linear-gradient(135deg, #0A2540 0%, #1B3A5C 100%); color: #fff; padding: 32px 24px; text-align: center; }
+    .header h1 { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; }
+    .header p { font-size: 0.85rem; opacity: 0.7; }
+
+    .container { max-width: 520px; margin: 0 auto; padding: 24px 16px 64px; }
+
+    /* States */
+    .state { display: none; }
+    .state.active { display: block; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 80px 24px; }
+    .spinner { width: 40px; height: 40px; border: 3px solid #E5E7EB; border-top-color: #0A2540; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { color: #666; font-size: 0.95rem; }
+
+    /* Error */
+    .error { text-align: center; padding: 80px 24px; }
+    .error-icon { font-size: 3rem; margin-bottom: 16px; }
+    .error h2 { font-size: 1.2rem; color: #1A1A2E; margin-bottom: 8px; }
+    .error p { color: #666; font-size: 0.9rem; line-height: 1.5; }
+
+    /* Certificate card */
+    .cert-card { background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: hidden; margin-bottom: 20px; }
+
+    .section { padding: 20px; border-bottom: 1px solid #F0F0F0; }
+    .section:last-child { border-bottom: none; }
+    .section-title { font-size: 0.75rem; font-weight: 600; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; opacity: 0.6; }
+
+    .info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; }
+    .info-label { font-size: 0.85rem; color: #666; }
+    .info-value { font-size: 0.85rem; color: #1A1A2E; font-weight: 500; text-align: right; max-width: 60%; }
+
+    /* Confirmed badge */
+    .confirmed-badge { display: flex; align-items: center; justify-content: center; gap: 8px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+    .confirmed-badge span { color: #059669; font-weight: 600; font-size: 0.95rem; }
+
+    /* Confirm button */
+    .confirm-btn { display: block; width: 100%; background: #FF6B4A; color: #fff; border: none; border-radius: 12px; padding: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .confirm-btn:hover { opacity: 0.9; }
+    .confirm-btn:disabled { background: #D1D5DB; cursor: not-allowed; }
+
+    /* Success */
+    .success { text-align: center; padding: 40px 24px; }
+    .success-icon { font-size: 3rem; margin-bottom: 16px; }
+    .success h2 { font-size: 1.2rem; color: #059669; margin-bottom: 8px; }
+    .success p { color: #666; font-size: 0.9rem; line-height: 1.5; }
+
+    /* Notes */
+    .notes-text { font-size: 0.85rem; color: #1A1A2E; line-height: 1.5; white-space: pre-wrap; }
+
+    .footer-note { text-align: center; font-size: 0.75rem; color: #999; margin-top: 24px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Yer Gosterme Belgesi</h1>
+    <p>Dijital Onay Sayfasi</p>
+  </div>
+
+  <div class="container">
+    <!-- Loading -->
+    <div id="state-loading" class="state active">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Belge yukleniyor...</p>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="state-error" class="state">
+      <div class="error">
+        <div class="error-icon">&#10060;</div>
+        <h2>Belge Bulunamadi</h2>
+        <p>Bu link gecersiz veya belge silinmis olabilir. Lutfen emlak danisman&inodot;nizla iletisime gecin.</p>
+      </div>
+    </div>
+
+    <!-- Certificate -->
+    <div id="state-cert" class="state">
+
+      <!-- Already confirmed -->
+      <div id="already-confirmed" style="display:none;">
+        <div class="confirmed-badge">
+          <span>&#10004; Bu belge onaylanmistir</span>
+        </div>
+      </div>
+
+      <div class="cert-card">
+        <!-- Agent -->
+        <div class="section">
+          <div class="section-title">Emlak Danismani</div>
+          <div class="info-row">
+            <span class="info-label">Ad Soyad</span>
+            <span class="info-value" id="agent-name">-</span>
+          </div>
+          <div class="info-row" id="agent-company-row">
+            <span class="info-label">Firma</span>
+            <span class="info-value" id="agent-company">-</span>
+          </div>
+          <div class="info-row" id="agent-license-row">
+            <span class="info-label">Yetki Belgesi No</span>
+            <span class="info-value" id="agent-license">-</span>
+          </div>
+        </div>
+
+        <!-- Client -->
+        <div class="section">
+          <div class="section-title">Musteri Bilgileri</div>
+          <div class="info-row">
+            <span class="info-label">Ad Soyad</span>
+            <span class="info-value" id="client-name">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">TC Kimlik No</span>
+            <span class="info-value" id="client-tc">-</span>
+          </div>
+        </div>
+
+        <!-- Property -->
+        <div class="section">
+          <div class="section-title">Tasinmaz Bilgileri</div>
+          <div class="info-row">
+            <span class="info-label">Konum</span>
+            <span class="info-value" id="location">-</span>
+          </div>
+          <div class="info-row" id="address-row" style="display:none;">
+            <span class="info-label">Adres</span>
+            <span class="info-value" id="address">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Tur</span>
+            <span class="info-value" id="prop-type">-</span>
+          </div>
+          <div class="info-row" id="ada-parsel-row" style="display:none;">
+            <span class="info-label">Ada/Parsel</span>
+            <span class="info-value" id="ada-parsel">-</span>
+          </div>
+        </div>
+
+        <!-- Showing -->
+        <div class="section">
+          <div class="section-title">Gosterim Bilgileri</div>
+          <div class="info-row">
+            <span class="info-label">Tarih</span>
+            <span class="info-value" id="showing-date">-</span>
+          </div>
+          <div class="info-row" id="showing-time-row" style="display:none;">
+            <span class="info-label">Saat</span>
+            <span class="info-value" id="showing-time">-</span>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="section" id="notes-section" style="display:none;">
+          <div class="section-title">Notlar</div>
+          <div class="notes-text" id="notes"></div>
+        </div>
+      </div>
+
+      <!-- Confirm button (only if not confirmed) -->
+      <div id="confirm-area" style="display:none;">
+        <button class="confirm-btn" id="confirm-btn" onclick="confirmCertificate()">
+          Onayliyorum
+        </button>
+        <p class="footer-note">
+          Bu butona tiklayarak, yukaridaki tasinmazin gosteriminin yapildigini onaylamis olursunuz.
+        </p>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div id="state-success" class="state">
+      <div class="success">
+        <div class="success-icon">&#9989;</div>
+        <h2>Belge Onaylandi</h2>
+        <p>Yer gosterme belgesi basariyla onaylanmistir. Bu sayfayi kapatabilirsiniz.</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    const SUPABASE_URL = 'https://rjhhrcoorayrqwotfqbc.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqaGhyY29vcmF5cnF3b3RmcWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDUxNjgsImV4cCI6MjA5NzM4MTE2OH0.0_2KP2yOhQrIIjTDS2vxvkFKi4Xqdpk8AYCqVsLvQpo';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const PROPERTY_LABELS = {
+      'RESIDENTIAL': 'Konut', 'COMMERCIAL': 'Ticari',
+      'LAND': 'Arsa', 'URBAN_RENEWAL': 'Kentsel Donusum'
+    };
+    const TRANSACTION_LABELS = { 'SALE': 'Satilik', 'RENT': 'Kiralik' };
+
+    let currentToken = null;
+
+    function show(id) {
+      document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
+      document.getElementById('state-' + id).classList.add('active');
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const parts = dateStr.split('-');
+      if (parts.length === 3) return parts[2] + '.' + parts[1] + '.' + parts[0];
+      return dateStr;
+    }
+
+    async function loadCertificate() {
+      const params = new URLSearchParams(window.location.search);
+      currentToken = params.get('token');
+
+      if (!currentToken) { show('error'); return; }
+
+      const { data, error } = await supabase.rpc('get_certificate_by_token', { p_token: currentToken });
+
+      if (error || !data) { show('error'); return; }
+
+      // Fill data
+      document.getElementById('agent-name').textContent = data.agent_name || '-';
+
+      if (data.agent_company) {
+        document.getElementById('agent-company').textContent = data.agent_company;
+      } else {
+        document.getElementById('agent-company-row').style.display = 'none';
+      }
+
+      if (data.agent_license) {
+        document.getElementById('agent-license').textContent = data.agent_license;
+      } else {
+        document.getElementById('agent-license-row').style.display = 'none';
+      }
+
+      document.getElementById('client-name').textContent = data.client_name || '-';
+      document.getElementById('client-tc').textContent = data.client_tc_masked || '-';
+
+      const loc = [data.city, data.district, data.neighborhood].filter(Boolean).join(' / ');
+      document.getElementById('location').textContent = loc;
+
+      if (data.address_detail) {
+        document.getElementById('address').textContent = data.address_detail;
+        document.getElementById('address-row').style.display = '';
+      }
+
+      const propLabel = PROPERTY_LABELS[data.property_type] || data.property_type;
+      const transLabel = TRANSACTION_LABELS[data.transaction_type] || data.transaction_type;
+      document.getElementById('prop-type').textContent = propLabel + ' - ' + transLabel;
+
+      if (data.ada || data.parsel) {
+        document.getElementById('ada-parsel').textContent = (data.ada || '-') + ' / ' + (data.parsel || '-');
+        document.getElementById('ada-parsel-row').style.display = '';
+      }
+
+      document.getElementById('showing-date').textContent = formatDate(data.showing_date);
+
+      if (data.showing_time) {
+        document.getElementById('showing-time').textContent = data.showing_time;
+        document.getElementById('showing-time-row').style.display = '';
+      }
+
+      if (data.notes) {
+        document.getElementById('notes').textContent = data.notes;
+        document.getElementById('notes-section').style.display = '';
+      }
+
+      // Check confirmation status
+      if (data.confirmed_at) {
+        document.getElementById('already-confirmed').style.display = '';
+        document.getElementById('confirm-area').style.display = 'none';
+      } else {
+        document.getElementById('confirm-area').style.display = '';
+      }
+
+      show('cert');
+    }
+
+    window.confirmCertificate = async function() {
+      const btn = document.getElementById('confirm-btn');
+      btn.disabled = true;
+      btn.textContent = 'Onaylaniyor...';
+
+      const { data, error } = await supabase.rpc('confirm_certificate', { p_token: currentToken });
+
+      if (error || !data) {
+        btn.disabled = false;
+        btn.textContent = 'Onayliyorum';
+        alert('Bir hata olustu. Lutfen tekrar deneyin.');
+        return;
+      }
+
+      show('success');
+    };
+
+    loadCertificate();
+  </script>
+</body>
+</html>

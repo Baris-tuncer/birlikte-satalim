@@ -28,6 +28,13 @@ const TOOLS: ToolItem[] = [
     icon: 'shield-checkmark-outline',
     route: '/tools/valuation',
   },
+  {
+    id: 'showing-certificate',
+    title: 'Yer Gösterme Belgesi',
+    description: 'Dijital yer gösterme belgesi oluşturun ve paylaşın',
+    icon: 'document-text-outline',
+    route: '/tools/showing-certificate',
+  },
 ];
 
 export default function ToolsScreen() {

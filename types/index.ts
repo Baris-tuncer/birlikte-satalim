@@ -133,6 +133,31 @@ export interface NeighborhoodPrice {
   updated_by: string | null;
 }
 
+// ─── SHOWING CERTIFICATE (Yer Gösterme Belgesi) ──────
+
+export interface ShowingCertificate {
+  id: string;
+  agent_id: string;
+  client_name: string;
+  client_tc: string;
+  client_phone: string | null;
+  city: string;
+  district: string;
+  neighborhood: string | null;
+  address_detail: string | null;
+  property_type: PropertyType;
+  transaction_type: TransactionType;
+  ada: string | null;
+  parsel: string | null;
+  showing_date: string;
+  showing_time: string | null;
+  notes: string | null;
+  confirmation_token: string;
+  confirmed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ─── DISTRICT ─────────────────────────────────────────
 
 export type District =

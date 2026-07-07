@@ -455,6 +455,19 @@ export default function ProfileScreen() {
           <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
         </Pressable>
 
+        {/* Yer Gösterme Belgelerim */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.adminButton,
+            pressed && { opacity: 0.9 },
+          ]}
+          onPress={() => router.push('/tools/showing-certificate' as any)}
+        >
+          <Ionicons name="document-text-outline" size={20} color={Colors.accent} />
+          <Text style={styles.adminButtonText}>Yer Gösterme Belgelerim</Text>
+          <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+        </Pressable>
+
         {/* Admin Paneli */}
         {(profile?.is_admin || (__DEV__ && devUser?.is_admin)) && (
           <>
