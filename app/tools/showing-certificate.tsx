@@ -102,8 +102,17 @@ export default function ShowingCertificateScreen() {
   const [ada, setAda] = useState('');
   const [parsel, setParsel] = useState('');
 
-  const [showingDate, setShowingDate] = useState('');
-  const [showingTime, setShowingTime] = useState('');
+  // Auto-fill current date & time
+  const [showingDate, setShowingDate] = useState(() => {
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()}`;
+  });
+  const [showingTime, setShowingTime] = useState(() => {
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  });
   const [notes, setNotes] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [saving, setSaving] = useState(false);

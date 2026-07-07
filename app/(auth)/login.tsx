@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -120,12 +121,13 @@ export default function LoginScreen() {
         >
           {/* Branding */}
           <View style={styles.brandingContainer}>
-            <View style={styles.logoCircle}>
-              <Ionicons name="business" size={32} color={Colors.text.inverse} />
-            </View>
-            <Text style={styles.appName}>Beraber Satalım</Text>
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
             <Text style={styles.tagline}>
-              Portföyünüz burada buluşuyor
+              Gayrimenkul danışmanlarının{'\n'}iş birliği platformu
             </Text>
           </View>
 
@@ -244,7 +246,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.accent,
   },
   keyboardView: {
     flex: 1,
@@ -257,27 +259,19 @@ const styles = StyleSheet.create({
   },
   brandingContainer: {
     alignItems: 'center',
-    marginBottom: Spacing['4xl'],
+    marginBottom: Spacing['3xl'],
   },
-  logoCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+  logo: {
+    width: 160,
+    height: 160,
     marginBottom: Spacing.lg,
-    ...Shadows.lg,
-  },
-  appName: {
-    ...Typography.title1,
-    color: Colors.text.primary,
-    marginBottom: Spacing.xs,
   },
   tagline: {
-    ...Typography.subhead,
-    color: Colors.text.secondary,
+    ...Typography.title3,
+    color: '#FFFFFF',
     textAlign: 'center',
+    fontWeight: '600',
+    lineHeight: 26,
   },
   formCard: {
     backgroundColor: Colors.card,
@@ -359,11 +353,12 @@ const styles = StyleSheet.create({
   },
   registerText: {
     ...Typography.subhead,
-    color: Colors.text.secondary,
+    color: '#FFFFFF',
   },
   registerLink: {
     ...Typography.subhead,
-    color: Colors.accent,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
 });
