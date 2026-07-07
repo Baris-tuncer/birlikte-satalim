@@ -314,14 +314,10 @@ export default function ShowingCertificateScreen() {
       <Stack.Screen
         options={{
           title: 'Yer Gösterme Belgesi',
-          headerBackTitle: 'Araçlar',
+          headerBackTitle: 'Geri',
+          headerShown: true,
           headerStyle: { backgroundColor: Colors.background },
           headerTintColor: Colors.text.primary,
-          headerLeft: () => (
-            <Pressable onPress={() => router.back()} hitSlop={8}>
-              <Ionicons name="chevron-back" size={24} color={Colors.text.primary} />
-            </Pressable>
-          ),
         }}
       />
 
