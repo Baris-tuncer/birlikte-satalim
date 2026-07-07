@@ -152,6 +152,7 @@ export interface ShowingCertificate {
   showing_date: string;
   showing_time: string | null;
   notes: string | null;
+  listing_id: string | null;
   confirmation_token: string;
   confirmed_at: string | null;
   created_at: string;

@@ -12,7 +12,7 @@ import {
   FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import { CITIES, CITY_DISTRICTS, getNeighborhoodsForDistrict } from '@/lib/constants';
@@ -23,9 +23,10 @@ import {
   getMyShowingCertificates,
   deleteShowingCertificate,
 } from '@/lib/database';
+import { supabase } from '@/lib/supabase';
 import DropdownPicker from '@/components/ui/DropdownPicker';
 import SegmentControl from '@/components/ui/SegmentControl';
-import type { ShowingCertificate, PropertyType, TransactionType } from '@/types';
+import type { Listing, ShowingCertificate, PropertyType, TransactionType } from '@/types';
 
 // ─── Helpers ──────────────────────────────────────────
 
@@ -79,8 +80,13 @@ const TRANSACTION_TYPE_OPTIONS = [
 
 export default function ShowingCertificateScreen() {
   const router = useRouter();
+  const { listingId } = useLocalSearchParams<{ listingId?: string }>();
   const { profile } = useAuth();
   const [activeSegment, setActiveSegment] = useState(0);
+
+  // — Linked listing
+  const [linkedListing, setLinkedListing] = useState<Listing | null>(null);
+  const [listingLoading, setListingLoading] = useState(!!listingId);
 
   // — Form state
   const [clientName, setClientName] = useState('');
@@ -105,6 +111,39 @@ export default function ShowingCertificateScreen() {
   // — History state
   const [certificates, setCertificates] = useState<ShowingCertificate[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+
+  // — Fetch linked listing
+  useEffect(() => {
+    if (!listingId) return;
+    let cancelled = false;
+
+    (async () => {
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*, agent:users(*)')
+        .eq('id', listingId)
+        .single();
+
+      if (cancelled) return;
+      setListingLoading(false);
+
+      if (error || !data) return;
+
+      const listing = data as Listing;
+      setLinkedListing(listing);
+
+      // Pre-fill property fields from listing
+      setSelectedCity(listing.city);
+      setSelectedDistrict(listing.district);
+      setSelectedNeighborhood(listing.neighborhood ?? null);
+      setPropertyType(listing.property_type);
+      setTransactionType(listing.transaction_type);
+      setAda(listing.ada ?? '');
+      setParsel(listing.parsel ?? '');
+    })();
+
+    return () => { cancelled = true; };
+  }, [listingId]);
 
   // — Dropdown options
   const cityOptions = useMemo(
@@ -218,6 +257,7 @@ export default function ShowingCertificateScreen() {
       showing_date: dbDate,
       showing_time: showingTime.trim() || null,
       notes: notes.trim() || null,
+      listing_id: linkedListing?.id ?? null,
     });
 
     setSaving(false);
@@ -387,107 +427,180 @@ export default function ShowingCertificateScreen() {
               <Text style={styles.sectionTitle}>Taşınmaz Bilgileri</Text>
             </View>
 
-            <Text style={styles.inputLabel}>Şehir *</Text>
-            <View style={styles.pickerWrapper}>
-              <DropdownPicker
-                label="Şehir"
-                value={selectedCity}
-                options={cityOptions}
-                onSelect={handleCityChange}
-                placeholder="Şehir seçin"
-              />
-            </View>
+            {/* Linked listing banner */}
+            {linkedListing && (
+              <View style={styles.linkedBanner}>
+                <Ionicons name="link-outline" size={16} color={Colors.primary} />
+                <Text style={styles.linkedBannerText}>
+                  İlan bilgilerinden otomatik dolduruldu
+                </Text>
+              </View>
+            )}
 
-            <Text style={styles.inputLabel}>İlçe *</Text>
-            <View style={styles.pickerWrapper}>
-              <DropdownPicker
-                label="İlçe"
-                value={selectedDistrict}
-                options={districtOptions}
-                onSelect={handleDistrictChange}
-                placeholder={selectedCity ? 'İlçe seçin' : 'Önce şehir seçin'}
-              />
-            </View>
-
-            {neighborhoodOptions.length > 0 && (
+            {listingLoading ? (
+              <ActivityIndicator size="small" color={Colors.primary} style={{ marginVertical: Spacing.xl }} />
+            ) : linkedListing ? (
               <>
-                <Text style={styles.inputLabel}>Mahalle</Text>
-                <View style={styles.pickerWrapper}>
-                  <DropdownPicker
-                    label="Mahalle"
-                    value={selectedNeighborhood}
-                    options={neighborhoodOptions}
-                    onSelect={setSelectedNeighborhood}
-                    placeholder="Mahalle seçin"
+                {/* Read-only property fields from listing */}
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Şehir</Text>
+                  <Text style={styles.infoValue}>{linkedListing.city}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>İlçe</Text>
+                  <Text style={styles.infoValue}>{linkedListing.district}</Text>
+                </View>
+                {linkedListing.neighborhood && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Mahalle</Text>
+                    <Text style={styles.infoValue}>{linkedListing.neighborhood}</Text>
+                  </View>
+                )}
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Taşınmaz Türü</Text>
+                  <Text style={styles.infoValue}>
+                    {PROPERTY_LABELS[linkedListing.property_type] ?? linkedListing.property_type}
+                  </Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>İşlem Türü</Text>
+                  <Text style={styles.infoValue}>
+                    {TRANSACTION_LABELS[linkedListing.transaction_type] ?? linkedListing.transaction_type}
+                  </Text>
+                </View>
+                {linkedListing.ada && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Ada</Text>
+                    <Text style={styles.infoValue}>{linkedListing.ada}</Text>
+                  </View>
+                )}
+                {linkedListing.parsel && (
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Parsel</Text>
+                    <Text style={styles.infoValue}>{linkedListing.parsel}</Text>
+                  </View>
+                )}
+
+                {/* Address detail is still editable */}
+                <Text style={[styles.inputLabel, { marginTop: Spacing.lg }]}>Adres Detayı</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.input, styles.multilineInput]}
+                    value={addressDetail}
+                    onChangeText={setAddressDetail}
+                    placeholder="Cadde/Sokak, Bina No, Daire No"
+                    placeholderTextColor={Colors.text.tertiary}
+                    multiline
+                    numberOfLines={2}
                   />
                 </View>
               </>
+            ) : (
+              <>
+                {/* Manual entry — no linked listing */}
+                <Text style={styles.inputLabel}>Şehir *</Text>
+                <View style={styles.pickerWrapper}>
+                  <DropdownPicker
+                    label="Şehir"
+                    value={selectedCity}
+                    options={cityOptions}
+                    onSelect={handleCityChange}
+                    placeholder="Şehir seçin"
+                  />
+                </View>
+
+                <Text style={styles.inputLabel}>İlçe *</Text>
+                <View style={styles.pickerWrapper}>
+                  <DropdownPicker
+                    label="İlçe"
+                    value={selectedDistrict}
+                    options={districtOptions}
+                    onSelect={handleDistrictChange}
+                    placeholder={selectedCity ? 'İlçe seçin' : 'Önce şehir seçin'}
+                  />
+                </View>
+
+                {neighborhoodOptions.length > 0 && (
+                  <>
+                    <Text style={styles.inputLabel}>Mahalle</Text>
+                    <View style={styles.pickerWrapper}>
+                      <DropdownPicker
+                        label="Mahalle"
+                        value={selectedNeighborhood}
+                        options={neighborhoodOptions}
+                        onSelect={setSelectedNeighborhood}
+                        placeholder="Mahalle seçin"
+                      />
+                    </View>
+                  </>
+                )}
+
+                <Text style={styles.inputLabel}>Adres Detayı</Text>
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={[styles.input, styles.multilineInput]}
+                    value={addressDetail}
+                    onChangeText={setAddressDetail}
+                    placeholder="Cadde/Sokak, Bina No, Daire No"
+                    placeholderTextColor={Colors.text.tertiary}
+                    multiline
+                    numberOfLines={2}
+                  />
+                </View>
+
+                <Text style={styles.inputLabel}>Taşınmaz Türü *</Text>
+                <View style={styles.pickerWrapper}>
+                  <DropdownPicker
+                    label="Taşınmaz Türü"
+                    value={propertyType}
+                    options={PROPERTY_TYPE_OPTIONS}
+                    onSelect={setPropertyType}
+                    placeholder="Tür seçin"
+                  />
+                </View>
+
+                <Text style={styles.inputLabel}>İşlem Türü *</Text>
+                <View style={styles.pickerWrapper}>
+                  <DropdownPicker
+                    label="İşlem Türü"
+                    value={transactionType}
+                    options={TRANSACTION_TYPE_OPTIONS}
+                    onSelect={setTransactionType}
+                    placeholder="İşlem türü seçin"
+                  />
+                </View>
+
+                {/* Ada / Parsel */}
+                <View style={styles.rowInputs}>
+                  <View style={styles.halfInput}>
+                    <Text style={styles.inputLabel}>Ada</Text>
+                    <View style={styles.inputContainer}>
+                      <TextInput
+                        style={[styles.input, { paddingLeft: Spacing.md }]}
+                        value={ada}
+                        onChangeText={setAda}
+                        placeholder="Ada no"
+                        placeholderTextColor={Colors.text.tertiary}
+                        keyboardType="number-pad"
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.halfInput}>
+                    <Text style={styles.inputLabel}>Parsel</Text>
+                    <View style={styles.inputContainer}>
+                      <TextInput
+                        style={[styles.input, { paddingLeft: Spacing.md }]}
+                        value={parsel}
+                        onChangeText={setParsel}
+                        placeholder="Parsel no"
+                        placeholderTextColor={Colors.text.tertiary}
+                        keyboardType="number-pad"
+                      />
+                    </View>
+                  </View>
+                </View>
+              </>
             )}
-
-            <Text style={styles.inputLabel}>Adres Detayı</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={[styles.input, styles.multilineInput]}
-                value={addressDetail}
-                onChangeText={setAddressDetail}
-                placeholder="Cadde/Sokak, Bina No, Daire No"
-                placeholderTextColor={Colors.text.tertiary}
-                multiline
-                numberOfLines={2}
-              />
-            </View>
-
-            <Text style={styles.inputLabel}>Taşınmaz Türü *</Text>
-            <View style={styles.pickerWrapper}>
-              <DropdownPicker
-                label="Taşınmaz Türü"
-                value={propertyType}
-                options={PROPERTY_TYPE_OPTIONS}
-                onSelect={setPropertyType}
-                placeholder="Tür seçin"
-              />
-            </View>
-
-            <Text style={styles.inputLabel}>İşlem Türü *</Text>
-            <View style={styles.pickerWrapper}>
-              <DropdownPicker
-                label="İşlem Türü"
-                value={transactionType}
-                options={TRANSACTION_TYPE_OPTIONS}
-                onSelect={setTransactionType}
-                placeholder="İşlem türü seçin"
-              />
-            </View>
-
-            {/* Ada / Parsel */}
-            <View style={styles.rowInputs}>
-              <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>Ada</Text>
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={[styles.input, { paddingLeft: Spacing.md }]}
-                    value={ada}
-                    onChangeText={setAda}
-                    placeholder="Ada no"
-                    placeholderTextColor={Colors.text.tertiary}
-                    keyboardType="number-pad"
-                  />
-                </View>
-              </View>
-              <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>Parsel</Text>
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    style={[styles.input, { paddingLeft: Spacing.md }]}
-                    value={parsel}
-                    onChangeText={setParsel}
-                    placeholder="Parsel no"
-                    placeholderTextColor={Colors.text.tertiary}
-                    keyboardType="number-pad"
-                  />
-                </View>
-              </View>
-            </View>
           </View>
 
           {/* Gösterim Bilgileri */}
@@ -744,6 +857,21 @@ const styles = StyleSheet.create({
   autoFillNoteText: {
     ...Typography.caption2,
     color: Colors.text.tertiary,
+  },
+  linkedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.primary + '0A',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    marginBottom: Spacing.lg,
+  },
+  linkedBannerText: {
+    ...Typography.caption1,
+    color: Colors.primary,
+    fontWeight: '600',
   },
   inputLabel: {
     ...Typography.footnote,

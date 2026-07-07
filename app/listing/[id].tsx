@@ -261,6 +261,18 @@ export default function ListingDetailScreen() {
           </Text>
         </View>
 
+        {/* Yer Gösterme Belgesi */}
+        {!isOwner && (
+          <Pressable
+            style={({ pressed }) => [styles.showingCertButton, pressed && { opacity: 0.85 }]}
+            onPress={() => router.push(`/tools/showing-certificate?listingId=${listing.id}` as any)}
+          >
+            <Ionicons name="document-text-outline" size={18} color={Colors.accent} />
+            <Text style={styles.showingCertButtonText}>Yer Gösterme Belgesi Hazırla</Text>
+            <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+          </Pressable>
+        )}
+
         {/* Owner Actions / Match Button */}
         {isOwner ? (
           <View style={styles.ownerActions}>
@@ -378,4 +390,6 @@ const styles = StyleSheet.create({
   calculatorButtonText: { ...Typography.subhead, color: Colors.accent, fontWeight: '600', flex: 1 },
   originalLinkButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.primary + '0A', borderRadius: Radius.lg, padding: Spacing.lg, gap: Spacing.sm, marginBottom: Spacing.lg, borderWidth: 1, borderColor: Colors.primary + '28' },
   originalLinkText: { ...Typography.subhead, color: Colors.primary, fontWeight: '600', flex: 1 },
+  showingCertButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.accent + '0A', borderRadius: Radius.lg, padding: Spacing.lg, gap: Spacing.sm, marginBottom: Spacing.lg, borderWidth: 1, borderColor: Colors.accent + '28' },
+  showingCertButtonText: { ...Typography.subhead, color: Colors.accent, fontWeight: '600', flex: 1 },
 });
