@@ -193,43 +193,56 @@ export default function ListingCard({
         />
       </View>
 
-      {/* Owner: edit + remove buttons / Non-owner: match button */}
+      {/* Owner: showing cert + edit + remove buttons / Non-owner: match button */}
       {isOwnListing ? (
-        <View style={styles.ownerActions}>
+        <>
           <Pressable
             style={({ pressed }) => [
-              styles.editButton,
+              styles.showingCertButton,
               pressed && { opacity: 0.85 },
             ]}
-            onPress={() => router.push(`/create/listing?editId=${listing.id}` as any)}
+            onPress={() => router.push(`/tools/showing-certificate?listingId=${listing.id}` as any)}
           >
-            <Ionicons name="create-outline" size={18} color={Colors.accent} />
-            <Text style={styles.editButtonText}>Düzenle</Text>
+            <Ionicons name="document-text-outline" size={18} color={Colors.accent} />
+            <Text style={styles.showingCertButtonText}>Yer Gösterme Belgesi Hazırla</Text>
+            <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
           </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.removeButton,
-              pressed && { opacity: 0.85 },
-            ]}
-            onPress={() => {
-              Alert.alert(
-                'İlanı Kaldır',
-                'Bu ilan kaldırılacak ve artık diğer danışmanlar tarafından görülmeyecek. Emin misiniz?',
-                [
-                  { text: 'Vazgeç', style: 'cancel' },
-                  {
-                    text: 'Kaldır',
-                    style: 'destructive',
-                    onPress: () => onRemove?.(listing.id),
-                  },
-                ]
-              );
-            }}
-          >
-            <Ionicons name="close-circle-outline" size={18} color={Colors.error} />
-            <Text style={styles.removeButtonText}>Kaldır</Text>
-          </Pressable>
-        </View>
+          <View style={styles.ownerActions}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.editButton,
+                pressed && { opacity: 0.85 },
+              ]}
+              onPress={() => router.push(`/create/listing?editId=${listing.id}` as any)}
+            >
+              <Ionicons name="create-outline" size={18} color={Colors.accent} />
+              <Text style={styles.editButtonText}>Düzenle</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.removeButton,
+                pressed && { opacity: 0.85 },
+              ]}
+              onPress={() => {
+                Alert.alert(
+                  'İlanı Kaldır',
+                  'Bu ilan kaldırılacak ve artık diğer danışmanlar tarafından görülmeyecek. Emin misiniz?',
+                  [
+                    { text: 'Vazgeç', style: 'cancel' },
+                    {
+                      text: 'Kaldır',
+                      style: 'destructive',
+                      onPress: () => onRemove?.(listing.id),
+                    },
+                  ]
+                );
+              }}
+            >
+              <Ionicons name="close-circle-outline" size={18} color={Colors.error} />
+              <Text style={styles.removeButtonText}>Kaldır</Text>
+            </Pressable>
+          </View>
+        </>
       ) : (
         <Pressable
           style={({ pressed }) => [
@@ -423,5 +436,23 @@ const styles = StyleSheet.create({
     ...Typography.subhead,
     color: Colors.error,
     fontWeight: '600',
+  },
+  showingCertButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.accent + '0A',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.accent + '28',
+  },
+  showingCertButtonText: {
+    ...Typography.subhead,
+    color: Colors.accent,
+    fontWeight: '600',
+    flex: 1,
   },
 });

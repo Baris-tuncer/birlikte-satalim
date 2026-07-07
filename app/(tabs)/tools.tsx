@@ -31,13 +31,6 @@ const TOOLS: ToolItem[] = [
     route: '/tools/valuation',
     adminOnly: true,
   },
-  {
-    id: 'showing-certificate',
-    title: 'Yer Gösterme Belgesi',
-    description: 'Dijital yer gösterme belgesi oluşturun ve paylaşın',
-    icon: 'document-text-outline',
-    route: '/tools/showing-certificate',
-  },
 ];
 
 export default function ToolsScreen() {
