@@ -1,10 +1,9 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
-import { useAuth } from '@/lib/auth-context';
 
 interface ToolItem {
   id: string;
@@ -12,7 +11,6 @@ interface ToolItem {
   description: string;
   icon: keyof typeof Ionicons.glyphMap;
   route: string;
-  adminOnly?: boolean;
 }
 
 const TOOLS: ToolItem[] = [
@@ -29,19 +27,11 @@ const TOOLS: ToolItem[] = [
     description: 'Taşınmaz değerlemesi ve hukuki risk analizi',
     icon: 'shield-checkmark-outline',
     route: '/tools/valuation',
-    adminOnly: true,
   },
 ];
 
 export default function ToolsScreen() {
   const router = useRouter();
-  const { profile } = useAuth();
-
-  const visibleTools = useMemo(() => {
-    const devEmails = ['baristuncer80@hotmail.com', 'gokmenozevin1978@hotmail.com'];
-    const isDev = !!profile?.email && devEmails.includes(profile.email);
-    return TOOLS.filter((t) => !t.adminOnly || isDev);
-  }, [profile?.email]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -53,7 +43,7 @@ export default function ToolsScreen() {
         <Text style={styles.subtitle}>Gayrimenkul hesaplama araçları</Text>
 
         <View style={styles.toolsList}>
-          {visibleTools.map((tool) => (
+          {TOOLS.map((tool) => (
             <Pressable
               key={tool.id}
               style={({ pressed }) => [

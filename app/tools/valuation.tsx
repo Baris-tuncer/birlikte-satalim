@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   Share,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useRouter } from 'expo-router';
@@ -17,17 +18,27 @@ import { CITIES, CITY_DISTRICTS } from '@/lib/constants';
 import DropdownPicker from '@/components/ui/DropdownPicker';
 import SegmentControl from '@/components/ui/SegmentControl';
 import {
-  getDistrictPrice,
   hesaplaDegerleme,
   analizEtHukukiRisk,
   NITELIK_OPTIONS,
   TAPU_TIPI_OPTIONS,
   RISK_LEVEL_CONFIG,
+  KONUM_KALITESI_OPTIONS,
   type ValuationResult,
-  type LegalRiskResult,
+  type RiskAnalysisResult,
   type Nitelik,
   type TapuTipi,
+  type KonumKalitesi,
 } from '@/lib/valuation';
+import {
+  getBestPrice,
+  getDistrictNeighborhoods,
+} from '@/lib/neighborhood-prices';
+import {
+  getEarthquakeZone,
+  getEarthquakeRiskLabel,
+} from '@/lib/earthquake-zones';
+import { queryParcel, normalizeNitelik } from '@/lib/tkgm';
 
 function parseNumber(text: string): number {
   return Number(text.replace(/\./g, '')) || 0;
@@ -69,6 +80,24 @@ function ResultRow({
   );
 }
 
+function FindingCard({ finding }: { finding: RiskAnalysisResult['findings'][0] }) {
+  const cfg = RISK_LEVEL_CONFIG[finding.level];
+  return (
+    <View style={[styles.findingCard, { borderLeftColor: cfg.color }]}>
+      <View style={styles.findingHeader}>
+        <Ionicons name={cfg.icon as any} size={18} color={cfg.color} />
+        <Text style={[styles.findingLevel, { color: cfg.color }]}>{cfg.label}</Text>
+      </View>
+      <Text style={styles.findingRule}>{finding.rule}</Text>
+      <Text style={styles.findingMessage}>{finding.message}</Text>
+      <View style={styles.findingActionBox}>
+        <Text style={styles.findingActionLabel}>Yapılması Gereken:</Text>
+        <Text style={styles.findingActionText}>{finding.actionRequired}</Text>
+      </View>
+    </View>
+  );
+}
+
 // ─── Main Screen ─────────────────────────────────────
 
 export default function ValuationScreen() {
@@ -76,56 +105,96 @@ export default function ValuationScreen() {
   const [activeSegment, setActiveSegment] = useState(0);
 
   // — Değerleme state
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [selectedDistrict, setSelectedDistrict] = useState<string | null>(null);
+  const [valCity, setValCity] = useState<string | null>(null);
+  const [valDistrict, setValDistrict] = useState<string | null>(null);
+  const [valNeighborhood, setValNeighborhood] = useState<string | null>(null);
   const [m2Fiyat, setM2Fiyat] = useState('');
   const [yuzolcumu, setYuzolcumu] = useState('');
-  const [valuationResult, setValuationResult] =
-    useState<ValuationResult | null>(null);
+  const [konumKalitesi, setKonumKalitesi] = useState<string | null>('normal');
+  const [valuationResult, setValuationResult] = useState<ValuationResult | null>(null);
+  const [priceLevel, setPriceLevel] = useState<'mahalle' | 'ilce' | null>(null);
 
   // — Risk state
+  const [riskCity, setRiskCity] = useState<string | null>(null);
+  const [riskDistrict, setRiskDistrict] = useState<string | null>(null);
+  const [adaNo, setAdaNo] = useState('');
+  const [parselNo, setParselNo] = useState('');
+  const [tkgmLoading, setTkgmLoading] = useState(false);
+  const [tkgmResult, setTkgmResult] = useState<string | null>(null); // 'success' | 'error' | null
   const [selectedNitelik, setSelectedNitelik] = useState<string | null>(null);
   const [riskYuzolcumu, setRiskYuzolcumu] = useState('');
   const [selectedTapuTipi, setSelectedTapuTipi] = useState<string | null>(null);
-  const [riskResult, setRiskResult] = useState<LegalRiskResult | null>(null);
+  const [riskResult, setRiskResult] = useState<RiskAnalysisResult | null>(null);
 
-  // — Derived
+  // — Derived: options
   const cityOptions = useMemo(
     () => CITIES.map((c) => ({ key: c, label: c })),
     [],
   );
 
-  const districtOptions = useMemo(() => {
-    if (!selectedCity) return [];
-    return (CITY_DISTRICTS[selectedCity] ?? []).map((d) => ({
-      key: d,
-      label: d,
-    }));
-  }, [selectedCity]);
+  const valDistrictOptions = useMemo(() => {
+    if (!valCity) return [];
+    return (CITY_DISTRICTS[valCity] ?? []).map((d) => ({ key: d, label: d }));
+  }, [valCity]);
 
-  const suggestedPrice = useMemo(() => {
-    if (!selectedCity || !selectedDistrict) return null;
-    return getDistrictPrice(selectedCity, selectedDistrict);
-  }, [selectedCity, selectedDistrict]);
+  const valNeighborhoodOptions = useMemo(() => {
+    if (!valCity || !valDistrict) return [];
+    const neighborhoods = getDistrictNeighborhoods(valCity, valDistrict);
+    if (neighborhoods.length === 0) {
+      return [];
+    }
+    return neighborhoods.map((n) => ({ key: n, label: n }));
+  }, [valCity, valDistrict]);
 
-  // — Handlers
-  const handleCityChange = (city: string) => {
-    setSelectedCity(city);
-    setSelectedDistrict(null);
+  const riskDistrictOptions = useMemo(() => {
+    if (!riskCity) return [];
+    return (CITY_DISTRICTS[riskCity] ?? []).map((d) => ({ key: d, label: d }));
+  }, [riskCity]);
+
+  // Deprem bilgisi
+  const riskEarthquakeInfo = useMemo(() => {
+    if (!riskCity || !riskDistrict) return null;
+    const zone = getEarthquakeZone(riskCity, riskDistrict);
+    if (!zone) return null;
+    return { zone, label: getEarthquakeRiskLabel(zone) };
+  }, [riskCity, riskDistrict]);
+
+  // — Değerleme handlers
+  const handleValCityChange = (city: string) => {
+    setValCity(city);
+    setValDistrict(null);
+    setValNeighborhood(null);
     setM2Fiyat('');
     setValuationResult(null);
+    setPriceLevel(null);
   };
 
-  const handleDistrictChange = (district: string) => {
-    setSelectedDistrict(district);
+  const handleValDistrictChange = (district: string) => {
+    setValDistrict(district);
+    setValNeighborhood(null);
     setValuationResult(null);
-    const price = selectedCity
-      ? getDistrictPrice(selectedCity, district)
-      : null;
-    if (price) {
-      setM2Fiyat(formatPriceInput(String(price)));
-    } else {
-      setM2Fiyat('');
+    // Set district-level price as default
+    if (valCity) {
+      const result = getBestPrice(valCity, district);
+      if (result) {
+        setM2Fiyat(formatPriceInput(String(result.price)));
+        setPriceLevel(result.level);
+      } else {
+        setM2Fiyat('');
+        setPriceLevel(null);
+      }
+    }
+  };
+
+  const handleValNeighborhoodChange = (neighborhood: string) => {
+    setValNeighborhood(neighborhood);
+    setValuationResult(null);
+    if (valCity && valDistrict) {
+      const result = getBestPrice(valCity, valDistrict, neighborhood);
+      if (result) {
+        setM2Fiyat(formatPriceInput(String(result.price)));
+        setPriceLevel(result.level);
+      }
     }
   };
 
@@ -133,19 +202,63 @@ export default function ValuationScreen() {
     const fiyat = parseNumber(m2Fiyat);
     const alan = parseFloat(yuzolcumu) || 0;
     if (fiyat <= 0 || alan <= 0) return;
-    setValuationResult(hesaplaDegerleme(fiyat, alan));
+    setValuationResult(
+      hesaplaDegerleme(fiyat, alan, (konumKalitesi as KonumKalitesi) || 'normal'),
+    );
   };
+
+  // — Risk handlers
+  const handleRiskCityChange = (city: string) => {
+    setRiskCity(city);
+    setRiskDistrict(null);
+    setRiskResult(null);
+    setTkgmResult(null);
+  };
+
+  const handleRiskDistrictChange = (district: string) => {
+    setRiskDistrict(district);
+    setRiskResult(null);
+    setTkgmResult(null);
+  };
+
+  const handleTkgmQuery = useCallback(async () => {
+    if (!adaNo.trim() || !parselNo.trim()) return;
+    setTkgmLoading(true);
+    setTkgmResult(null);
+
+    // TKGM API requires mahalleId — for now we pass 0 and rely on ada/parsel
+    // In a full implementation, we'd resolve mahalleId from the selected location
+    // For now, try the query directly
+    try {
+      // Simple query attempt — TKGM may require mahalleId
+      const parcel = await queryParcel(0, adaNo.trim(), parselNo.trim());
+      if (parcel && parcel.nitelik) {
+        setSelectedNitelik(normalizeNitelik(parcel.nitelik));
+        if (parcel.alan > 0) {
+          setRiskYuzolcumu(String(Math.round(parcel.alan)));
+        }
+        setTkgmResult('success');
+      } else {
+        setTkgmResult('error');
+      }
+    } catch {
+      setTkgmResult('error');
+    }
+    setTkgmLoading(false);
+  }, [adaNo, parselNo]);
 
   const handleRiskAnaliz = () => {
     if (!selectedNitelik || !selectedTapuTipi) return;
     const alan = parseFloat(riskYuzolcumu) || 0;
     if (alan <= 0) return;
     setRiskResult(
-      analizEtHukukiRisk(
-        selectedNitelik as Nitelik,
-        alan,
-        selectedTapuTipi as TapuTipi,
-      ),
+      analizEtHukukiRisk({
+        nitelik: selectedNitelik as Nitelik,
+        yuzolcumu: alan,
+        tapuTipi: selectedTapuTipi as TapuTipi,
+        city: riskCity ?? undefined,
+        district: riskDistrict ?? undefined,
+      }),
     );
   };
 
@@ -155,40 +268,44 @@ export default function ValuationScreen() {
     lines.push('═══════════════════════════════════');
     lines.push(`Tarih: ${new Date().toLocaleDateString('tr-TR')}`);
 
-    if (valuationResult && selectedCity && selectedDistrict) {
+    if (valuationResult && valCity && valDistrict) {
       lines.push('');
       lines.push('── FİYAT DEĞERLEMESİ ──────────────');
-      lines.push(`Konum: ${selectedCity} / ${selectedDistrict}`);
+      const loc = [valCity, valDistrict, valNeighborhood].filter(Boolean).join(' / ');
+      lines.push(`Konum: ${loc}`);
       lines.push(`m² Fiyatı: ${formatPrice(parseNumber(m2Fiyat))}`);
       lines.push(`Yüzölçümü: ${yuzolcumu} m²`);
+      if (konumKalitesi && konumKalitesi !== 'normal') {
+        const kLabel = KONUM_KALITESI_OPTIONS.find((o) => o.key === konumKalitesi)?.label;
+        if (kLabel) lines.push(`Konum Kalitesi: ${kLabel}`);
+      }
       lines.push('');
       lines.push(`Baz Değer: ${formatPrice(valuationResult.basePrice)}`);
-      lines.push(
-        `Hızlı Satış (~3-4 hafta): ${formatPrice(valuationResult.hizliSatis)}`,
-      );
-      lines.push(
-        `3 Aylık Satış: ${formatPrice(valuationResult.ucAylik)}`,
-      );
-      lines.push(
-        `6+ Aylık Satış: ${formatPrice(valuationResult.altiAylikMin)} – ${formatPrice(valuationResult.altiAylikMax)}`,
-      );
+      lines.push(`Hızlı Satış (~3-4 hafta): ${formatPrice(valuationResult.hizliSatis)}`);
+      lines.push(`3 Aylık Satış: ${formatPrice(valuationResult.ucAylik)}`);
+      lines.push(`6+ Aylık Satış: ${formatPrice(valuationResult.altiAylikMin)} – ${formatPrice(valuationResult.altiAylikMax)}`);
     }
 
     if (riskResult) {
-      const cfg = RISK_LEVEL_CONFIG[riskResult.level];
+      const cfg = RISK_LEVEL_CONFIG[riskResult.overallLevel];
       lines.push('');
       lines.push('── HUKUKİ RİSK ANALİZİ ────────────');
-      lines.push(`Risk Düzeyi: ${cfg.label}`);
-      lines.push(`Dayanak: ${riskResult.rule}`);
-      lines.push(`Açıklama: ${riskResult.message}`);
-      lines.push(`Yapılması Gereken: ${riskResult.actionRequired}`);
+      lines.push(`Genel Risk Düzeyi: ${cfg.label}`);
+      if (riskResult.earthquakeLabel) {
+        lines.push(`Deprem Bölgesi: ${riskResult.earthquakeLabel}`);
+      }
+      lines.push('');
+      riskResult.findings.forEach((f, i) => {
+        const fCfg = RISK_LEVEL_CONFIG[f.level];
+        lines.push(`${i + 1}. ${fCfg.label} — ${f.rule}`);
+        lines.push(`   ${f.message}`);
+        lines.push(`   → ${f.actionRequired}`);
+        lines.push('');
+      });
     }
 
-    lines.push('');
     lines.push('─────────────────────────────────────');
-    lines.push(
-      'Bu rapor tahmini bilgi amaçlıdır. Kesin hukuki değerlendirme için uzman görüşü alın.',
-    );
+    lines.push('Bu rapor tahmini bilgi amaçlıdır. Kesin hukuki değerlendirme için uzman görüşü alın.');
 
     await Share.share({ message: lines.join('\n'), title: 'Değerleme Raporu' });
   };
@@ -211,15 +328,7 @@ export default function ValuationScreen() {
           },
           headerStyle: { backgroundColor: Colors.background },
           headerShadowVisible: false,
-          headerLeft: () => (
-            <Pressable onPress={() => router.back()} hitSlop={8}>
-              <Ionicons
-                name="chevron-back"
-                size={28}
-                color={Colors.text.primary}
-              />
-            </Pressable>
-          ),
+          headerBackTitle: 'Geri',
         }}
       />
 
@@ -267,9 +376,9 @@ export default function ValuationScreen() {
             <View style={styles.pickerWrapper}>
               <DropdownPicker
                 label="Şehir"
-                value={selectedCity}
+                value={valCity}
                 options={cityOptions}
-                onSelect={handleCityChange}
+                onSelect={handleValCityChange}
                 placeholder="Şehir seçin"
               />
             </View>
@@ -279,17 +388,31 @@ export default function ValuationScreen() {
             <View style={styles.pickerWrapper}>
               <DropdownPicker
                 label="İlçe"
-                value={selectedDistrict}
-                options={districtOptions}
-                onSelect={handleDistrictChange}
-                placeholder={
-                  selectedCity ? 'İlçe seçin' : 'Önce şehir seçin'
-                }
+                value={valDistrict}
+                options={valDistrictOptions}
+                onSelect={handleValDistrictChange}
+                placeholder={valCity ? 'İlçe seçin' : 'Önce şehir seçin'}
               />
             </View>
 
-            {/* Suggested price info */}
-            {suggestedPrice && (
+            {/* Mahalle */}
+            {valDistrict && valNeighborhoodOptions.length > 0 && (
+              <>
+                <Text style={styles.inputLabel}>Mahalle</Text>
+                <View style={styles.pickerWrapper}>
+                  <DropdownPicker
+                    label="Mahalle"
+                    value={valNeighborhood}
+                    options={valNeighborhoodOptions}
+                    onSelect={handleValNeighborhoodChange}
+                    placeholder="Mahalle seçin (opsiyonel)"
+                  />
+                </View>
+              </>
+            )}
+
+            {/* Price info chip */}
+            {priceLevel && parseNumber(m2Fiyat) > 0 && (
               <View style={styles.infoChip}>
                 <Ionicons
                   name="analytics-outline"
@@ -297,7 +420,8 @@ export default function ValuationScreen() {
                   color={Colors.primary}
                 />
                 <Text style={styles.infoChipText}>
-                  İlçe ortalaması: {formatPrice(suggestedPrice)}/m²
+                  {priceLevel === 'mahalle' ? 'Mahalle ortalaması' : 'İlçe ortalaması'}:{' '}
+                  {formatPrice(parseNumber(m2Fiyat))}/m²
                 </Text>
               </View>
             )}
@@ -336,6 +460,24 @@ export default function ValuationScreen() {
               <Text style={styles.inputSuffix}>m²</Text>
             </View>
 
+            {/* Konum Kalitesi */}
+            <Text style={styles.inputLabel}>Konum Kalitesi (Şerefiye)</Text>
+            <View style={styles.pickerWrapper}>
+              <DropdownPicker
+                label="Konum Kalitesi"
+                value={konumKalitesi}
+                options={KONUM_KALITESI_OPTIONS.map((o) => ({
+                  key: o.key,
+                  label: `${o.label} (${o.carpan > 1 ? '+' : ''}${Math.round((o.carpan - 1) * 100)}%)`,
+                }))}
+                onSelect={(v) => {
+                  setKonumKalitesi(v);
+                  setValuationResult(null);
+                }}
+                placeholder="Konum kalitesi seçin"
+              />
+            </View>
+
             {/* Hesapla */}
             <Pressable
               style={({ pressed }) => [
@@ -354,7 +496,7 @@ export default function ValuationScreen() {
               <View style={styles.resultCard}>
                 <ResultRow
                   label="Baz Değer"
-                  sublabel="m² × yüzölçümü"
+                  sublabel="m² × yüzölçümü × konum çarpanı"
                   value={formatPrice(valuationResult.basePrice)}
                   bold
                 />
@@ -379,7 +521,6 @@ export default function ValuationScreen() {
                 />
                 <View style={styles.resultDividerThick} />
 
-                {/* Paylaş */}
                 <Pressable
                   style={({ pressed }) => [
                     styles.shareButton,
@@ -387,11 +528,7 @@ export default function ValuationScreen() {
                   ]}
                   onPress={handleShare}
                 >
-                  <Ionicons
-                    name="share-outline"
-                    size={18}
-                    color={Colors.primary}
-                  />
+                  <Ionicons name="share-outline" size={18} color={Colors.primary} />
                   <Text style={styles.shareButtonText}>Raporu Paylaş</Text>
                 </Pressable>
               </View>
@@ -410,6 +547,114 @@ export default function ValuationScreen() {
               />
               <Text style={styles.sectionTitle}>Hukuki Risk Analizi</Text>
             </View>
+
+            {/* Konum Seçimi */}
+            <Text style={styles.inputLabel}>Şehir</Text>
+            <View style={styles.pickerWrapper}>
+              <DropdownPicker
+                label="Şehir"
+                value={riskCity}
+                options={cityOptions}
+                onSelect={handleRiskCityChange}
+                placeholder="Şehir seçin"
+              />
+            </View>
+
+            <Text style={styles.inputLabel}>İlçe</Text>
+            <View style={styles.pickerWrapper}>
+              <DropdownPicker
+                label="İlçe"
+                value={riskDistrict}
+                options={riskDistrictOptions}
+                onSelect={handleRiskDistrictChange}
+                placeholder={riskCity ? 'İlçe seçin' : 'Önce şehir seçin'}
+              />
+            </View>
+
+            {/* Deprem Bölgesi Bilgisi */}
+            {riskEarthquakeInfo && (
+              <View style={[
+                styles.earthquakeChip,
+                riskEarthquakeInfo.zone <= 2 && styles.earthquakeChipHigh,
+              ]}>
+                <Ionicons
+                  name="warning-outline"
+                  size={16}
+                  color={riskEarthquakeInfo.zone <= 2 ? Colors.warning : Colors.text.secondary}
+                />
+                <Text style={[
+                  styles.earthquakeChipText,
+                  riskEarthquakeInfo.zone <= 2 && { color: Colors.warning, fontWeight: '600' },
+                ]}>
+                  {riskEarthquakeInfo.label}
+                </Text>
+              </View>
+            )}
+
+            {/* Ada / Parsel */}
+            <Text style={styles.inputLabel}>Ada / Parsel (Opsiyonel — TKGM Sorgusu)</Text>
+            <View style={styles.adaParselRow}>
+              <View style={[styles.inputContainer, { flex: 1, marginBottom: 0 }]}>
+                <TextInput
+                  style={[styles.input, { paddingLeft: Spacing.md }]}
+                  value={adaNo}
+                  onChangeText={(t) => {
+                    setAdaNo(t.replace(/[^0-9]/g, ''));
+                    setTkgmResult(null);
+                  }}
+                  keyboardType="number-pad"
+                  placeholder="Ada No"
+                  placeholderTextColor={Colors.text.tertiary}
+                />
+              </View>
+              <View style={[styles.inputContainer, { flex: 1, marginBottom: 0 }]}>
+                <TextInput
+                  style={[styles.input, { paddingLeft: Spacing.md }]}
+                  value={parselNo}
+                  onChangeText={(t) => {
+                    setParselNo(t.replace(/[^0-9]/g, ''));
+                    setTkgmResult(null);
+                  }}
+                  keyboardType="number-pad"
+                  placeholder="Parsel No"
+                  placeholderTextColor={Colors.text.tertiary}
+                />
+              </View>
+            </View>
+
+            {/* TKGM Sorgula */}
+            {adaNo.trim() && parselNo.trim() && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.tkgmButton,
+                  pressed && { opacity: 0.85 },
+                  tkgmLoading && { opacity: 0.6 },
+                ]}
+                onPress={handleTkgmQuery}
+                disabled={tkgmLoading}
+              >
+                {tkgmLoading ? (
+                  <ActivityIndicator size="small" color={Colors.primary} />
+                ) : (
+                  <Ionicons name="search-outline" size={18} color={Colors.primary} />
+                )}
+                <Text style={styles.tkgmButtonText}>TKGM Sorgula</Text>
+              </Pressable>
+            )}
+
+            {/* TKGM Sonuç */}
+            {tkgmResult === 'success' && (
+              <View style={styles.tkgmSuccessChip}>
+                <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                <Text style={styles.tkgmSuccessText}>TKGM'den doğrulandı — nitelik ve alan otomatik dolduruldu</Text>
+              </View>
+            )}
+            {tkgmResult === 'error' && (
+              <View style={styles.tkgmErrorChip}>
+                <Ionicons name="close-circle" size={16} color={Colors.error} />
+                <Text style={styles.tkgmErrorText}>Parsel bulunamadı — manuel girin</Text>
+              </View>
+            )}
 
             {/* Nitelik */}
             <Text style={styles.inputLabel}>Arazi Niteliği</Text>
@@ -471,66 +716,59 @@ export default function ValuationScreen() {
               <Text style={styles.calculateButtonText}>Analiz Et</Text>
             </Pressable>
 
-            {/* Sonuç */}
-            {riskResult && (() => {
-              const cfg = RISK_LEVEL_CONFIG[riskResult.level];
-              return (
-                <View style={styles.resultCard}>
-                  {/* Risk Badge */}
-                  <View
-                    style={[
-                      styles.riskBadge,
-                      { backgroundColor: cfg.color + '14', borderColor: cfg.color },
-                    ]}
-                  >
-                    <Ionicons
-                      name={cfg.icon as any}
-                      size={22}
-                      color={cfg.color}
-                    />
-                    <Text style={[styles.riskBadgeText, { color: cfg.color }]}>
-                      {cfg.label}
+            {/* Risk Sonuçları */}
+            {riskResult && (
+              <View style={styles.riskResultContainer}>
+                {/* Genel Risk Badge */}
+                {(() => {
+                  const cfg = RISK_LEVEL_CONFIG[riskResult.overallLevel];
+                  return (
+                    <View
+                      style={[
+                        styles.riskBadge,
+                        { backgroundColor: cfg.color + '14', borderColor: cfg.color },
+                      ]}
+                    >
+                      <Ionicons name={cfg.icon as any} size={22} color={cfg.color} />
+                      <Text style={[styles.riskBadgeText, { color: cfg.color }]}>
+                        Genel: {cfg.label}
+                      </Text>
+                    </View>
+                  );
+                })()}
+
+                {/* Deprem Bilgisi */}
+                {riskResult.earthquakeLabel && (
+                  <View style={styles.earthquakeResultChip}>
+                    <Ionicons name="earth-outline" size={16} color={Colors.text.secondary} />
+                    <Text style={styles.earthquakeResultText}>
+                      {riskResult.earthquakeLabel}
                     </Text>
                   </View>
+                )}
 
-                  <View style={styles.resultDivider} />
+                {/* Bulgular */}
+                <Text style={styles.findingsTitle}>
+                  {riskResult.findings.length} Bulgu
+                </Text>
+                {riskResult.findings.map((f, i) => (
+                  <FindingCard key={i} finding={f} />
+                ))}
 
-                  <ResultRow label="Hukuki Dayanak" value={riskResult.rule} />
-
-                  <View style={styles.resultDivider} />
-
-                  <Text style={styles.riskMessageLabel}>Açıklama</Text>
-                  <Text style={styles.riskMessageText}>
-                    {riskResult.message}
-                  </Text>
-
-                  <View style={styles.resultDivider} />
-
-                  <Text style={styles.riskMessageLabel}>Yapılması Gereken</Text>
-                  <Text style={styles.riskActionText}>
-                    {riskResult.actionRequired}
-                  </Text>
-
-                  <View style={styles.resultDividerThick} />
-
-                  {/* Paylaş */}
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.shareButton,
-                      pressed && { opacity: 0.85 },
-                    ]}
-                    onPress={handleShare}
-                  >
-                    <Ionicons
-                      name="share-outline"
-                      size={18}
-                      color={Colors.primary}
-                    />
-                    <Text style={styles.shareButtonText}>Raporu Paylaş</Text>
-                  </Pressable>
-                </View>
-              );
-            })()}
+                {/* Paylaş */}
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.shareButton,
+                    pressed && { opacity: 0.85 },
+                    { marginTop: Spacing.md },
+                  ]}
+                  onPress={handleShare}
+                >
+                  <Ionicons name="share-outline" size={18} color={Colors.primary} />
+                  <Text style={styles.shareButtonText}>Raporu Paylaş</Text>
+                </Pressable>
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -698,37 +936,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
     marginVertical: Spacing.sm,
   },
-  riskBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-  },
-  riskBadgeText: {
-    ...Typography.headline,
-    fontWeight: '700',
-  },
-  riskMessageLabel: {
-    ...Typography.caption1,
-    color: Colors.text.tertiary,
-    fontWeight: '600',
-    marginBottom: Spacing.xs,
-    marginTop: Spacing.xs,
-  },
-  riskMessageText: {
-    ...Typography.footnote,
-    color: Colors.text.primary,
-    lineHeight: 20,
-  },
-  riskActionText: {
-    ...Typography.footnote,
-    color: Colors.text.secondary,
-    lineHeight: 20,
-    fontStyle: 'italic',
-  },
   shareButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -744,5 +951,165 @@ const styles = StyleSheet.create({
     ...Typography.subhead,
     color: Colors.primary,
     fontWeight: '600',
+  },
+  // Risk Analizi ek stiller
+  adaParselRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  tkgmButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary + '28',
+    backgroundColor: Colors.primary + '0A',
+    marginBottom: Spacing.lg,
+  },
+  tkgmButtonText: {
+    ...Typography.subhead,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  tkgmSuccessChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.success + '0A',
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  tkgmSuccessText: {
+    ...Typography.caption1,
+    color: Colors.success,
+    fontWeight: '500',
+    flex: 1,
+  },
+  tkgmErrorChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.error + '0A',
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  tkgmErrorText: {
+    ...Typography.caption1,
+    color: Colors.error,
+    fontWeight: '500',
+    flex: 1,
+  },
+  earthquakeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  earthquakeChipHigh: {
+    backgroundColor: Colors.warning + '0A',
+    borderColor: Colors.warning + '28',
+  },
+  earthquakeChipText: {
+    ...Typography.caption1,
+    color: Colors.text.secondary,
+    flex: 1,
+  },
+  // Risk sonuçları
+  riskResultContainer: {
+    marginTop: Spacing.xl,
+  },
+  riskBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    marginBottom: Spacing.md,
+  },
+  riskBadgeText: {
+    ...Typography.headline,
+    fontWeight: '700',
+  },
+  earthquakeResultChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.background,
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  earthquakeResultText: {
+    ...Typography.caption1,
+    color: Colors.text.secondary,
+  },
+  findingsTitle: {
+    ...Typography.footnote,
+    color: Colors.text.tertiary,
+    fontWeight: '600',
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  findingCard: {
+    backgroundColor: Colors.background,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderLeftWidth: 3,
+  },
+  findingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  findingLevel: {
+    ...Typography.footnote,
+    fontWeight: '700',
+  },
+  findingRule: {
+    ...Typography.caption1,
+    color: Colors.text.tertiary,
+    marginBottom: Spacing.xs,
+  },
+  findingMessage: {
+    ...Typography.footnote,
+    color: Colors.text.primary,
+    lineHeight: 20,
+    marginBottom: Spacing.sm,
+  },
+  findingActionBox: {
+    backgroundColor: Colors.card,
+    borderRadius: Radius.sm,
+    padding: Spacing.sm,
+  },
+  findingActionLabel: {
+    ...Typography.caption2,
+    color: Colors.text.tertiary,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  findingActionText: {
+    ...Typography.caption1,
+    color: Colors.text.secondary,
+    lineHeight: 18,
+    fontStyle: 'italic',
   },
 });
