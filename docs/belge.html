@@ -433,6 +433,14 @@
           İşbu belge ile yukarıda bilgileri yer alan taşınmazın, belirtilen tarih ve saatte
           emlak danışmanı tarafından müşteriye gösterildiği kayıt altına alınmıştır.
           Taraflar, bu gösterim işleminin gerçekleştiğini kabul ve beyan eder.
+          <span id="confirmed-declaration" style="display:none;">
+            <br><br>
+            <strong>Bu belge, müşteri tarafından dijital ortamda onaylanmış olup;
+            6098 sayılı Türk Borçlar Kanunu ve 6563 sayılı Elektronik Ticaretin Düzenlenmesi
+            Hakkında Kanun kapsamında elektronik onay niteliği taşımaktadır.
+            Taraflar, işbu belgenin içeriğini ve gösterim işleminin gerçekleştiğini
+            gayri kabili rücu olarak kabul, beyan ve taahhüt eder.</strong>
+          </span>
         </div>
 
         <!-- Signatures -->
@@ -451,9 +459,11 @@
           </div>
         </div>
 
-        <!-- Confirmation info (print) -->
+        <!-- Confirmation info -->
         <div class="cert-footer" id="cert-footer">
           Bu belge dijital olarak oluşturulmuştur.
+        </div>
+        <div class="cert-footer" id="cert-footer-confirmed" style="display:none; color: #059669; font-weight: 600; font-size: 0.8rem;">
         </div>
       </div>
 
@@ -468,18 +478,8 @@
       </div>
     </div>
 
-    <!-- Success -->
+    <!-- Success (no longer used as separate state, kept for backwards compat) -->
     <div id="state-success" class="state">
-      <div class="success">
-        <div class="success-icon">&#9989;</div>
-        <h2>Belge Onaylandı</h2>
-        <p>Yer gösterme belgesi başarıyla onaylanmıştır.<br>Bu sayfayı kapatabilirsiniz.</p>
-      </div>
-      <div class="action-bar" style="margin-top: 20px;">
-        <button class="action-btn secondary" onclick="window.print()">
-          &#128438; PDF Olarak İndir
-        </button>
-      </div>
     </div>
 
   </div>
@@ -597,8 +597,12 @@
         document.getElementById('confirmed-badge-screen').style.display = '';
         document.getElementById('confirm-area').style.display = 'none';
         document.getElementById('cert-stamp').classList.add('visible');
+        document.getElementById('confirmed-declaration').style.display = '';
         document.getElementById('cert-footer').textContent =
-          'Bu belge dijital olarak oluşturulmuş ve ' + formatDateTime(data.confirmed_at) + ' tarihinde müşteri tarafından onaylanmıştır.';
+          'Bu belge dijital olarak oluşturulmuş ve ' + formatDateTime(data.confirmed_at) + ' tarihinde müşteri tarafından elektronik ortamda onaylanmıştır.';
+        document.getElementById('cert-footer-confirmed').style.display = '';
+        document.getElementById('cert-footer-confirmed').textContent =
+          'Onay Tarihi: ' + formatDateTime(data.confirmed_at);
       } else {
         document.getElementById('confirm-area').style.display = '';
       }
@@ -620,12 +624,19 @@
         return;
       }
 
-      // Update stamp and footer
-      document.getElementById('cert-stamp').classList.add('visible');
-      document.getElementById('cert-footer').textContent =
-        'Bu belge dijital olarak oluşturulmuş ve müşteri tarafından onaylanmıştır.';
+      // Show confirmed state on the certificate itself (don't navigate away)
+      const now = new Date();
+      const confirmedDateStr = now.toLocaleDateString('tr-TR') + ' ' + now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 
-      show('success');
+      document.getElementById('cert-stamp').classList.add('visible');
+      document.getElementById('confirmed-declaration').style.display = '';
+      document.getElementById('confirmed-badge-screen').style.display = '';
+      document.getElementById('confirm-area').style.display = 'none';
+      document.getElementById('cert-footer').textContent =
+        'Bu belge dijital olarak oluşturulmuş ve ' + confirmedDateStr + ' tarihinde müşteri tarafından elektronik ortamda onaylanmıştır.';
+      document.getElementById('cert-footer-confirmed').style.display = '';
+      document.getElementById('cert-footer-confirmed').textContent =
+        'Onay Tarihi: ' + confirmedDateStr;
     };
 
     loadCertificate();
