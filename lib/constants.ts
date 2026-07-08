@@ -3,7 +3,7 @@ import type { TransactionType, PropertyType } from '@/types';
 // ─── Şehirler ─────────────────────────────────────────
 
 export const CITIES = [
-  'İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Balıkesir', 'Kocaeli',
+  'İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Balıkesir', 'Çanakkale', 'Kocaeli',
   'Mersin', 'Muğla', 'Tekirdağ', 'Eskişehir', 'Sakarya', 'Samsun', 'Edirne',
   'Kayseri', 'Konya', 'Kuzey Kıbrıs',
 ] as const;
@@ -114,6 +114,10 @@ export const CITY_DISTRICTS: Record<string, string[]> = {
     'Karapınar', 'Karatay', 'Kulu', 'Meram', 'Sarayönü',
     'Selçuklu', 'Seydişehir', 'Taşkent', 'Tuzlukçu', 'Yalıhüyük',
     'Yunak',
+  ],
+  'Çanakkale': [
+    'Merkez', 'Ayvacık', 'Bayramiç', 'Biga', 'Bozcaada', 'Çan',
+    'Eceabat', 'Ezine', 'Gelibolu', 'Gökçeada', 'Lapseki', 'Yenice',
   ],
   'Kuzey Kıbrıs': [
     'Lefkoşa', 'Gazimağusa', 'Girne', 'Güzelyurt', 'İskele', 'Lefke',
@@ -2631,6 +2635,53 @@ export const MERSIN_NEIGHBORHOODS: Record<string, string[]> = {
   ],
 };
 
+export const CANAKKALE_NEIGHBORHOODS: Record<string, string[]> = {
+  'Merkez': [
+    'Barbaros', 'Boğazkent', 'Cevatpaşa', 'Cumhuriyet', 'Esenler',
+    'Fevzipaşa', 'Hamidiye', 'İsmetpaşa', 'Kemalpaşa', 'Namık Kemal',
+  ],
+  'Ayvacık': [
+    'Atatürk', 'Fatih', 'Gökçetepe', 'Hamdibey', 'Kızılkeçili',
+    'Mıhlı', 'Sahil', 'Ümmühan',
+  ],
+  'Bayramiç': [
+    'Camicedit', 'Camikebir', 'Menderes', 'Tepecik',
+  ],
+  'Biga': [
+    'Cumhuriyet', 'Çavuşköy', 'Esentepe', 'Gazikemal', 'Hamdibey',
+    'İğdelik', 'İstiklal', 'Sakarya', 'Şirintepe', 'Turan',
+    'Ulucamii', 'Yalı', 'Yeniceköy', 'Zeytinlik',
+  ],
+  'Bozcaada': [
+    'Alaybey', 'Cumhuriyet',
+  ],
+  'Çan': [
+    'Atatürk', 'Cumhuriyet', 'Çakmakçayır', 'Fatih', 'İstiklal',
+    'Karşıyaka', 'Osmanefendi', 'Seramik', 'Süle',
+  ],
+  'Eceabat': [
+    'İsmetpaşa', 'Kemalpaşa',
+  ],
+  'Ezine': [
+    'Camikebir', 'Cumhuriyet', 'Danişment', 'Gazi', 'Hürriyet',
+    'Sarısöğüt', 'Seferşah',
+  ],
+  'Gelibolu': [
+    'Alaeddin', 'Camikebir', 'Cumhuriyet', 'Çeşme', 'Gazi Süleyman Paşa',
+    'Hoca Hamza', 'Hürriyet', 'Keşanoğlu', 'Yeni', 'Yazıcızade',
+  ],
+  'Gökçeada': [
+    'Cumhuriyet', 'Çınarlı', 'Fatih', 'Kuzulimanı', 'Yeni',
+  ],
+  'Lapseki': [
+    'Cumhuriyet', 'Dalyan', 'Gazi Süleyman Paşa', 'Gaziyakupbey',
+    'Tekke', 'Umurbey Merkez',
+  ],
+  'Yenice': [
+    'Atatürk', 'Cumhuriyet', 'Eski Yenice', 'Kışlalar', 'Kurtuluş', 'Yeni',
+  ],
+};
+
 export function getDistrictsForCity(city: string): string[] {
   return CITY_DISTRICTS[city] ?? CITY_DISTRICTS['İstanbul'];
 }
@@ -2652,6 +2703,7 @@ export function getNeighborhoodsForDistrict(city: string, district: string): str
   if (city === 'Konya') return KONYA_NEIGHBORHOODS[district] ?? [];
   if (city === 'Balıkesir') return BALIKESIR_NEIGHBORHOODS[district] ?? [];
   if (city === 'Mersin') return MERSIN_NEIGHBORHOODS[district] ?? [];
+  if (city === 'Çanakkale') return CANAKKALE_NEIGHBORHOODS[district] ?? [];
   return [];
 }
 
