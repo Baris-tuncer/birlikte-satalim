@@ -25,8 +25,9 @@ import {
   BUILDING_AGE_OPTIONS,
   getNeighborhoodsForDistrict,
 } from '@/lib/constants';
+import * as ImagePicker from 'expo-image-picker';
 import { formatPriceInput, checkContent } from '@/lib/format';
-import { useCreateListing, useUpdateListing } from '@/lib/hooks';
+import { useCreateListing, useUpdateListing, extractListingFromImage } from '@/lib/hooks';
 import { supabase } from '@/lib/supabase';
 import DropdownPicker from '@/components/ui/DropdownPicker';
 import type { TransactionType, PropertyType, Listing } from '@/types';
@@ -64,6 +65,10 @@ export default function CreateListingScreen() {
   const [priceText, setPriceText] = useState('');
   const [description, setDescription] = useState('');
   const [listingUrl, setListingUrl] = useState('');
+
+  // AI import state
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiImported, setAiImported] = useState(false);
 
   // Düzenleme modunda mevcut veriyi yükle
   useEffect(() => {
@@ -128,6 +133,101 @@ export default function CreateListingScreen() {
   };
 
   const parsePrice = (text: string) => Number(text.replace(/\./g, '').replace(/,/g, ''));
+
+  const handleScreenshotImport = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('İzin Gerekli', 'Galeri erişim izni gerekiyor.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: 3,
+      quality: 0.7,
+      base64: true,
+    });
+
+    if (result.canceled || !result.assets?.length) return;
+
+    const base64Images = result.assets
+      .filter((a) => a.base64)
+      .map((a) => a.base64!);
+
+    if (base64Images.length === 0) {
+      Alert.alert('Hata', 'Görüntüler okunamadı, tekrar deneyin.');
+      return;
+    }
+
+    setAiLoading(true);
+    setAiImported(false);
+
+    const { data, error } = await extractListingFromImage(base64Images);
+
+    setAiLoading(false);
+
+    if (error || !data) {
+      Alert.alert('AI Hatası', error || 'Bilgiler çıkarılamadı, manuel doldurun.');
+      return;
+    }
+
+    // Form alanlarını doldur
+    const warnings: string[] = [];
+
+    if (data.transaction_type) {
+      setTransactionType(data.transaction_type);
+    }
+    if (data.property_type) {
+      setPropertyType(data.property_type);
+    }
+
+    // Şehir/İlçe/Mahalle — sistemde var mı kontrol et
+    if (data.city) {
+      if ((CITIES as readonly string[]).includes(data.city)) {
+        setCity(data.city);
+        if (data.district) {
+          const districts = CITY_DISTRICTS[data.city] ?? [];
+          if (districts.includes(data.district)) {
+            setDistrict(data.district);
+            if (data.neighborhood) {
+              const nbrs = getNeighborhoodsForDistrict(data.city, data.district);
+              if (nbrs.includes(data.neighborhood)) {
+                setNeighborhood(data.neighborhood);
+              } else {
+                warnings.push(`Mahalle "${data.neighborhood}" sistemde bulunamadı`);
+              }
+            }
+          } else {
+            warnings.push(`İlçe "${data.district}" sistemde bulunamadı`);
+          }
+        }
+      } else {
+        warnings.push(`Şehir "${data.city}" sistemde bulunamadı`);
+      }
+    }
+
+    if (data.room_count) setRoomCount(data.room_count);
+    if (data.net_area) setNetArea(String(data.net_area));
+    if (data.gross_area) setGrossArea(String(data.gross_area));
+    if (data.floor != null) setFloor(String(data.floor));
+    if (data.total_floors) setTotalFloors(String(data.total_floors));
+    if (data.building_age) setBuildingAge(data.building_age);
+    if (data.has_parking != null) setHasParking(data.has_parking);
+    if (data.has_elevator != null) setHasElevator(data.has_elevator);
+    if (data.heating_type) setHeatingType(data.heating_type);
+    if (data.price) setPriceText(formatPriceInput(String(data.price)));
+    if (data.description) setDescription(data.description.slice(0, 500));
+
+    setAiImported(true);
+
+    if (warnings.length > 0) {
+      Alert.alert(
+        'Kısmen Dolduruldu',
+        `Bazı alanlar manuel seçilmeli:\n\n${warnings.join('\n')}`,
+      );
+    }
+  };
 
   const handleSubmit = async () => {
     if (!transactionType) return Alert.alert('Hata', 'İşlem tipi seçin.');
@@ -219,6 +319,45 @@ export default function CreateListingScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+            {/* AI Import */}
+            <Pressable
+              style={({ pressed }) => [
+                styles.aiImportButton,
+                pressed && !aiLoading && { opacity: 0.85 },
+                aiLoading && { opacity: 0.6 },
+              ]}
+              onPress={handleScreenshotImport}
+              disabled={aiLoading}
+            >
+              {aiLoading ? (
+                <ActivityIndicator size="small" color={Colors.primary} />
+              ) : (
+                <Ionicons name="camera-outline" size={22} color={Colors.primary} />
+              )}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.aiImportTitle}>
+                  {aiLoading ? 'AI analiz ediyor...' : 'Ekran Görüntüsünden Aktar'}
+                </Text>
+                <Text style={styles.aiImportSubtitle}>
+                  {aiLoading
+                    ? 'Lütfen bekleyin'
+                    : 'Sahibinden SS\'i ile otomatik doldur'}
+                </Text>
+              </View>
+              {!aiLoading && (
+                <Ionicons name="chevron-forward" size={18} color={Colors.text.tertiary} />
+              )}
+            </Pressable>
+
+            {aiImported && (
+              <View style={styles.aiSuccessChip}>
+                <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                <Text style={styles.aiSuccessText}>
+                  AI ile dolduruldu — kontrol edip düzenleyebilirsiniz
+                </Text>
+              </View>
+            )}
+
             {/* İşlem Tipi */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>İşlem Tipi</Text>
@@ -547,6 +686,45 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing['5xl'],
+  },
+  aiImportButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    backgroundColor: Colors.primary + '0A',
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.primary + '28',
+    borderStyle: 'dashed',
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  aiImportTitle: {
+    ...Typography.subhead,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  aiImportSubtitle: {
+    ...Typography.caption1,
+    color: Colors.text.secondary,
+    marginTop: 2,
+  },
+  aiSuccessChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.success + '0A',
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  aiSuccessText: {
+    ...Typography.caption1,
+    color: Colors.success,
+    fontWeight: '500',
+    flex: 1,
   },
   section: {
     marginBottom: Spacing.xl,

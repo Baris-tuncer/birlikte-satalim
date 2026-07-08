@@ -662,3 +662,64 @@ export function useCalculatorConfig() {
 
   return { tapuConfig, krediConfig, loading, refetch: fetch };
 }
+
+// ─── EXTRACT LISTING FROM IMAGE (AI Vision) ─────────
+
+export interface ExtractedListing {
+  transaction_type?: 'SALE' | 'RENT' | null;
+  property_type?: 'RESIDENTIAL' | 'COMMERCIAL' | 'LAND' | 'URBAN_RENEWAL' | null;
+  city?: string | null;
+  district?: string | null;
+  neighborhood?: string | null;
+  room_count?: string | null;
+  net_area?: number | null;
+  gross_area?: number | null;
+  floor?: number | null;
+  total_floors?: number | null;
+  building_age?: string | null;
+  has_parking?: boolean | null;
+  has_elevator?: boolean | null;
+  heating_type?: string | null;
+  price?: number | null;
+  description?: string | null;
+}
+
+export async function extractListingFromImage(
+  base64Images: string[],
+): Promise<{ data: ExtractedListing | null; error: string | null }> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return { data: null, error: 'Oturum bulunamadı' };
+
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    if (!supabaseUrl) return { data: null, error: 'Yapılandırma hatası' };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/extract-listing`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ images: base64Images }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return { data: null, error: result.error || 'AI servisi yanıt vermedi' };
+    }
+
+    return { data: result.data as ExtractedListing, error: null };
+  } catch (e: unknown) {
+    if (e instanceof Error && e.name === 'AbortError') {
+      return { data: null, error: 'İstek zaman aşımına uğradı, tekrar deneyin' };
+    }
+    return { data: null, error: 'Bir hata oluştu' };
+  }
+}
