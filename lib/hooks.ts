@@ -28,27 +28,6 @@ import type { Listing, BuyerDemand, Match, TransactionType, PropertyType } from 
 
 let _hookCounter = 0;
 
-// Auto-match bildirim Edge Function'ini cagir
-async function triggerAutoMatchNotify(table: 'listings' | 'buyer_demands', record: Record<string, unknown>) {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-    if (!supabaseUrl) return;
-
-    await fetch(`${supabaseUrl}/functions/v1/auto-match-notify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ type: 'INSERT', table, record }),
-    });
-  } catch (e) {
-    // Auto-match notify sessizce başarısız oldu
-  }
-}
 
 // ─── LISTINGS ────────────────────────────────────────
 
@@ -480,10 +459,6 @@ export function useCreateListing() {
         status: 'ACTIVE',
       });
       setLoading(false);
-      // Basarili ise auto-match bildirim gonder
-      if (data && !error) {
-        triggerAutoMatchNotify('listings', data as unknown as Record<string, unknown>);
-      }
       return { data, error };
     },
     [profile]
@@ -513,10 +488,6 @@ export function useCreateDemand() {
         expires_at: null,
       });
       setLoading(false);
-      // Basarili ise auto-match bildirim gonder
-      if (data && !error) {
-        triggerAutoMatchNotify('buyer_demands', data as unknown as Record<string, unknown>);
-      }
       return { data, error };
     },
     [profile]
