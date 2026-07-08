@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -38,10 +38,30 @@ import {
   getEarthquakeZone,
   getEarthquakeRiskLabel,
 } from '@/lib/earthquake-zones';
-import { queryParcel, normalizeNitelik } from '@/lib/tkgm';
+import {
+  getProvinces as getTkgmProvinces,
+  getDistricts as getTkgmDistricts,
+  getNeighborhoods as getTkgmNeighborhoods,
+  queryParcel,
+  normalizeNitelik,
+  type TkgmNeighborhood,
+} from '@/lib/tkgm';
 
 function parseNumber(text: string): number {
   return Number(text.replace(/\./g, '')) || 0;
+}
+
+function normalizeTr(s: string): string {
+  return s
+    .toLocaleLowerCase('tr')
+    .replace(/ı/g, 'i')
+    .replace(/İ/g, 'i')
+    .replace(/ö/g, 'o')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ç/g, 'c')
+    .replace(/ğ/g, 'g')
+    .trim();
 }
 
 // ─── Sub-components ──────────────────────────────────
@@ -126,6 +146,55 @@ export default function ValuationScreen() {
   const [selectedTapuTipi, setSelectedTapuTipi] = useState<string | null>(null);
   const [riskResult, setRiskResult] = useState<RiskAnalysisResult | null>(null);
 
+  // — TKGM resolution state
+  const [tkgmProvinceId, setTkgmProvinceId] = useState<number | null>(null);
+  const [tkgmDistrictId, setTkgmDistrictId] = useState<number | null>(null);
+  const [tkgmNeighborhoods, setTkgmNeighborhoods] = useState<TkgmNeighborhood[]>([]);
+  const [riskNeighborhood, setRiskNeighborhood] = useState<string | null>(null);
+  const [tkgmNeighborhoodId, setTkgmNeighborhoodId] = useState<number | null>(null);
+  const [tkgmLoadingMahalle, setTkgmLoadingMahalle] = useState(false);
+  const provincesCache = useRef<{ id: number; name: string }[]>([]);
+
+  // Resolve TKGM province ID when city changes
+  useEffect(() => {
+    if (!riskCity) { setTkgmProvinceId(null); return; }
+    let cancelled = false;
+    (async () => {
+      if (provincesCache.current.length === 0) {
+        provincesCache.current = await getTkgmProvinces();
+      }
+      if (cancelled) return;
+      const norm = normalizeTr(riskCity);
+      const match = provincesCache.current.find((p) => normalizeTr(p.name) === norm);
+      setTkgmProvinceId(match?.id ?? null);
+    })();
+    return () => { cancelled = true; };
+  }, [riskCity]);
+
+  // Resolve TKGM district ID + load neighborhoods when district changes
+  useEffect(() => {
+    setTkgmDistrictId(null);
+    setTkgmNeighborhoods([]);
+    setTkgmNeighborhoodId(null);
+    setRiskNeighborhood(null);
+    if (!riskDistrict || !tkgmProvinceId) return;
+    let cancelled = false;
+    (async () => {
+      setTkgmLoadingMahalle(true);
+      const districts = await getTkgmDistricts(tkgmProvinceId);
+      if (cancelled) return;
+      const norm = normalizeTr(riskDistrict);
+      const match = districts.find((d) => normalizeTr(d.name) === norm);
+      setTkgmDistrictId(match?.id ?? null);
+      if (match) {
+        const nbrs = await getTkgmNeighborhoods(match.id);
+        if (!cancelled) setTkgmNeighborhoods(nbrs);
+      }
+      if (!cancelled) setTkgmLoadingMahalle(false);
+    })();
+    return () => { cancelled = true; };
+  }, [riskDistrict, tkgmProvinceId]);
+
   // — Derived: options
   const cityOptions = useMemo(
     () => CITIES.map((c) => ({ key: c, label: c })),
@@ -150,6 +219,10 @@ export default function ValuationScreen() {
     if (!riskCity) return [];
     return (CITY_DISTRICTS[riskCity] ?? []).map((d) => ({ key: d, label: d }));
   }, [riskCity]);
+
+  const riskNeighborhoodOptions = useMemo(() => {
+    return tkgmNeighborhoods.map((n) => ({ key: String(n.id), label: n.name }));
+  }, [tkgmNeighborhoods]);
 
   // Deprem bilgisi
   const riskEarthquakeInfo = useMemo(() => {
@@ -213,25 +286,31 @@ export default function ValuationScreen() {
     setRiskDistrict(null);
     setRiskResult(null);
     setTkgmResult(null);
+    setRiskNeighborhood(null);
+    setTkgmNeighborhoodId(null);
   };
 
   const handleRiskDistrictChange = (district: string) => {
     setRiskDistrict(district);
     setRiskResult(null);
     setTkgmResult(null);
+    setRiskNeighborhood(null);
+    setTkgmNeighborhoodId(null);
+  };
+
+  const handleRiskNeighborhoodChange = (key: string) => {
+    const nbr = tkgmNeighborhoods.find((n) => String(n.id) === key);
+    setRiskNeighborhood(nbr?.name ?? null);
+    setTkgmNeighborhoodId(nbr?.id ?? null);
+    setTkgmResult(null);
   };
 
   const handleTkgmQuery = useCallback(async () => {
-    if (!adaNo.trim() || !parselNo.trim()) return;
+    if (!adaNo.trim() || !parselNo.trim() || !tkgmNeighborhoodId) return;
     setTkgmLoading(true);
     setTkgmResult(null);
-
-    // TKGM API requires mahalleId — for now we pass 0 and rely on ada/parsel
-    // In a full implementation, we'd resolve mahalleId from the selected location
-    // For now, try the query directly
     try {
-      // Simple query attempt — TKGM may require mahalleId
-      const parcel = await queryParcel(0, adaNo.trim(), parselNo.trim());
+      const parcel = await queryParcel(tkgmNeighborhoodId, adaNo.trim(), parselNo.trim());
       if (parcel && parcel.nitelik) {
         setSelectedNitelik(normalizeNitelik(parcel.nitelik));
         if (parcel.alan > 0) {
@@ -245,7 +324,7 @@ export default function ValuationScreen() {
       setTkgmResult('error');
     }
     setTkgmLoading(false);
-  }, [adaNo, parselNo]);
+  }, [adaNo, parselNo, tkgmNeighborhoodId]);
 
   const handleRiskAnaliz = () => {
     if (!selectedNitelik || !selectedTapuTipi) return;
@@ -571,6 +650,30 @@ export default function ValuationScreen() {
               />
             </View>
 
+            {/* Mahalle (TKGM) */}
+            {riskDistrict && (
+              <>
+                <Text style={styles.inputLabel}>
+                  Mahalle{tkgmLoadingMahalle ? ' (yükleniyor...)' : ''}
+                </Text>
+                <View style={styles.pickerWrapper}>
+                  <DropdownPicker
+                    label="Mahalle"
+                    value={tkgmNeighborhoodId ? String(tkgmNeighborhoodId) : null}
+                    options={riskNeighborhoodOptions}
+                    onSelect={handleRiskNeighborhoodChange}
+                    placeholder={
+                      tkgmLoadingMahalle
+                        ? 'Mahalleler yükleniyor...'
+                        : riskNeighborhoodOptions.length === 0
+                          ? 'TKGM verisi alınamadı'
+                          : 'Mahalle seçin (TKGM sorgusu için)'
+                    }
+                  />
+                </View>
+              </>
+            )}
+
             {/* Deprem Bölgesi Bilgisi */}
             {riskEarthquakeInfo && (
               <View style={[
@@ -623,7 +726,7 @@ export default function ValuationScreen() {
             </View>
 
             {/* TKGM Sorgula */}
-            {adaNo.trim() && parselNo.trim() && (
+            {adaNo.trim() && parselNo.trim() && tkgmNeighborhoodId && (
               <Pressable
                 style={({ pressed }) => [
                   styles.tkgmButton,
