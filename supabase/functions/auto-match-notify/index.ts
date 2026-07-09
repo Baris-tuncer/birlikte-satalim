@@ -15,24 +15,31 @@ interface WebhookPayload {
   record: Record<string, unknown>;
 }
 
-// Son 5 dakikada aynı (user_id, type, reference_id) ile bildirim gönderilip gönderilmediğini kontrol et
-async function filterAlreadyNotified(
+// Önce DB'ye yaz (upsert), başarılı insert edilen user_id'leri döndür
+async function insertNotifications(
   supabase: ReturnType<typeof createClient>,
   userIds: string[],
+  title: string,
+  body: string,
   type: string,
   referenceId: string,
 ): Promise<string[]> {
   if (userIds.length === 0) return [];
-  const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-  const { data: existing } = await supabase
+  const { data: inserted } = await supabase
     .from('notifications')
-    .select('user_id')
-    .in('user_id', userIds)
-    .eq('type', type)
-    .eq('reference_id', referenceId)
-    .gte('created_at', fiveMinAgo);
-  const alreadyNotified = new Set((existing ?? []).map((n: { user_id: string }) => n.user_id));
-  return userIds.filter((uid) => !alreadyNotified.has(uid));
+    .upsert(
+      userIds.map((uid) => ({
+        user_id: uid,
+        title,
+        body,
+        type,
+        reference_id: referenceId,
+        status: 'sent',
+      })),
+      { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true }
+    )
+    .select('user_id');
+  return (inserted ?? []).map((n: { user_id: string }) => n.user_id);
 }
 
 async function sendPushMessages(
@@ -135,34 +142,24 @@ Deno.serve(async (req) => {
 
         if (matchingDemands.length > 0) {
           const allDemandUserIds = [...new Set(matchingDemands.map((d) => d.agent_id))];
-          // Son 5 dk içinde aynı bildirim gönderilmiş kullanıcıları çıkar
-          demandUserIds = await filterAlreadyNotified(supabase, allDemandUserIds, 'auto_match_listing', listing.id as string);
+          const title = `Talebinize uygun ${typeText} ${propText}${roomText}`;
+          const body = `${locationText}'da${priceVal ? ` ${priceVal} fiyatla` : ''} yeni ilan eklendi. Hemen inceleyin!`;
 
+          // ÖNCE DB'ye yaz — sadece başarılı insert edilenler dönecek
+          demandUserIds = await insertNotifications(supabase, allDemandUserIds, title, body, 'auto_match_listing', listing.id as string);
+
+          // SONRA sadece gerçekten insert edilen kullanıcılara push gönder
           if (demandUserIds.length > 0) {
             const { data: tokens } = await supabase
               .from('push_tokens')
               .select('user_id, token')
               .in('user_id', demandUserIds);
-
-            const title = `Talebinize uygun ${typeText} ${propText}${roomText}`;
-            const body = `${locationText}'da${priceVal ? ` ${priceVal} fiyatla` : ''} yeni ilan eklendi. Hemen inceleyin!`;
-
             await sendPushMessages(supabase, tokens ?? [], title, body, { listingId: listing.id, type: 'auto_match_listing' });
-
-            await supabase.from('notifications').upsert(
-              demandUserIds.map((uid) => ({
-                user_id: uid, title, body,
-                type: 'auto_match_listing',
-                reference_id: listing.id as string,
-                status: 'sent',
-              })),
-              { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true }
-            );
           }
         }
       }
 
-      // 2. Uzmanlık bölgesi bildirimi — talep bildirimi olsun olmasın her zaman çalışır
+      // 2. Uzmanlık bölgesi bildirimi
       const { data: experts } = await supabase
         .from('users')
         .select('id')
@@ -171,34 +168,25 @@ Deno.serve(async (req) => {
         .neq('id', agentId);
 
       if (experts && experts.length > 0) {
-        // Talep bildirimi zaten almış kullanıcıları hariç tut + dedup
         const candidateIds = experts
           .map((e: { id: string }) => e.id)
           .filter((eid: string) => !demandUserIds.includes(eid));
-        const expertIds = await filterAlreadyNotified(supabase, candidateIds, 'expertise_listing', listing.id as string);
 
-        if (expertIds.length > 0) {
-          const { data: expertTokens } = await supabase
-            .from('push_tokens')
-            .select('user_id, token')
-            .in('user_id', expertIds);
-
+        if (candidateIds.length > 0) {
           const expertTitle = `Bölgenizde yeni ${typeText} ${propText}${roomText}`;
           const expertBody = `${locationText}'da${priceVal ? ` ${priceVal} fiyatla` : ''} yeni ilan eklendi. Uzmanlık bölgenize uygun!`;
 
-          await sendPushMessages(supabase, expertTokens ?? [], expertTitle, expertBody, { listingId: listing.id, type: 'expertise_listing' });
+          // ÖNCE DB'ye yaz
+          const insertedExpertIds = await insertNotifications(supabase, candidateIds, expertTitle, expertBody, 'expertise_listing', listing.id as string);
 
-          await supabase.from('notifications').upsert(
-            expertIds.map((uid: string) => ({
-              user_id: uid,
-              title: expertTitle,
-              body: expertBody,
-              type: 'expertise_listing',
-              reference_id: listing.id as string,
-              status: 'sent',
-            })),
-            { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true }
-          );
+          // SONRA push gönder
+          if (insertedExpertIds.length > 0) {
+            const { data: expertTokens } = await supabase
+              .from('push_tokens')
+              .select('user_id, token')
+              .in('user_id', insertedExpertIds);
+            await sendPushMessages(supabase, expertTokens ?? [], expertTitle, expertBody, { listingId: listing.id, type: 'expertise_listing' });
+          }
         }
       }
 
@@ -247,33 +235,24 @@ Deno.serve(async (req) => {
 
         if (matchingListings.length > 0) {
           const allListingUserIds = [...new Set(matchingListings.map((l) => l.agent_id))];
-          listingUserIds = await filterAlreadyNotified(supabase, allListingUserIds, 'auto_match_demand', demand.id as string);
+          const title = `İlanınıza uygun yeni ${typeText} talebi`;
+          const body = `${district}'da ${typeText} ${propText} arayan bir müşteri var${budgetText}. İlanınız bu talebe uygun!`;
 
+          // ÖNCE DB'ye yaz
+          listingUserIds = await insertNotifications(supabase, allListingUserIds, title, body, 'auto_match_demand', demand.id as string);
+
+          // SONRA push gönder
           if (listingUserIds.length > 0) {
             const { data: tokens } = await supabase
               .from('push_tokens')
               .select('user_id, token')
               .in('user_id', listingUserIds);
-
-            const title = `İlanınıza uygun yeni ${typeText} talebi`;
-            const body = `${district}'da ${typeText} ${propText} arayan bir müşteri var${budgetText}. İlanınız bu talebe uygun!`;
-
             await sendPushMessages(supabase, tokens ?? [], title, body, { demandId: demand.id, type: 'auto_match_demand' });
-
-            await supabase.from('notifications').upsert(
-              listingUserIds.map((uid) => ({
-                user_id: uid, title, body,
-                type: 'auto_match_demand',
-                reference_id: demand.id as string,
-                status: 'sent',
-              })),
-              { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true }
-            );
           }
         }
       }
 
-      // 2. Uzmanlık bölgesi bildirimi — ilan bildirimi olsun olmasın her zaman çalışır
+      // 2. Uzmanlık bölgesi bildirimi
       const { data: experts } = await supabase
         .from('users')
         .select('id')
@@ -285,30 +264,22 @@ Deno.serve(async (req) => {
         const candidateIds = experts
           .map((e: { id: string }) => e.id)
           .filter((eid: string) => !listingUserIds.includes(eid));
-        const expertIds = await filterAlreadyNotified(supabase, candidateIds, 'expertise_demand', demand.id as string);
 
-        if (expertIds.length > 0) {
-          const { data: expertTokens } = await supabase
-            .from('push_tokens')
-            .select('user_id, token')
-            .in('user_id', expertIds);
-
+        if (candidateIds.length > 0) {
           const expertTitle = `Bölgenizde yeni ${typeText} ${propText} talebi`;
           const expertBody = `${district}'da ${typeText} ${propText} arayan bir müşteri var${budgetText}. Uzmanlık bölgenize uygun!`;
 
-          await sendPushMessages(supabase, expertTokens ?? [], expertTitle, expertBody, { demandId: demand.id, type: 'expertise_demand' });
+          // ÖNCE DB'ye yaz
+          const insertedExpertIds = await insertNotifications(supabase, candidateIds, expertTitle, expertBody, 'expertise_demand', demand.id as string);
 
-          await supabase.from('notifications').upsert(
-            expertIds.map((uid: string) => ({
-              user_id: uid,
-              title: expertTitle,
-              body: expertBody,
-              type: 'expertise_demand',
-              reference_id: demand.id as string,
-              status: 'sent',
-            })),
-            { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true }
-          );
+          // SONRA push gönder
+          if (insertedExpertIds.length > 0) {
+            const { data: expertTokens } = await supabase
+              .from('push_tokens')
+              .select('user_id, token')
+              .in('user_id', insertedExpertIds);
+            await sendPushMessages(supabase, expertTokens ?? [], expertTitle, expertBody, { demandId: demand.id, type: 'expertise_demand' });
+          }
         }
       }
 

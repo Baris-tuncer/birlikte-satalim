@@ -27,6 +27,8 @@ export interface User {
   is_active: boolean;
   is_admin: boolean;
   is_mock: boolean;
+  subscription_status: 'trial' | 'active' | 'expired';
+  trial_ends_at: string | null;
   created_at: string;
   updated_at: string;
 }

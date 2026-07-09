@@ -23,6 +23,7 @@ import {
 } from './database';
 import { supabase } from './supabase';
 import { useAuth } from './auth-context';
+import { useSubscription } from './subscription-context';
 import { mockListings, mockDemands, mockMatches } from './mockData';
 import type { Listing, BuyerDemand, Match, TransactionType, PropertyType } from '@/types';
 
@@ -398,6 +399,7 @@ export function useMatchCount() {
 
 export function useMatchActions() {
   const { profile } = useAuth();
+  const { isSubscribed, showPaywallIfNeeded } = useSubscription();
   const [loading, setLoading] = useState(false);
 
   const send = useCallback(
@@ -410,6 +412,10 @@ export function useMatchActions() {
     }) => {
       if (__DEV__) return { error: null };
       if (!profile) return { error: 'Giriş yapmalısınız' };
+      if (!isSubscribed) {
+        showPaywallIfNeeded();
+        return { error: 'Abonelik gerekli' };
+      }
       setLoading(true);
       const { error } = await sendMatchRequest({
         requester_id: profile.id,
@@ -422,7 +428,7 @@ export function useMatchActions() {
       setLoading(false);
       return { error };
     },
-    [profile]
+    [profile, isSubscribed, showPaywallIfNeeded]
   );
 
   const respond = useCallback(
@@ -443,11 +449,16 @@ export function useMatchActions() {
 
 export function useCreateListing() {
   const { profile } = useAuth();
+  const { isSubscribed, showPaywallIfNeeded } = useSubscription();
   const [loading, setLoading] = useState(false);
 
   const create = useCallback(
     async (params: Omit<Listing, 'id' | 'created_at' | 'updated_at' | 'agent' | 'agent_id' | 'status'>) => {
       if (!profile && !__DEV__) return { data: null, error: 'Giriş yapmalısınız' };
+      if (!isSubscribed && !__DEV__) {
+        showPaywallIfNeeded();
+        return { data: null, error: 'Abonelik gerekli' };
+      }
       setLoading(true);
       if (__DEV__) {
         setLoading(false);
@@ -461,7 +472,7 @@ export function useCreateListing() {
       setLoading(false);
       return { data, error };
     },
-    [profile]
+    [profile, isSubscribed, showPaywallIfNeeded]
   );
 
   return { create, loading };
@@ -471,11 +482,16 @@ export function useCreateListing() {
 
 export function useCreateDemand() {
   const { profile } = useAuth();
+  const { isSubscribed, showPaywallIfNeeded } = useSubscription();
   const [loading, setLoading] = useState(false);
 
   const create = useCallback(
     async (params: Omit<BuyerDemand, 'id' | 'created_at' | 'updated_at' | 'agent' | 'agent_id' | 'status' | 'expires_at'>) => {
       if (!profile && !__DEV__) return { data: null, error: 'Giriş yapmalısınız' };
+      if (!isSubscribed && !__DEV__) {
+        showPaywallIfNeeded();
+        return { data: null, error: 'Abonelik gerekli' };
+      }
       setLoading(true);
       if (__DEV__) {
         setLoading(false);
@@ -490,7 +506,7 @@ export function useCreateDemand() {
       setLoading(false);
       return { data, error };
     },
-    [profile]
+    [profile, isSubscribed, showPaywallIfNeeded]
   );
 
   return { create, loading };

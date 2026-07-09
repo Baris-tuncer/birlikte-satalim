@@ -17,11 +17,13 @@ import FilterBar from '@/components/ui/FilterBar';
 import DemandCard from '@/components/ui/DemandCard';
 import { useDemands, useMatchActions, useUpdateDemand } from '@/lib/hooks';
 import { useAuth } from '@/lib/auth-context';
+import { useSubscription } from '@/lib/subscription-context';
 import type { BuyerDemand } from '@/types';
 
 export default function DemandPoolScreen() {
   const router = useRouter();
   const { profile } = useAuth();
+  const { showPaywallIfNeeded } = useSubscription();
   const [selectedCity, setSelectedCity] = useState('İstanbul');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedNeighborhood, setSelectedNeighborhood] = useState('');
@@ -63,6 +65,7 @@ export default function DemandPoolScreen() {
   }, []);
 
   const handleMatch = useCallback((demandId: string) => {
+    if (showPaywallIfNeeded()) return;
     const demand = demands.find((d) => d.id === demandId);
     if (!demand) return;
 
@@ -88,7 +91,7 @@ export default function DemandPoolScreen() {
         },
       ]
     );
-  }, [demands, sendMatch]);
+  }, [demands, sendMatch, showPaywallIfNeeded]);
 
   const handleRemove = useCallback(async (demandId: string) => {
     const { error } = await updateDemandStatus(demandId, { status: 'DELETED' });
@@ -134,7 +137,10 @@ export default function DemandPoolScreen() {
                   styles.addButton,
                   pressed && styles.addButtonPressed,
                 ]}
-                onPress={() => router.push('/create/demand')}
+                onPress={() => {
+                  if (showPaywallIfNeeded()) return;
+                  router.push('/create/demand');
+                }}
               >
                 <Ionicons name="add" size={24} color={Colors.text.inverse} />
               </Pressable>

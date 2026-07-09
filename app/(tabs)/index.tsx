@@ -18,12 +18,14 @@ import FilterBar from '@/components/ui/FilterBar';
 import ListingCard from '@/components/ui/ListingCard';
 import { useListings, useMatchActions, useUpdateListing, usePlatformStats } from '@/lib/hooks';
 import { useAuth } from '@/lib/auth-context';
+import { useSubscription } from '@/lib/subscription-context';
 import { checkNotificationPermission, registerForPushNotifications } from '@/lib/notifications';
 import type { Listing } from '@/types';
 
 export default function ListingsScreen() {
   const router = useRouter();
   const { profile } = useAuth();
+  const { showPaywallIfNeeded } = useSubscription();
 
   const [selectedCity, setSelectedCity] = useState('İstanbul');
   const [selectedDistrict, setSelectedDistrict] = useState('');
@@ -88,6 +90,7 @@ export default function ListingsScreen() {
   }, []);
 
   const handleMatch = useCallback((listingId: string) => {
+    if (showPaywallIfNeeded()) return;
     const listing = listings.find((l) => l.id === listingId);
     if (!listing) return;
 
@@ -113,7 +116,7 @@ export default function ListingsScreen() {
         },
       ]
     );
-  }, [listings, sendMatch]);
+  }, [listings, sendMatch, showPaywallIfNeeded]);
 
   const handleRemove = useCallback(async (listingId: string) => {
     const { error } = await updateListingStatus(listingId, { status: 'DELETED' });
@@ -202,7 +205,10 @@ export default function ListingsScreen() {
                   styles.addButton,
                   pressed && styles.addButtonPressed,
                 ]}
-                onPress={() => router.push('/create/listing')}
+                onPress={() => {
+                  if (showPaywallIfNeeded()) return;
+                  router.push('/create/listing');
+                }}
               >
                 <Ionicons name="add" size={24} color={Colors.text.inverse} />
               </Pressable>

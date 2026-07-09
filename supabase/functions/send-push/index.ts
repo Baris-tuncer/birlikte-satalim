@@ -115,15 +115,24 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Bildirim kaydini her zaman yaz (token olmasa bile)
-    await supabase.from('notifications').upsert({
+    // ÖNCE DB'ye yaz — duplike ise sessizce atla
+    const { data: inserted } = await supabase.from('notifications').upsert({
       user_id: match.target_id,
       title,
       body,
       type: 'match_request',
       reference_id: match.id,
       status: 'sent',
-    }, { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true });
+    }, { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true })
+    .select('id');
+
+    // Eğer insert edilmediyse (duplike), push gönderme
+    if (!inserted || inserted.length === 0) {
+      return new Response(
+        JSON.stringify({ message: 'Duplicate notification skipped' }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Hedef kullanicinin push token'larini al
     const { data: tokens } = await supabase
@@ -138,7 +147,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Expo Push API'ye gonder
+    // SONRA push gönder
     const messages = tokens.map((t: { token: string }) => ({
       to: t.token,
       title,

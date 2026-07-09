@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Theme';
 import { AuthProvider, useAuth } from '@/lib/auth-context';
+import { SubscriptionProvider } from '@/lib/subscription-context';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
 import { registerForPushNotifications, addNotificationListeners, clearBadgeCount } from '@/lib/notifications';
@@ -100,7 +101,7 @@ function RootLayoutNav() {
 
     if (!isLoggedIn) {
       // Giriş yapılmamış — auth akışı dışındaysa welcome'a yönlendir
-      if (segments[1] !== 'welcome' && segments[1] !== 'login' && segments[1] !== 'register') {
+      if (segments[1] !== 'welcome' && segments[1] !== 'login' && segments[1] !== 'register' && segments[1] !== 'forgot-password') {
         router.replace('/(auth)/welcome');
       }
     } else if (isLoggedIn && inAuthGroup && (segments[1] === 'welcome' || segments[1] === 'login' || segments[1] === 'register')) {
@@ -139,6 +140,7 @@ function RootLayoutNav() {
         <Stack.Screen name="matches" />
         <Stack.Screen name="profile" />
         <Stack.Screen name="reset-password" />
+        <Stack.Screen name="subscription" options={{ presentation: 'modal' }} />
         <Stack.Screen name="tools" />
         <Stack.Screen name="admin" />
       </Stack>
@@ -169,9 +171,11 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AppErrorBoundary>
         <AuthProvider>
-          <AnimatedSplash>
-            <RootLayoutNav />
-          </AnimatedSplash>
+          <SubscriptionProvider>
+            <AnimatedSplash>
+              <RootLayoutNav />
+            </AnimatedSplash>
+          </SubscriptionProvider>
         </AuthProvider>
       </AppErrorBoundary>
     </SafeAreaProvider>

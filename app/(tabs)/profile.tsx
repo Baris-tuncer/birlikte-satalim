@@ -7,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Shadows, Radius } from '@/constants/Theme';
 import { useAuth } from '@/lib/auth-context';
+import { useSubscription } from '@/lib/subscription-context';
 import { useMatchCount } from '@/lib/hooks';
 import { mockUsers } from '@/lib/mockData';
 import { supabase } from '@/lib/supabase';
@@ -18,6 +19,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, profile, licenseStatus, signOut, deleteAccount, refreshProfile } = useAuth();
   const { total: matchCount, pendingCount } = useMatchCount();
+  const { isSubscribed, isTrialActive, trialDaysLeft, subscriptionStatus } = useSubscription();
   const insets = useSafeAreaInsets();
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
@@ -435,6 +437,49 @@ export default function ProfileScreen() {
             }
           />
         </View>
+
+        {/* Abonelik Durumu */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.subscriptionCard,
+            pressed && { opacity: 0.9 },
+          ]}
+          onPress={() => {
+            if (subscriptionStatus === 'expired') {
+              router.push('/subscription' as any);
+            }
+          }}
+          disabled={subscriptionStatus !== 'expired'}
+        >
+          <View style={styles.subscriptionIcon}>
+            <Ionicons
+              name={subscriptionStatus === 'active' ? 'diamond' : subscriptionStatus === 'trial' ? 'hourglass-outline' : 'lock-closed-outline'}
+              size={20}
+              color={subscriptionStatus === 'expired' ? Colors.error : subscriptionStatus === 'active' ? Colors.accent : Colors.warning}
+            />
+          </View>
+          <View style={styles.subscriptionInfo}>
+            <Text style={styles.subscriptionTitle}>
+              {subscriptionStatus === 'active'
+                ? 'Pro Uye'
+                : subscriptionStatus === 'trial'
+                ? 'Deneme Suresi'
+                : 'Abonelik Sona Erdi'}
+            </Text>
+            <Text style={styles.subscriptionSubtitle}>
+              {subscriptionStatus === 'active'
+                ? 'Tum ozellikler aktif'
+                : subscriptionStatus === 'trial'
+                ? `${trialDaysLeft} gun kaldi`
+                : 'Abone olarak devam edin'}
+            </Text>
+          </View>
+          {subscriptionStatus === 'expired' && (
+            <View style={styles.subscribeSmallBtn}>
+              <Text style={styles.subscribeSmallBtnText}>Abone Ol</Text>
+            </View>
+          )}
+        </Pressable>
 
         {/* Bildirim Ayarları */}
         <Pressable
@@ -887,6 +932,47 @@ const styles = StyleSheet.create({
   divider: {
     height: StyleSheet.hairlineWidth,
     backgroundColor: Colors.borderLight,
+  },
+  subscriptionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.card,
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    marginBottom: Spacing.xl,
+    ...Shadows.sm,
+  },
+  subscriptionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.accent + '14',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  subscriptionInfo: {
+    flex: 1,
+  },
+  subscriptionTitle: {
+    ...Typography.headline,
+    color: Colors.text.primary,
+  },
+  subscriptionSubtitle: {
+    ...Typography.caption1,
+    color: Colors.text.secondary,
+    marginTop: 2,
+  },
+  subscribeSmallBtn: {
+    backgroundColor: Colors.accent,
+    borderRadius: Radius.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
+  subscribeSmallBtnText: {
+    ...Typography.caption1,
+    color: Colors.text.inverse,
+    fontWeight: '600',
   },
   adminButton: {
     flexDirection: 'row',
