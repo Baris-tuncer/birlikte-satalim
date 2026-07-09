@@ -99,11 +99,11 @@ function RootLayoutNav() {
     if (isLoggedIn && emailVerified && profileLoading) return;
 
     if (!isLoggedIn) {
-      // Giriş yapılmamış — login/register dışındaysa login'e yönlendir
-      if (segments[1] !== 'login' && segments[1] !== 'register') {
-        router.replace('/(auth)/login');
+      // Giriş yapılmamış — auth akışı dışındaysa welcome'a yönlendir
+      if (segments[1] !== 'welcome' && segments[1] !== 'login' && segments[1] !== 'register') {
+        router.replace('/(auth)/welcome');
       }
-    } else if (isLoggedIn && inAuthGroup && (segments[1] === 'login' || segments[1] === 'register')) {
+    } else if (isLoggedIn && inAuthGroup && (segments[1] === 'welcome' || segments[1] === 'login' || segments[1] === 'register')) {
       // Login/register sayfasında ama giriş yapılmış — doğru adıma yönlendir
       if (!emailVerified) {
         router.replace('/(auth)/verify-email');

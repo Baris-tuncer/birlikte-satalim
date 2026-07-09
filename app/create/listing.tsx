@@ -330,9 +330,9 @@ export default function CreateListingScreen() {
               disabled={aiLoading}
             >
               {aiLoading ? (
-                <ActivityIndicator size="small" color={Colors.primary} />
+                <ActivityIndicator size="small" color="#1A73E8" />
               ) : (
-                <Ionicons name="camera-outline" size={22} color={Colors.primary} />
+                <Ionicons name="camera-outline" size={24} color="#1A73E8" />
               )}
               <View style={{ flex: 1 }}>
                 <Text style={styles.aiImportTitle}>
@@ -345,7 +345,7 @@ export default function CreateListingScreen() {
                 </Text>
               </View>
               {!aiLoading && (
-                <Ionicons name="chevron-forward" size={18} color={Colors.text.tertiary} />
+                <Ionicons name="chevron-forward" size={18} color="#1A73E8" />
               )}
             </Pressable>
 
@@ -360,7 +360,12 @@ export default function CreateListingScreen() {
 
             {/* İşlem Tipi */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>İşlem Tipi</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#3B82F6' }]}>
+                  <Ionicons name="swap-horizontal" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>İşlem Tipi</Text>
+              </View>
               <DropdownPicker
                 label="İşlem Tipi Seçin"
                 value={transactionType}
@@ -372,7 +377,12 @@ export default function CreateListingScreen() {
 
             {/* Mülk Tipi */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Mülk Tipi</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#8B5CF6' }]}>
+                  <Ionicons name="home" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>Mülk Tipi</Text>
+              </View>
               <DropdownPicker
                 label="Mülk Tipi Seçin"
                 value={propertyType}
@@ -384,7 +394,12 @@ export default function CreateListingScreen() {
 
             {/* Konum */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Konum</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#EF4444' }]}>
+                  <Ionicons name="location" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>Konum</Text>
+              </View>
               <View style={styles.card}>
                 <Text style={styles.inputLabel}>Şehir</Text>
                 <DropdownPicker
@@ -420,7 +435,12 @@ export default function CreateListingScreen() {
             {/* Ada / Parsel (Kentsel Dönüşüm) */}
             {isUrbanRenewal && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Ada / Parsel</Text>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: '#6366F1' }]}>
+                    <Ionicons name="grid" size={16} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.sectionTitle}>Ada / Parsel</Text>
+                </View>
                 <View style={styles.card}>
                   <View style={styles.inputRow}>
                     <View style={styles.inputHalf}>
@@ -453,7 +473,12 @@ export default function CreateListingScreen() {
             {/* Oda Sayısı */}
             {!isLand && !isUrbanRenewal && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Oda Sayısı</Text>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: '#EC4899' }]}>
+                    <Ionicons name="bed" size={16} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.sectionTitle}>Oda Sayısı</Text>
+                </View>
                 <DropdownPicker
                   label="Oda Sayısı Seçin"
                   value={roomCount || null}
@@ -467,7 +492,12 @@ export default function CreateListingScreen() {
             {/* Alan ve Kat */}
             {!isUrbanRenewal && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Alan ve Kat</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#14B8A6' }]}>
+                  <Ionicons name="resize" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>Alan ve Kat</Text>
+              </View>
               <View style={styles.card}>
                 <View style={styles.inputRow}>
                   <View style={styles.inputHalf}>
@@ -528,7 +558,12 @@ export default function CreateListingScreen() {
             {/* Bina Yaşı */}
             {!isLand && !isUrbanRenewal && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Bina Yaşı</Text>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: '#F59E0B' }]}>
+                    <Ionicons name="calendar" size={16} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.sectionTitle}>Bina Yaşı</Text>
+                </View>
                 <DropdownPicker
                   label="Bina Yaşı Seçin"
                   value={buildingAge || null}
@@ -542,7 +577,12 @@ export default function CreateListingScreen() {
             {/* Özellikler */}
             {!isLand && !isUrbanRenewal && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Özellikler</Text>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: '#10B981' }]}>
+                    <Ionicons name="options" size={16} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.sectionTitle}>Özellikler</Text>
+                </View>
                 <View style={styles.card}>
                   <Pressable
                     style={styles.toggleRow}
@@ -574,7 +614,12 @@ export default function CreateListingScreen() {
             {/* Isıtma Tipi */}
             {!isLand && !isUrbanRenewal && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Isıtma Tipi</Text>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: '#F97316' }]}>
+                    <Ionicons name="flame" size={16} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.sectionTitle}>Isıtma Tipi</Text>
+                </View>
                 <DropdownPicker
                   label="Isıtma Tipi Seçin"
                   value={heatingType || null}
@@ -588,7 +633,12 @@ export default function CreateListingScreen() {
             {/* Fiyat */}
             {!isUrbanRenewal && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Fiyat</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#06B6D4' }]}>
+                  <Ionicons name="pricetag" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>Fiyat</Text>
+              </View>
               <View style={styles.card}>
                 <Text style={styles.inputLabel}>
                   {transactionType === 'RENT' ? 'Aylık Kira (TL)' : 'Fiyat (TL)'}
@@ -607,7 +657,12 @@ export default function CreateListingScreen() {
 
             {/* Açıklama */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Açıklama</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#8B5CF6' }]}>
+                  <Ionicons name="document-text" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>Açıklama</Text>
+              </View>
               <View style={styles.card}>
                 <TextInput
                   style={[styles.input, styles.inputMultiline]}
@@ -628,7 +683,10 @@ export default function CreateListingScreen() {
 
             {/* Orijinal İlan Linki (Opsiyonel) */}
             <View style={styles.section}>
-              <View style={styles.sectionTitleRow}>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#64748B' }]}>
+                  <Ionicons name="link" size={16} color="#FFFFFF" />
+                </View>
                 <Text style={styles.sectionTitle}>Orijinal İlan Linki</Text>
                 <Text style={styles.optionalLabel}>Opsiyonel</Text>
               </View>
@@ -691,10 +749,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.md,
-    backgroundColor: Colors.primary + '0A',
+    backgroundColor: '#E8F4FD',
     borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.primary + '28',
+    borderWidth: 1.5,
+    borderColor: '#3B9AE8',
     borderStyle: 'dashed',
     padding: Spacing.lg,
     marginBottom: Spacing.md,
@@ -702,7 +760,7 @@ const styles = StyleSheet.create({
   },
   aiImportTitle: {
     ...Typography.subhead,
-    color: Colors.primary,
+    color: '#1A73E8',
     fontWeight: '600',
   },
   aiImportSubtitle: {
@@ -728,16 +786,33 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: Spacing.xl,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.xl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  sectionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sectionTitle: {
     ...Typography.headline,
     color: Colors.text.primary,
-    marginBottom: Spacing.md,
   },
   card: {
     backgroundColor: Colors.card,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.accent,
     ...Shadows.sm,
   },
   inputLabel: {
@@ -795,12 +870,6 @@ const styles = StyleSheet.create({
   submitButtonText: {
     ...Typography.headline,
     color: Colors.text.inverse,
-  },
-  sectionTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
   },
   optionalLabel: {
     ...Typography.caption1,

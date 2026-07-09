@@ -24,11 +24,24 @@ import {
   TAPU_TIPI_OPTIONS,
   RISK_LEVEL_CONFIG,
   KONUM_KALITESI_OPTIONS,
-  type ValuationResult,
+  KAT_OPTIONS,
+  BINA_YASI_OPTIONS,
+  MANZARA_OPTIONS,
+  BAKIM_OPTIONS,
+  OZELLIK_OPTIONS,
+  PRESTIJ_OPTIONS,
+  type ValuationResultDetailed,
   type RiskAnalysisResult,
   type Nitelik,
   type TapuTipi,
   type KonumKalitesi,
+  type KatTipi,
+  type BinaYasi,
+  type ManzaraTipi,
+  type BakimDurumu,
+  type Ozellik,
+  type MahallePrestiji,
+  type DegerlemeOptions,
 } from '@/lib/valuation';
 import {
   getBestPrice,
@@ -131,7 +144,13 @@ export default function ValuationScreen() {
   const [m2Fiyat, setM2Fiyat] = useState('');
   const [yuzolcumu, setYuzolcumu] = useState('');
   const [konumKalitesi, setKonumKalitesi] = useState<string | null>('normal');
-  const [valuationResult, setValuationResult] = useState<ValuationResult | null>(null);
+  const [katTipi, setKatTipi] = useState<string | null>(null);
+  const [binaYasi, setBinaYasi] = useState<string | null>(null);
+  const [manzara, setManzara] = useState<string | null>(null);
+  const [bakimDurumu, setBakimDurumu] = useState<string | null>(null);
+  const [ozellikler, setOzellikler] = useState<Ozellik[]>([]);
+  const [mahallePrestiji, setMahallePrestiji] = useState<string | null>(null);
+  const [valuationResult, setValuationResult] = useState<ValuationResultDetailed | null>(null);
   const [priceLevel, setPriceLevel] = useState<'mahalle' | 'ilce' | null>(null);
 
   // — Risk state
@@ -275,8 +294,15 @@ export default function ValuationScreen() {
     const fiyat = parseNumber(m2Fiyat);
     const alan = parseFloat(yuzolcumu) || 0;
     if (fiyat <= 0 || alan <= 0) return;
+    const opts: DegerlemeOptions = {};
+    if (katTipi) opts.kat = katTipi as KatTipi;
+    if (binaYasi) opts.binaYasi = binaYasi as BinaYasi;
+    if (manzara) opts.manzara = manzara as ManzaraTipi;
+    if (bakimDurumu) opts.bakimDurumu = bakimDurumu as BakimDurumu;
+    if (ozellikler.length > 0) opts.ozellikler = ozellikler;
+    if (mahallePrestiji) opts.mahallePrestiji = mahallePrestiji as MahallePrestiji;
     setValuationResult(
-      hesaplaDegerleme(fiyat, alan, (konumKalitesi as KonumKalitesi) || 'normal'),
+      hesaplaDegerleme(fiyat, alan, (konumKalitesi as KonumKalitesi) || 'normal', opts),
     );
   };
 
@@ -354,9 +380,14 @@ export default function ValuationScreen() {
       lines.push(`Konum: ${loc}`);
       lines.push(`m² Fiyatı: ${formatPrice(parseNumber(m2Fiyat))}`);
       lines.push(`Yüzölçümü: ${yuzolcumu} m²`);
-      if (konumKalitesi && konumKalitesi !== 'normal') {
-        const kLabel = KONUM_KALITESI_OPTIONS.find((o) => o.key === konumKalitesi)?.label;
-        if (kLabel) lines.push(`Konum Kalitesi: ${kLabel}`);
+      if (valuationResult.detaylar.length > 0) {
+        lines.push('');
+        lines.push('Uygulanan Katsayılar:');
+        valuationResult.detaylar.forEach((d) => {
+          const pct = d.carpan > 1 ? `+${Math.round((d.carpan - 1) * 100)}%` : `${Math.round((d.carpan - 1) * 100)}%`;
+          lines.push(`  ${d.label}: ${pct}`);
+        });
+        lines.push(`  Toplam Çarpan: ×${valuationResult.toplamCarpan.toFixed(2)}`);
       }
       lines.push('');
       lines.push(`Baz Değer: ${formatPrice(valuationResult.basePrice)}`);
@@ -557,6 +588,135 @@ export default function ValuationScreen() {
               />
             </View>
 
+            {/* Kat */}
+            <Text style={styles.inputLabel}>Kat</Text>
+            <View style={styles.pickerWrapper}>
+              <DropdownPicker
+                label="Kat"
+                value={katTipi}
+                options={KAT_OPTIONS.map((o) => ({
+                  key: o.key,
+                  label: `${o.label} (${o.carpan > 1 ? '+' : ''}${Math.round((o.carpan - 1) * 100)}%)`,
+                }))}
+                onSelect={(v) => {
+                  setKatTipi(v);
+                  setValuationResult(null);
+                }}
+                placeholder="Kat seçin (opsiyonel)"
+              />
+            </View>
+
+            {/* Bina Yaşı */}
+            <Text style={styles.inputLabel}>Bina Yaşı</Text>
+            <View style={styles.pickerWrapper}>
+              <DropdownPicker
+                label="Bina Yaşı"
+                value={binaYasi}
+                options={BINA_YASI_OPTIONS.map((o) => ({
+                  key: o.key,
+                  label: `${o.label} (${o.carpan > 1 ? '+' : ''}${Math.round((o.carpan - 1) * 100)}%)`,
+                }))}
+                onSelect={(v) => {
+                  setBinaYasi(v);
+                  setValuationResult(null);
+                }}
+                placeholder="Bina yaşı seçin (opsiyonel)"
+              />
+            </View>
+
+            {/* Manzara */}
+            <Text style={styles.inputLabel}>Manzara</Text>
+            <View style={styles.pickerWrapper}>
+              <DropdownPicker
+                label="Manzara"
+                value={manzara}
+                options={MANZARA_OPTIONS.map((o) => ({
+                  key: o.key,
+                  label: `${o.label} (${o.carpan > 1 ? '+' : ''}${Math.round((o.carpan - 1) * 100)}%)`,
+                }))}
+                onSelect={(v) => {
+                  setManzara(v);
+                  setValuationResult(null);
+                }}
+                placeholder="Manzara seçin (opsiyonel)"
+              />
+            </View>
+
+            {/* Bakım Durumu */}
+            <Text style={styles.inputLabel}>Bakım Durumu</Text>
+            <View style={styles.pickerWrapper}>
+              <DropdownPicker
+                label="Bakım Durumu"
+                value={bakimDurumu}
+                options={BAKIM_OPTIONS.map((o) => ({
+                  key: o.key,
+                  label: `${o.label} (${o.carpan > 1 ? '+' : ''}${Math.round((o.carpan - 1) * 100)}%)`,
+                }))}
+                onSelect={(v) => {
+                  setBakimDurumu(v);
+                  setValuationResult(null);
+                }}
+                placeholder="Bakım durumu seçin (opsiyonel)"
+              />
+            </View>
+
+            {/* Mahalle Prestiji */}
+            <Text style={styles.inputLabel}>Mahalle Prestiji</Text>
+            <View style={styles.pickerWrapper}>
+              <DropdownPicker
+                label="Mahalle Prestiji"
+                value={mahallePrestiji}
+                options={PRESTIJ_OPTIONS.map((o) => ({
+                  key: o.key,
+                  label: `${o.label} (${o.carpan > 1 ? '+' : ''}${Math.round((o.carpan - 1) * 100)}%)`,
+                }))}
+                onSelect={(v) => {
+                  setMahallePrestiji(v);
+                  setValuationResult(null);
+                }}
+                placeholder="Mahalle prestiji seçin (opsiyonel)"
+              />
+            </View>
+
+            {/* Özellikler (çoklu seçim) */}
+            <Text style={styles.inputLabel}>Özellikler</Text>
+            <View style={styles.ozelliklerContainer}>
+              {OZELLIK_OPTIONS.map((opt) => {
+                const selected = ozellikler.includes(opt.key);
+                return (
+                  <Pressable
+                    key={opt.key}
+                    style={[
+                      styles.ozellikChip,
+                      selected && styles.ozellikChipSelected,
+                    ]}
+                    onPress={() => {
+                      setOzellikler((prev) =>
+                        selected
+                          ? prev.filter((k) => k !== opt.key)
+                          : [...prev, opt.key],
+                      );
+                      setValuationResult(null);
+                    }}
+                  >
+                    <Ionicons
+                      name={selected ? 'checkmark-circle' : 'add-circle-outline'}
+                      size={18}
+                      color={selected ? Colors.primary : Colors.text.tertiary}
+                    />
+                    <Text
+                      style={[
+                        styles.ozellikChipText,
+                        selected && styles.ozellikChipTextSelected,
+                      ]}
+                    >
+                      {opt.label} (+{Math.round(opt.carpan * 100)}%)
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
             {/* Hesapla */}
             <Pressable
               style={({ pressed }) => [
@@ -573,9 +733,42 @@ export default function ValuationScreen() {
             {/* Sonuç */}
             {valuationResult && (
               <View style={styles.resultCard}>
+                {/* Çarpan detayları */}
+                {valuationResult.detaylar.length > 0 && (
+                  <View style={styles.carpanDetayContainer}>
+                    <Text style={styles.carpanDetayTitle}>Uygulanan Katsayılar</Text>
+                    {valuationResult.detaylar.map((d, i) => (
+                      <View key={i} style={styles.carpanDetayRow}>
+                        <Text style={styles.carpanDetayLabel}>{d.label}</Text>
+                        <Text
+                          style={[
+                            styles.carpanDetayValue,
+                            d.carpan > 1 && { color: '#10B981' },
+                            d.carpan < 1 && { color: '#EF4444' },
+                          ]}
+                        >
+                          {d.carpan > 1 ? '+' : ''}{Math.round((d.carpan - 1) * 100)}%
+                        </Text>
+                      </View>
+                    ))}
+                    <View style={styles.carpanDetayRow}>
+                      <Text style={[styles.carpanDetayLabel, { fontWeight: '700' }]}>
+                        Toplam Çarpan
+                      </Text>
+                      <Text style={[styles.carpanDetayValue, { fontWeight: '700' }]}>
+                        ×{valuationResult.toplamCarpan.toFixed(2)}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
                 <ResultRow
                   label="Baz Değer"
-                  sublabel="m² × yüzölçümü × konum çarpanı"
+                  sublabel={
+                    valuationResult.detaylar.length > 0
+                      ? `m² × yüzölçümü × toplam çarpan (×${valuationResult.toplamCarpan.toFixed(2)})`
+                      : 'm² × yüzölçümü'
+                  }
                   value={formatPrice(valuationResult.basePrice)}
                   bold
                 />
@@ -1214,5 +1407,65 @@ const styles = StyleSheet.create({
     color: Colors.text.secondary,
     lineHeight: 18,
     fontStyle: 'italic',
+  },
+  // Özellik çoklu seçim chip'leri
+  ozelliklerContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.xl,
+  },
+  ozellikChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  ozellikChipSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary + '0A',
+  },
+  ozellikChipText: {
+    ...Typography.caption1,
+    color: Colors.text.secondary,
+  },
+  ozellikChipTextSelected: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  // Çarpan detay tablosu
+  carpanDetayContainer: {
+    backgroundColor: Colors.background,
+    borderRadius: Radius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  carpanDetayTitle: {
+    ...Typography.caption1,
+    color: Colors.text.tertiary,
+    fontWeight: '600',
+    marginBottom: Spacing.sm,
+  },
+  carpanDetayRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 3,
+  },
+  carpanDetayLabel: {
+    ...Typography.caption1,
+    color: Colors.text.secondary,
+    flex: 1,
+  },
+  carpanDetayValue: {
+    ...Typography.caption1,
+    color: Colors.text.primary,
+    fontWeight: '600',
+    textAlign: 'right',
   },
 });

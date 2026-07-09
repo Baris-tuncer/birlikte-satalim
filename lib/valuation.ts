@@ -83,6 +83,77 @@ const RISK_PRIORITY: Record<RiskLevel, number> = {
   GRAY: 1,
 };
 
+// ─── Kat Katsayısı ──────────────────────────────────
+
+export type KatTipi = 'bodrum_zemin' | 'kat_1' | 'kat_2_7' | 'kat_8_plus' | 'cati_dubleks';
+
+export const KAT_OPTIONS: { key: KatTipi; label: string; carpan: number }[] = [
+  { key: 'bodrum_zemin', label: 'Bodrum / Zemin Kat', carpan: 0.90 },
+  { key: 'kat_1', label: '1. Kat', carpan: 0.95 },
+  { key: 'kat_2_7', label: '2–7. Kat (İdeal)', carpan: 1.05 },
+  { key: 'kat_8_plus', label: '8+ Kat', carpan: 1.00 },
+  { key: 'cati_dubleks', label: 'Çatı Katı / Dubleks', carpan: 1.08 },
+];
+
+// ─── Bina Yaşı Katsayısı ────────────────────────────
+
+export type BinaYasi = 'yeni_0_5' | 'yeni_6_10' | 'orta_11_20' | 'eski_21_30' | 'eski_31_plus';
+
+export const BINA_YASI_OPTIONS: { key: BinaYasi; label: string; carpan: number }[] = [
+  { key: 'yeni_0_5', label: '0–5 Yıl (Sıfır / Yeni)', carpan: 1.10 },
+  { key: 'yeni_6_10', label: '6–10 Yıl', carpan: 1.05 },
+  { key: 'orta_11_20', label: '11–20 Yıl', carpan: 1.00 },
+  { key: 'eski_21_30', label: '21–30 Yıl', carpan: 0.92 },
+  { key: 'eski_31_plus', label: '31+ Yıl', carpan: 0.85 },
+];
+
+// ─── Manzara Katsayısı ──────────────────────────────
+
+export type ManzaraTipi = 'deniz_bogaz' | 'gol_nehir' | 'sehir' | 'park_yesil' | 'manzara_yok';
+
+export const MANZARA_OPTIONS: { key: ManzaraTipi; label: string; carpan: number }[] = [
+  { key: 'deniz_bogaz', label: 'Deniz / Boğaz Manzarası', carpan: 1.17 },
+  { key: 'gol_nehir', label: 'Göl / Nehir Manzarası', carpan: 1.10 },
+  { key: 'sehir', label: 'Şehir Manzarası', carpan: 1.05 },
+  { key: 'park_yesil', label: 'Park / Yeşil Alan', carpan: 1.05 },
+  { key: 'manzara_yok', label: 'Manzara Yok / İç Cephe', carpan: 1.00 },
+];
+
+// ─── Bakım Durumu Katsayısı ─────────────────────────
+
+export type BakimDurumu = 'sifir_tadilat' | 'bakimli' | 'normal' | 'bakimsiz';
+
+export const BAKIM_OPTIONS: { key: BakimDurumu; label: string; carpan: number }[] = [
+  { key: 'sifir_tadilat', label: 'Sıfır / Komple Tadilatlı', carpan: 1.10 },
+  { key: 'bakimli', label: 'Bakımlı', carpan: 1.05 },
+  { key: 'normal', label: 'Normal', carpan: 1.00 },
+  { key: 'bakimsiz', label: 'Bakımsız / Tadilat Gerekli', carpan: 0.90 },
+];
+
+// ─── Özellikler (Ek Katsayılar) ─────────────────────
+
+export type Ozellik = 'asansor' | 'otopark' | 'balkon_teras' | 'guvenlik_site' | 'havuz' | 'rezidans';
+
+export const OZELLIK_OPTIONS: { key: Ozellik; label: string; carpan: number }[] = [
+  { key: 'asansor', label: 'Asansör', carpan: 0.03 },
+  { key: 'otopark', label: 'Kapalı Otopark', carpan: 0.05 },
+  { key: 'balkon_teras', label: 'Balkon / Teras', carpan: 0.03 },
+  { key: 'guvenlik_site', label: 'Güvenlik / Site İçi', carpan: 0.04 },
+  { key: 'havuz', label: 'Havuz', carpan: 0.06 },
+  { key: 'rezidans', label: 'Rezidans', carpan: 0.08 },
+];
+
+// ─── Mahalle Prestiji ───────────────────────────────
+
+export type MahallePrestiji = 'cok_yuksek' | 'yuksek' | 'orta' | 'dusuk';
+
+export const PRESTIJ_OPTIONS: { key: MahallePrestiji; label: string; carpan: number }[] = [
+  { key: 'cok_yuksek', label: 'Çok Yüksek (Caddebostan, Etiler vb.)', carpan: 1.15 },
+  { key: 'yuksek', label: 'Yüksek Prestij', carpan: 1.08 },
+  { key: 'orta', label: 'Orta Prestij', carpan: 1.00 },
+  { key: 'dusuk', label: 'Düşük Prestij', carpan: 0.92 },
+];
+
 // ─── Konum Kalitesi Çarpanı (Şerefiye) ─────────────
 
 export type KonumKalitesi = 'ana_cadde' | 'ara_sokak' | 'site_ici' | 'normal';
@@ -100,20 +171,109 @@ export function getKonumCarpani(konum: KonumKalitesi): number {
 
 // ─── Değerleme Hesaplama ─────────────────────────────
 
+export interface DegerlemeOptions {
+  kat?: KatTipi;
+  binaYasi?: BinaYasi;
+  manzara?: ManzaraTipi;
+  bakimDurumu?: BakimDurumu;
+  ozellikler?: Ozellik[];
+  mahallePrestiji?: MahallePrestiji;
+}
+
+export interface DegerlemeDetay {
+  label: string;
+  carpan: number;
+}
+
+export interface ValuationResultDetailed extends ValuationResult {
+  detaylar: DegerlemeDetay[];
+  toplamCarpan: number;
+}
+
 export function hesaplaDegerleme(
   m2Fiyat: number,
   yuzolcumu: number,
   konumKalitesi: KonumKalitesi = 'normal',
-): ValuationResult {
-  const carpan = getKonumCarpani(konumKalitesi);
-  const adjustedM2 = m2Fiyat * carpan;
+  options?: DegerlemeOptions,
+): ValuationResultDetailed {
+  const detaylar: DegerlemeDetay[] = [];
+
+  // 1. Konum kalitesi
+  const konumCarpan = getKonumCarpani(konumKalitesi);
+  if (konumCarpan !== 1.0) {
+    const lbl = KONUM_KALITESI_OPTIONS.find((o) => o.key === konumKalitesi)?.label ?? '';
+    detaylar.push({ label: `Konum: ${lbl}`, carpan: konumCarpan });
+  }
+
+  // 2. Kat
+  if (options?.kat) {
+    const opt = KAT_OPTIONS.find((o) => o.key === options.kat);
+    if (opt && opt.carpan !== 1.0) {
+      detaylar.push({ label: `Kat: ${opt.label}`, carpan: opt.carpan });
+    }
+  }
+
+  // 3. Bina yaşı
+  if (options?.binaYasi) {
+    const opt = BINA_YASI_OPTIONS.find((o) => o.key === options.binaYasi);
+    if (opt && opt.carpan !== 1.0) {
+      detaylar.push({ label: `Bina Yaşı: ${opt.label}`, carpan: opt.carpan });
+    }
+  }
+
+  // 4. Manzara
+  if (options?.manzara) {
+    const opt = MANZARA_OPTIONS.find((o) => o.key === options.manzara);
+    if (opt && opt.carpan !== 1.0) {
+      detaylar.push({ label: `Manzara: ${opt.label}`, carpan: opt.carpan });
+    }
+  }
+
+  // 5. Bakım durumu
+  if (options?.bakimDurumu) {
+    const opt = BAKIM_OPTIONS.find((o) => o.key === options.bakimDurumu);
+    if (opt && opt.carpan !== 1.0) {
+      detaylar.push({ label: `Bakım: ${opt.label}`, carpan: opt.carpan });
+    }
+  }
+
+  // 6. Mahalle prestiji
+  if (options?.mahallePrestiji) {
+    const opt = PRESTIJ_OPTIONS.find((o) => o.key === options.mahallePrestiji);
+    if (opt && opt.carpan !== 1.0) {
+      detaylar.push({ label: `Prestij: ${opt.label}`, carpan: opt.carpan });
+    }
+  }
+
+  // 7. Özellikler (toplanır)
+  const ozellikCarpan = (options?.ozellikler ?? []).reduce((sum, key) => {
+    const opt = OZELLIK_OPTIONS.find((o) => o.key === key);
+    return sum + (opt?.carpan ?? 0);
+  }, 0);
+  if (ozellikCarpan > 0) {
+    const labels = (options?.ozellikler ?? [])
+      .map((k) => OZELLIK_OPTIONS.find((o) => o.key === k)?.label)
+      .filter(Boolean)
+      .join(', ');
+    detaylar.push({ label: `Özellikler: ${labels}`, carpan: 1 + ozellikCarpan });
+  }
+
+  // Toplam çarpan: çarpanların hepsini çarp
+  const toplamCarpan = detaylar.reduce((acc, d) => acc * d.carpan, 1.0);
+  // Hiç detay yoksa konumKalitesi de 1.0 olabilir
+  const finalCarpan = detaylar.length > 0 ? toplamCarpan : konumCarpan;
+
+  const adjustedM2 = m2Fiyat * finalCarpan;
   const basePrice = adjustedM2 * yuzolcumu;
+
   return {
     basePrice: Math.round(basePrice),
     hizliSatis: Math.round(basePrice * 0.85),
     ucAylik: Math.round(basePrice * 0.95),
     altiAylikMin: Math.round(basePrice),
     altiAylikMax: Math.round(basePrice * 1.05),
+    detaylar,
+    toplamCarpan: finalCarpan,
   };
 }
 

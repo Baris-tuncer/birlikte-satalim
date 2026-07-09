@@ -38,10 +38,9 @@ export default function ToolsScreen() {
   const { profile } = useAuth();
 
   const visibleTools = useMemo(() => {
-    const devEmails = ['baristuncer80@hotmail.com', 'gokmenozevin1978@hotmail.com'];
-    const isDev = !!profile?.email && devEmails.includes(profile.email);
-    return TOOLS.filter((t) => !t.adminOnly || isDev);
-  }, [profile?.email]);
+    const isAdmin = profile?.is_admin ?? false;
+    return TOOLS.filter((t) => !t.adminOnly || isAdmin);
+  }, [profile?.is_admin]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

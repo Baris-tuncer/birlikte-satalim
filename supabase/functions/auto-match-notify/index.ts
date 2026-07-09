@@ -149,13 +149,14 @@ Deno.serve(async (req) => {
 
             await sendPushMessages(supabase, tokens ?? [], title, body, { listingId: listing.id, type: 'auto_match_listing' });
 
-            await supabase.from('notifications').insert(
+            await supabase.from('notifications').upsert(
               demandUserIds.map((uid) => ({
                 user_id: uid, title, body,
                 type: 'auto_match_listing',
                 reference_id: listing.id as string,
                 status: 'sent',
-              }))
+              })),
+              { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true }
             );
           }
         }
@@ -187,7 +188,7 @@ Deno.serve(async (req) => {
 
           await sendPushMessages(supabase, expertTokens ?? [], expertTitle, expertBody, { listingId: listing.id, type: 'expertise_listing' });
 
-          await supabase.from('notifications').insert(
+          await supabase.from('notifications').upsert(
             expertIds.map((uid: string) => ({
               user_id: uid,
               title: expertTitle,
@@ -195,7 +196,8 @@ Deno.serve(async (req) => {
               type: 'expertise_listing',
               reference_id: listing.id as string,
               status: 'sent',
-            }))
+            })),
+            { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true }
           );
         }
       }
@@ -258,13 +260,14 @@ Deno.serve(async (req) => {
 
             await sendPushMessages(supabase, tokens ?? [], title, body, { demandId: demand.id, type: 'auto_match_demand' });
 
-            await supabase.from('notifications').insert(
+            await supabase.from('notifications').upsert(
               listingUserIds.map((uid) => ({
                 user_id: uid, title, body,
                 type: 'auto_match_demand',
                 reference_id: demand.id as string,
                 status: 'sent',
-              }))
+              })),
+              { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true }
             );
           }
         }
@@ -295,7 +298,7 @@ Deno.serve(async (req) => {
 
           await sendPushMessages(supabase, expertTokens ?? [], expertTitle, expertBody, { demandId: demand.id, type: 'expertise_demand' });
 
-          await supabase.from('notifications').insert(
+          await supabase.from('notifications').upsert(
             expertIds.map((uid: string) => ({
               user_id: uid,
               title: expertTitle,
@@ -303,7 +306,8 @@ Deno.serve(async (req) => {
               type: 'expertise_demand',
               reference_id: demand.id as string,
               status: 'sent',
-            }))
+            })),
+            { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true }
           );
         }
       }

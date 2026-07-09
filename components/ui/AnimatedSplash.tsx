@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Image, StyleSheet, Text, View } from 'react-native';
-import { Colors, Typography, Spacing } from '@/constants/Theme';
+import { Animated, Image, StyleSheet, View, Dimensions } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
 
 interface AnimatedSplashProps {
   children: React.ReactNode;
@@ -35,16 +36,11 @@ export default function AnimatedSplash({ children }: AnimatedSplashProps) {
     <View style={styles.wrapper}>
       {children}
       <Animated.View style={[styles.splash, { opacity }]}>
-        <View style={styles.content}>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.tagline}>
-            Gayrimenkul danışmanlarının{'\n'}iş birliği platformu
-          </Text>
-        </View>
+        <Image
+          source={require('@/assets/images/landing.jpg')}
+          style={styles.landingImage}
+          resizeMode="cover"
+        />
       </Animated.View>
     </View>
   );
@@ -57,24 +53,10 @@ const styles = StyleSheet.create({
   splash: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 999,
-    backgroundColor: Colors.accent,
+    backgroundColor: '#FFFFFF',
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: Spacing['3xl'],
-  },
-  logo: {
-    width: 200,
-    height: 200,
-    marginBottom: Spacing.xl,
-  },
-  tagline: {
-    ...Typography.title3,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    fontWeight: '600',
-    lineHeight: 28,
+  landingImage: {
+    width,
+    height,
   },
 });

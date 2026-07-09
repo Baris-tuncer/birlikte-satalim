@@ -56,14 +56,19 @@ Deno.serve(async (req) => {
     });
   }
 
+  const jsonHeaders = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+  };
+
+  const errorResponse = (error: string) =>
+    new Response(JSON.stringify({ success: false, error }), { status: 200, headers: jsonHeaders });
+
   try {
     // Auth check
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Yetkilendirme gerekli' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } },
-      );
+      return errorResponse('Yetkilendirme gerekli');
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -71,10 +76,7 @@ Deno.serve(async (req) => {
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
 
     if (!anthropicKey) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI servisi yapılandırılmamış' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } },
-      );
+      return errorResponse('AI servisi yapılandırılmamış');
     }
 
     // Verify user session
@@ -82,43 +84,44 @@ Deno.serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'Geçersiz oturum' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } },
-      );
+      return errorResponse('Geçersiz oturum');
     }
 
     // Parse request
     const { images } = await req.json() as { images: string[] };
 
     if (!images || !Array.isArray(images) || images.length === 0) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'En az 1 görüntü gerekli' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } },
-      );
+      return errorResponse('En az 1 görüntü gerekli');
     }
 
     if (images.length > 3) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'En fazla 3 görüntü gönderilebilir' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } },
-      );
+      return errorResponse('En fazla 3 görüntü gönderilebilir');
     }
 
     // Build Claude message content
     const content: Array<Record<string, unknown>> = [];
 
     for (const img of images) {
-      // Detect media type from base64 header or default to jpeg
       let mediaType = 'image/jpeg';
       let base64Data = img;
 
       if (img.startsWith('data:')) {
+        // Extract media type from data URI prefix
         const match = img.match(/^data:(image\/\w+);base64,(.+)$/);
         if (match) {
           mediaType = match[1];
           base64Data = match[2];
         }
+      } else {
+        // Detect format from base64 magic bytes
+        if (base64Data.startsWith('iVBOR')) {
+          mediaType = 'image/png';
+        } else if (base64Data.startsWith('R0lGOD')) {
+          mediaType = 'image/gif';
+        } else if (base64Data.startsWith('UklGR')) {
+          mediaType = 'image/webp';
+        }
+        // /9j/ = JPEG (default)
       }
 
       content.push({
@@ -160,20 +163,20 @@ Deno.serve(async (req) => {
     if (!claudeResponse.ok) {
       const errText = await claudeResponse.text();
       console.error('Claude API error:', claudeResponse.status, errText);
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI servisi yanıt vermedi' }),
-        { status: 502, headers: { 'Content-Type': 'application/json' } },
-      );
+      // Parse Claude error for detail
+      let detail = '';
+      try {
+        const errJson = JSON.parse(errText);
+        detail = errJson?.error?.message || '';
+      } catch { /* ignore */ }
+      return errorResponse(`AI servisi yanıt vermedi (${claudeResponse.status}): ${detail}`.trim());
     }
 
     const claudeResult = await claudeResponse.json();
     const textContent = claudeResult.content?.find((c: { type: string }) => c.type === 'text');
 
     if (!textContent?.text) {
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI yanıtı boş' }),
-        { status: 502, headers: { 'Content-Type': 'application/json' } },
-      );
+      return errorResponse('AI yanıtı boş');
     }
 
     // Parse JSON from Claude response
@@ -188,10 +191,7 @@ Deno.serve(async (req) => {
       extracted = JSON.parse(jsonStr);
     } catch {
       console.error('Failed to parse Claude JSON:', textContent.text);
-      return new Response(
-        JSON.stringify({ success: false, error: 'AI yanıtı işlenemedi, tekrar deneyin' }),
-        { status: 502, headers: { 'Content-Type': 'application/json' } },
-      );
+      return errorResponse('AI yanıtı işlenemedi, tekrar deneyin');
     }
 
     // Sanitize numeric fields
@@ -213,25 +213,10 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ success: true, data: extracted }),
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      },
+      { status: 200, headers: jsonHeaders },
     );
   } catch (error) {
     console.error('extract-listing error:', error);
-    return new Response(
-      JSON.stringify({ success: false, error: (error as Error).message }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      },
-    );
+    return errorResponse((error as Error).message);
   }
 });

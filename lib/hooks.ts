@@ -691,31 +691,19 @@ export async function extractListingFromImage(
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return { data: null, error: 'Oturum bulunamadı' };
 
-    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-    if (!supabaseUrl) return { data: null, error: 'Yapılandırma hatası' };
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 45000);
-
-    const response = await fetch(`${supabaseUrl}/functions/v1/extract-listing`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ images: base64Images }),
-      signal: controller.signal,
+    const { data, error } = await supabase.functions.invoke('extract-listing', {
+      body: { images: base64Images },
     });
 
-    clearTimeout(timeoutId);
-
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      return { data: null, error: result.error || 'AI servisi yanıt vermedi' };
+    if (error) {
+      return { data: null, error: error.message || 'AI servisi yanıt vermedi' };
     }
 
-    return { data: result.data as ExtractedListing, error: null };
+    if (!data?.success) {
+      return { data: null, error: data?.error || 'AI servisi yanıt vermedi' };
+    }
+
+    return { data: data.data as ExtractedListing, error: null };
   } catch (e: unknown) {
     if (e instanceof Error && e.name === 'AbortError') {
       return { data: null, error: 'İstek zaman aşımına uğradı, tekrar deneyin' };

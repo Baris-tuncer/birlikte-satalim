@@ -116,14 +116,14 @@ Deno.serve(async (req) => {
     }
 
     // Bildirim kaydini her zaman yaz (token olmasa bile)
-    await supabase.from('notifications').insert({
+    await supabase.from('notifications').upsert({
       user_id: match.target_id,
       title,
       body,
       type: 'match_request',
       reference_id: match.id,
       status: 'sent',
-    });
+    }, { onConflict: 'user_id,type,reference_id', ignoreDuplicates: true });
 
     // Hedef kullanicinin push token'larini al
     const { data: tokens } = await supabase

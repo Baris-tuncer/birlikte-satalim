@@ -23,6 +23,7 @@ import {
   BUILDING_AGE_OPTIONS,
   getNeighborhoodsForDistrict,
 } from '@/lib/constants';
+import { Ionicons } from '@expo/vector-icons';
 import { formatPriceInput, checkContent } from '@/lib/format';
 import { useCreateDemand, useUpdateDemand } from '@/lib/hooks';
 import { supabase } from '@/lib/supabase';
@@ -205,7 +206,12 @@ export default function CreateDemandScreen() {
           >
             {/* İşlem Tipi */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>İşlem Tipi</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#3B82F6' }]}>
+                  <Ionicons name="swap-horizontal" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>İşlem Tipi</Text>
+              </View>
               <DropdownPicker
                 label="İşlem Tipi Seçin"
                 value={transactionType}
@@ -217,7 +223,12 @@ export default function CreateDemandScreen() {
 
             {/* Mülk Tipi */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Mülk Tipi</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#8B5CF6' }]}>
+                  <Ionicons name="home" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>Mülk Tipi</Text>
+              </View>
               <DropdownPicker
                 label="Mülk Tipi Seçin"
                 value={propertyType}
@@ -229,7 +240,12 @@ export default function CreateDemandScreen() {
 
             {/* Konum */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Konum</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#EF4444' }]}>
+                  <Ionicons name="location" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>Konum</Text>
+              </View>
               <View style={styles.card}>
                 <Text style={styles.inputLabel}>Şehir</Text>
                 <DropdownPicker
@@ -284,7 +300,12 @@ export default function CreateDemandScreen() {
 
             {/* Bütçe */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Bütçe Aralığı</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#06B6D4' }]}>
+                  <Ionicons name="wallet" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>Bütçe Aralığı</Text>
+              </View>
               <View style={styles.card}>
                 <View style={styles.inputRow}>
                   <View style={styles.inputHalf}>
@@ -316,7 +337,12 @@ export default function CreateDemandScreen() {
             {/* Min Oda Sayısı */}
             {!isLand && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Min Oda Sayısı</Text>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: '#EC4899' }]}>
+                    <Ionicons name="bed" size={16} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.sectionTitle}>Min Oda Sayısı</Text>
+                </View>
                 <DropdownPicker
                   label="Min Oda Sayısı Seçin"
                   value={minRooms || null}
@@ -329,7 +355,12 @@ export default function CreateDemandScreen() {
 
             {/* Ek Kriterler */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Ek Kriterler</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#14B8A6' }]}>
+                  <Ionicons name="resize" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>Ek Kriterler</Text>
+              </View>
               <View style={styles.card}>
                 <View style={styles.inputRow}>
                   <View style={styles.inputHalf}>
@@ -363,9 +394,14 @@ export default function CreateDemandScreen() {
             {/* Bina Yaşı (multi-select) */}
             {!isLand && propertyType !== 'URBAN_RENEWAL' && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  Bina Yaşı ({selectedBuildingAges.length} seçili)
-                </Text>
+                <View style={styles.sectionHeader}>
+                  <View style={[styles.sectionIcon, { backgroundColor: '#F59E0B' }]}>
+                    <Ionicons name="calendar" size={16} color="#FFFFFF" />
+                  </View>
+                  <Text style={styles.sectionTitle}>
+                    Bina Yaşı ({selectedBuildingAges.length} seçili)
+                  </Text>
+                </View>
                 <View style={styles.card}>
                   <View style={styles.neighborhoodWrap}>
                     {BUILDING_AGE_OPTIONS.map((opt) => {
@@ -397,7 +433,12 @@ export default function CreateDemandScreen() {
 
             {/* Notlar */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Notlar</Text>
+              <View style={styles.sectionHeader}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#8B5CF6' }]}>
+                  <Ionicons name="document-text" size={16} color="#FFFFFF" />
+                </View>
+                <Text style={styles.sectionTitle}>Notlar</Text>
+              </View>
               <View style={styles.card}>
                 <TextInput
                   style={[styles.input, styles.inputMultiline]}
@@ -451,16 +492,33 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: Spacing.xl,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.xl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  sectionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sectionTitle: {
     ...Typography.headline,
     color: Colors.text.primary,
-    marginBottom: Spacing.md,
   },
   card: {
     backgroundColor: Colors.card,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.accent,
     ...Shadows.sm,
   },
   chipSmall: {
