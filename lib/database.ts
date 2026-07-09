@@ -363,8 +363,7 @@ export async function getPlatformStats() {
     supabase
       .from('users')
       .select('*', { count: 'exact', head: true })
-      .eq('is_active', true)
-      .eq('is_mock', false),
+      .eq('is_active', true),
   ]);
 
   return {
