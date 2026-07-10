@@ -19,6 +19,7 @@ import { useAuth } from '@/lib/auth-context';
 import { setPendingAuth } from '@/lib/pending-auth';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
+import { CITIES, getDistrictsForCity } from '@/lib/constants';
 
 interface LegalCheckbox {
   key: string;
@@ -61,6 +62,8 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkboxes, setCheckboxes] = useState(INITIAL_CHECKBOXES);
+  const [expertiseCity, setExpertiseCity] = useState('İstanbul');
+  const [expertiseDistricts, setExpertiseDistricts] = useState<string[]>([]);
 
   const allChecked = checkboxes.every((c) => c.checked);
   const passwordsMatch = password === passwordConfirm;
@@ -76,6 +79,7 @@ export default function RegisterScreen() {
     phone.replace(/\D/g, '').length >= 10 &&
     passwordStrong &&
     passwordsMatch &&
+    expertiseDistricts.length >= 1 &&
     allChecked;
 
   const toggleCheckbox = useCallback((key: string) => {
@@ -120,6 +124,8 @@ export default function RegisterScreen() {
       name: name.trim(),
       companyName: companyName.trim(),
       phone: phone.trim(),
+      expertiseCity,
+      expertiseDistricts,
     });
     setLoading(false);
 
@@ -134,7 +140,7 @@ export default function RegisterScreen() {
 
     setPendingAuth(email.trim(), password);
     router.push('/(auth)/verify-email');
-  }, [isValid, passwordsMatch, email, password, name, companyName, phone, signUp, router]);
+  }, [isValid, passwordsMatch, email, password, name, companyName, phone, expertiseCity, expertiseDistricts, signUp, router]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -250,6 +256,54 @@ export default function RegisterScreen() {
             {password.length > 0 && passwordConfirm.length > 0 && !passwordsMatch && (
               <Text style={styles.errorText}>Şifreler uyuşmuyor</Text>
             )}
+
+            {/* Uzmanlık Bölgesi */}
+            <View style={styles.expertiseSection}>
+              <Text style={styles.expertiseSectionTitle}>Uzmanlık Bölgesi</Text>
+              <Text style={styles.expertiseHint}>Çalıştığınız şehir ve ilçeyi seçin</Text>
+
+              {/* Şehir seçimi */}
+              <Text style={styles.expertiseLabel}>Şehir</Text>
+              <View style={styles.chipRow}>
+                {CITIES.map((c) => (
+                  <Pressable
+                    key={c}
+                    style={[styles.chip, expertiseCity === c && styles.chipSelected]}
+                    onPress={() => {
+                      setExpertiseCity(c);
+                      setExpertiseDistricts([]);
+                    }}
+                  >
+                    <Text style={[styles.chipText, expertiseCity === c && styles.chipTextSelected]}>
+                      {c}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {/* İlçe seçimi */}
+              <Text style={styles.expertiseLabel}>İlçe (en az 1 seçin)</Text>
+              <View style={styles.chipRow}>
+                {getDistrictsForCity(expertiseCity).map((d) => {
+                  const selected = expertiseDistricts.includes(d);
+                  return (
+                    <Pressable
+                      key={d}
+                      style={[styles.chip, selected && styles.chipSelected]}
+                      onPress={() => {
+                        setExpertiseDistricts((prev) =>
+                          prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]
+                        );
+                      }}
+                    >
+                      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                        {d}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
 
             {/* Legal Checkboxes */}
             <View style={styles.legalSection}>
@@ -421,6 +475,52 @@ const styles = StyleSheet.create({
     marginTop: -Spacing.sm,
     marginBottom: Spacing.md,
     paddingLeft: Spacing.xs,
+  },
+  expertiseSection: {
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.lg,
+  },
+  expertiseSectionTitle: {
+    ...Typography.headline,
+    color: Colors.text.primary,
+    marginBottom: Spacing.xs,
+  },
+  expertiseHint: {
+    ...Typography.footnote,
+    color: Colors.text.tertiary,
+    marginBottom: Spacing.lg,
+  },
+  expertiseLabel: {
+    ...Typography.subhead,
+    color: Colors.text.secondary,
+    fontWeight: '600' as const,
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  chipRow: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: Spacing.sm,
+  },
+  chip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  chipSelected: {
+    backgroundColor: Colors.accent + '14',
+    borderColor: Colors.accent,
+  },
+  chipText: {
+    ...Typography.caption1,
+    color: Colors.text.secondary,
+  },
+  chipTextSelected: {
+    color: Colors.accent,
+    fontWeight: '600' as const,
   },
   legalSection: {
     marginTop: Spacing.lg,

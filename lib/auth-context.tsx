@@ -118,6 +118,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name: string;
       companyName: string;
       phone: string;
+      expertiseCity: string;
+      expertiseDistricts: string[];
     }): Promise<{ error: string | null }> => {
       try {
         const { error } = await supabase.auth.signUp({
@@ -128,6 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               name: params.name,
               company_name: params.companyName,
               phone: params.phone,
+              expertise_city: params.expertiseCity,
+              expertise_districts: JSON.stringify(params.expertiseDistricts),
             },
             emailRedirectTo: 'https://berabersatalim.com/auth/callback',
           },
