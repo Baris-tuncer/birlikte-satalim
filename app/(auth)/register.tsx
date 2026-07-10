@@ -20,6 +20,8 @@ import { setPendingAuth } from '@/lib/pending-auth';
 import { SKIP_AUTH_IN_DEV } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
 import { CITIES, getDistrictsForCity } from '@/lib/constants';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 
 interface LegalCheckbox {
   key: string;
@@ -104,6 +106,24 @@ export default function RegisterScreen() {
     }
 
     setLoading(true);
+
+    // Bildirim izni kontrolü
+    if (Device.isDevice) {
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      if (finalStatus !== 'granted') {
+        setLoading(false);
+        Alert.alert(
+          'Bildirim İzni Gerekli',
+          'Uygulamayı kullanabilmek için bildirimlere izin vermeniz gerekiyor. Lütfen ayarlardan bildirimleri açın ve tekrar deneyin.',
+        );
+        return;
+      }
+    }
 
     // Engelli email kontrolü
     const { data: blocked } = await supabase
