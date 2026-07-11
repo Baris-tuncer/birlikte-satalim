@@ -421,10 +421,14 @@ export const IZMIR_NEIGHBORHOODS: Record<string, string[]> = {
     'Yedi Eylül', 'Yemişlik', 'Yeni', 'Yeniköy', 'Yeşilköy', 'Yoğurtçular',
   ],
   'Urla': [
-    'Altıntaş', 'Bademler', 'Barbaros', 'Birgi', 'Çeşmealtı',
-    'Demircili', 'Denizli', 'Güvendik', 'İçmeler', 'İskele',
-    'Kalabak', 'Kuşçular', 'Nohutalan', 'Ovacık', 'Özbek',
-    'Sıra', 'Urla', 'Yağcılar', 'Zeytinalanı', 'Zeytinler',
+    'Altıntaş', 'Atatürk', 'Bademler', 'Balıklıova', 'Barbaros',
+    'Birgi', 'Camiatik', 'Çamlıçay', 'Demircili', 'Denizli',
+    'Gülbahçe', 'Güvendik', 'Hacı İsa', 'İçmeler', 'İskele',
+    'Kadıovacık', 'Kalabak', 'Kuşçular', 'M. Fevzi Çakmak', 'Naipli',
+    'Nohutalan', 'Ovacık', 'Özbek', 'Rüstem', 'Sıra',
+    'Şirinkent', 'Torasan', 'Uzunkuyu', 'Yağcılar', 'Yaka',
+    'Yelaltı', 'Yeni', 'Yenice', 'Yenikent', 'Zeytinalanı',
+    'Zeytineli', 'Zeytinler',
   ],
 };
 
