@@ -58,13 +58,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Kullanıcı profili çek (users tablosundan)
   const fetchProfile = useCallback(async (authId: string) => {
     setState((prev) => ({ ...prev, profileLoading: true }));
-    const { data } = await getUserProfile(authId);
-    setState((prev) => ({
-      ...prev,
-      profile: data ?? prev.profile,
-      licenseStatus: data?.license_status ?? prev.licenseStatus,
-      profileLoading: false,
-    }));
+    try {
+      const { data } = await getUserProfile(authId);
+      setState((prev) => ({
+        ...prev,
+        profile: data ?? prev.profile,
+        licenseStatus: data?.license_status ?? prev.licenseStatus,
+        profileLoading: false,
+      }));
+    } catch {
+      setState((prev) => ({ ...prev, profileLoading: false }));
+    }
   }, []);
 
   // Supabase session dinle
