@@ -101,7 +101,7 @@ function RootLayoutNav() {
 
     if (!isLoggedIn) {
       // Giriş yapılmamış — auth akışı dışındaysa welcome'a yönlendir
-      if (segments[1] !== 'welcome' && segments[1] !== 'login' && segments[1] !== 'register' && segments[1] !== 'forgot-password') {
+      if (segments[1] !== 'welcome' && segments[1] !== 'login' && segments[1] !== 'register' && segments[1] !== 'forgot-password' && segments[1] !== 'verify-email') {
         router.replace('/(auth)/welcome');
       }
     } else if (isLoggedIn && inAuthGroup && (segments[1] === 'welcome' || segments[1] === 'login' || segments[1] === 'register')) {
@@ -112,8 +112,11 @@ function RootLayoutNav() {
         // E-posta doğrulanmış, ana ekrana yönlendir (lisans durumu fark etmez)
         router.replace('/(tabs)');
       }
-    } else if (isLoggedIn && !emailVerified && !inAuthGroup) {
-      router.replace('/(auth)/verify-email');
+    } else if (isLoggedIn && !emailVerified) {
+      // E-posta doğrulanmamış — verify-email dışındaysa yönlendir
+      if (segments[1] !== 'verify-email') {
+        router.replace('/(auth)/verify-email');
+      }
     } else if (isLoggedIn && emailVerified && inAuthGroup) {
       // E-posta doğrulanmış, ana ekrana yönlendir (lisans durumu fark etmez)
       router.replace('/(tabs)');
