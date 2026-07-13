@@ -24,7 +24,7 @@ export default function DemandPoolScreen() {
   const router = useRouter();
   const { profile } = useAuth();
   const { showPaywallIfNeeded } = useSubscription();
-  const [selectedCity, setSelectedCity] = useState('İstanbul');
+  const [selectedCity, setSelectedCity] = useState('');
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedNeighborhood, setSelectedNeighborhood] = useState('');
   const [transactionType, setTransactionType] = useState('ALL');
