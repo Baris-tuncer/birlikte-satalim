@@ -29,7 +29,6 @@ const TOOLS: ToolItem[] = [
     description: 'Taşınmaz değerlemesi ve hukuki risk analizi',
     icon: 'shield-checkmark-outline',
     route: '/tools/valuation',
-    adminOnly: true,
   },
 ];
 

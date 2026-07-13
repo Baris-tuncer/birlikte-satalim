@@ -261,15 +261,17 @@ export default function ListingDetailScreen() {
           </Text>
         </View>
 
-        {/* Yer Gösterme Belgesi */}
-        <Pressable
-          style={({ pressed }) => [styles.showingCertButton, pressed && { opacity: 0.85 }]}
-          onPress={() => router.push(`/tools/showing-certificate?listingId=${listing.id}` as any)}
-        >
-          <Ionicons name="document-text-outline" size={18} color={Colors.accent} />
-          <Text style={styles.showingCertButtonText}>Yer Gösterme Belgesi Hazırla</Text>
-          <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
-        </Pressable>
+        {/* Yer Gösterme Belgesi — sadece ilan sahibi görsün */}
+        {isOwner && (
+          <Pressable
+            style={({ pressed }) => [styles.showingCertButton, pressed && { opacity: 0.85 }]}
+            onPress={() => router.push(`/tools/showing-certificate?listingId=${listing.id}` as any)}
+          >
+            <Ionicons name="document-text-outline" size={18} color={Colors.accent} />
+            <Text style={styles.showingCertButtonText}>Yer Gösterme Belgesi Hazırla</Text>
+            <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+          </Pressable>
+        )}
 
         {/* Owner Actions / Match Button */}
         {isOwner ? (
