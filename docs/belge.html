@@ -107,7 +107,6 @@
       padding: 48px 56px;
       box-shadow: 0 4px 24px rgba(0,0,0,0.12);
       position: relative;
-      min-height: 900px;
     }
 
     .cert-border {
@@ -125,20 +124,20 @@
 
     .cert-header {
       text-align: center;
-      padding-bottom: 24px;
+      padding-bottom: 16px;
       border-bottom: 2px solid #0A2540;
-      margin-bottom: 28px;
+      margin-bottom: 20px;
     }
     .cert-header h1 {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       font-weight: 700;
       color: #0A2540;
       letter-spacing: 3px;
       text-transform: uppercase;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .cert-header .subtitle {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: #666;
       font-style: italic;
     }
@@ -152,7 +151,8 @@
 
     /* Sections */
     .cert-section {
-      margin-bottom: 24px;
+      margin-bottom: 18px;
+      page-break-inside: avoid;
     }
     .cert-section-title {
       font-size: 0.8rem;
@@ -160,16 +160,16 @@
       color: #0A2540;
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      padding-bottom: 6px;
+      padding-bottom: 4px;
       border-bottom: 1px solid #D0D5DD;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
     }
     .cert-row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      padding: 5px 0;
-      font-size: 0.9rem;
+      padding: 3px 0;
+      font-size: 0.88rem;
     }
     .cert-label {
       color: #555;
@@ -183,24 +183,24 @@
     }
 
     .cert-notes {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: #333;
-      line-height: 1.6;
+      line-height: 1.55;
       white-space: pre-wrap;
       padding: 10px 14px;
       background: #FAFAFA;
       border-left: 3px solid #0A2540;
-      margin-top: 8px;
+      margin-top: 6px;
     }
 
     /* Declaration text */
     .cert-declaration {
-      margin-top: 32px;
-      padding-top: 20px;
+      margin-top: 24px;
+      padding-top: 14px;
       border-top: 1px solid #D0D5DD;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: #333;
-      line-height: 1.7;
+      line-height: 1.55;
       text-align: justify;
     }
 
@@ -208,8 +208,9 @@
     .cert-signatures {
       display: flex;
       justify-content: space-between;
-      margin-top: 48px;
+      margin-top: 32px;
       gap: 40px;
+      page-break-inside: avoid;
     }
     .cert-sig-block {
       flex: 1;
@@ -217,7 +218,7 @@
     }
     .cert-sig-line {
       border-top: 1px solid #333;
-      margin-top: 60px;
+      margin-top: 50px;
       padding-top: 8px;
     }
     .cert-sig-name {
@@ -257,8 +258,8 @@
       text-align: center;
       font-size: 0.7rem;
       color: #BBB;
-      margin-top: 32px;
-      padding-top: 12px;
+      margin-top: 24px;
+      padding-top: 8px;
       border-top: 1px solid #E5E7EB;
     }
 
@@ -275,52 +276,64 @@
 
       .certificate {
         box-shadow: none;
-        padding: 20px 28px;
-        min-height: auto;
+        padding: 14px 22px;
       }
 
-      .cert-border { top: 6px; left: 6px; right: 6px; bottom: 6px; }
-      .cert-border-inner { top: 9px; left: 9px; right: 9px; bottom: 9px; }
+      .cert-border { top: 5px; left: 5px; right: 5px; bottom: 5px; }
+      .cert-border-inner { top: 8px; left: 8px; right: 8px; bottom: 8px; }
 
-      .cert-header { padding-bottom: 12px; margin-bottom: 14px; }
-      .cert-header h1 { font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 2px; }
-      .cert-header .subtitle { font-size: 0.75rem; }
-      .cert-ref { font-size: 0.65rem; margin-top: 4px; }
+      .cert-header { padding-bottom: 8px; margin-bottom: 10px; }
+      .cert-header h1 { font-size: 1.05rem; letter-spacing: 2px; margin-bottom: 1px; }
+      .cert-header .subtitle { font-size: 0.65rem; }
+      .cert-ref { font-size: 0.58rem; margin-top: 2px; }
 
-      .cert-section { margin-bottom: 10px; }
-      .cert-section-title { font-size: 0.7rem; padding-bottom: 3px; margin-bottom: 6px; letter-spacing: 1px; }
-      .cert-row { padding: 2px 0; font-size: 0.8rem; }
-      .cert-label { min-width: 120px; }
-      .cert-notes { font-size: 0.75rem; padding: 6px 10px; line-height: 1.4; }
+      .cert-section { margin-bottom: 6px; page-break-inside: avoid; }
+      .cert-section-title { font-size: 0.62rem; padding-bottom: 2px; margin-bottom: 3px; letter-spacing: 0.8px; }
+      .cert-row { padding: 1px 0; font-size: 0.7rem; }
+      .cert-label { min-width: 100px; }
+      .cert-value { font-size: 0.7rem; }
+      .cert-notes { font-size: 0.65rem; padding: 4px 8px; line-height: 1.3; }
 
-      .cert-declaration { margin-top: 14px; padding-top: 10px; font-size: 0.72rem; line-height: 1.5; }
+      .cert-declaration { margin-top: 8px; padding-top: 6px; font-size: 0.65rem; line-height: 1.35; }
 
-      .cert-signatures { margin-top: 20px; gap: 24px; }
-      .cert-sig-line { margin-top: 30px; padding-top: 4px; }
-      .cert-sig-name { font-size: 0.75rem; }
-      .cert-sig-role { font-size: 0.65rem; }
+      .cert-signatures { margin-top: 14px; gap: 20px; }
+      .cert-sig-line { margin-top: 24px; padding-top: 3px; }
+      .cert-sig-name { font-size: 0.68rem; }
+      .cert-sig-role { font-size: 0.58rem; }
 
-      .cert-footer { margin-top: 12px; padding-top: 6px; font-size: 0.6rem; }
-      #cert-footer-confirmed { font-size: 0.65rem !important; }
+      .cert-footer { margin-top: 8px; padding-top: 4px; font-size: 0.55rem; }
+      #cert-footer-confirmed { font-size: 0.58rem !important; }
 
-      .cert-stamp { opacity: 0.15; font-size: 1.1rem; padding: 8px 24px; }
+      .cert-stamp { opacity: 0.15; font-size: 1rem; padding: 6px 20px; }
 
       @page {
         size: A4;
-        margin: 10mm;
+        margin: 8mm;
       }
     }
 
     /* ─── Mobile ─── */
     @media screen and (max-width: 600px) {
-      .certificate { padding: 28px 24px; }
-      .cert-border { top: 8px; left: 8px; right: 8px; bottom: 8px; }
-      .cert-border-inner { top: 12px; left: 12px; right: 12px; bottom: 12px; }
-      .cert-header h1 { font-size: 1.2rem; letter-spacing: 2px; }
-      .cert-row { flex-direction: column; gap: 2px; }
+      .page-wrapper { padding: 12px 8px 48px; }
+      .certificate { padding: 20px 16px; }
+      .cert-border { top: 6px; left: 6px; right: 6px; bottom: 6px; }
+      .cert-border-inner { top: 9px; left: 9px; right: 9px; bottom: 9px; }
+      .cert-header { padding-bottom: 12px; margin-bottom: 14px; }
+      .cert-header h1 { font-size: 1.1rem; letter-spacing: 2px; }
+      .cert-header .subtitle { font-size: 0.75rem; }
+      .cert-ref { font-size: 0.65rem; }
+      .cert-section { margin-bottom: 14px; }
+      .cert-section-title { font-size: 0.72rem; margin-bottom: 6px; }
+      .cert-row { flex-direction: column; gap: 1px; padding: 3px 0; font-size: 0.82rem; }
       .cert-value { text-align: left; }
-      .cert-signatures { flex-direction: column; gap: 24px; }
-      .cert-sig-line { margin-top: 40px; }
+      .cert-label { min-width: auto; font-size: 0.75rem; }
+      .cert-notes { font-size: 0.78rem; }
+      .cert-declaration { font-size: 0.78rem; line-height: 1.5; margin-top: 16px; padding-top: 10px; }
+      .cert-signatures { flex-direction: column; gap: 16px; margin-top: 24px; }
+      .cert-sig-line { margin-top: 32px; }
+      .cert-sig-name { font-size: 0.8rem; }
+      .cert-sig-role { font-size: 0.7rem; }
+      .cert-footer { font-size: 0.65rem; margin-top: 20px; }
     }
   </style>
 </head>
