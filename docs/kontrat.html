@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kira Sözleşmesi</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      color: #1A1A2E;
+      background: #E8E8E8;
+      min-height: 100vh;
+    }
+
+    /* ─── Screen-only wrapper ─── */
+    .page-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 24px 16px 64px;
+    }
+
+    /* ─── Screen-only action bar ─── */
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .action-btn:hover { opacity: 0.85; }
+    .action-btn.primary { background: #FF6B4A; color: #fff; }
+    .action-btn.secondary { background: #0A2540; color: #fff; }
+    .action-btn:disabled { background: #D1D5DB; cursor: not-allowed; }
+
+    .action-note {
+      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: -8px;
+      margin-bottom: 16px;
+    }
+
+    /* ─── States (screen only) ─── */
+    .state { display: none; }
+    .state.active { display: block; }
+
+    .loading {
+      text-align: center;
+      padding: 120px 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #E5E7EB; border-top-color: #0A2540;
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { color: #666; font-size: 0.95rem; }
+
+    .error {
+      text-align: center;
+      padding: 120px 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .error-icon { font-size: 3rem; margin-bottom: 16px; }
+    .error h2 { font-size: 1.2rem; color: #1A1A2E; margin-bottom: 8px; }
+    .error p { color: #666; font-size: 0.9rem; line-height: 1.5; }
+
+    /* ─── Confirmed badge (screen) ─── */
+    .confirmed-badge-screen {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: 12px;
+      padding: 14px; margin-bottom: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 600; color: #059669; font-size: 0.95rem;
+    }
+
+    /* ─── Contract Document ─── */
+    .contract {
+      background: #fff;
+      padding: 48px 56px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+      position: relative;
+      min-height: 900px;
+    }
+
+    .contract-border {
+      position: absolute;
+      top: 12px; left: 12px; right: 12px; bottom: 12px;
+      border: 2px solid #0A2540;
+      pointer-events: none;
+    }
+    .contract-border-inner {
+      position: absolute;
+      top: 16px; left: 16px; right: 16px; bottom: 16px;
+      border: 1px solid #B8C4D0;
+      pointer-events: none;
+    }
+
+    .contract-header {
+      text-align: center;
+      padding-bottom: 24px;
+      border-bottom: 2px solid #0A2540;
+      margin-bottom: 28px;
+    }
+    .contract-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0A2540;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .contract-header .subtitle {
+      font-size: 0.85rem;
+      color: #666;
+      font-style: italic;
+    }
+    .contract-ref {
+      font-size: 0.75rem;
+      color: #999;
+      text-align: right;
+      margin-top: 8px;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #0A2540;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #D0D5DD;
+      margin-bottom: 12px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 5px 0;
+      font-size: 0.9rem;
+    }
+    .label {
+      color: #555;
+      min-width: 140px;
+    }
+    .value {
+      color: #1A1A2E;
+      font-weight: 600;
+      text-align: right;
+      flex: 1;
+    }
+
+    /* Two column layout for parties */
+    .two-col {
+      display: flex;
+      gap: 32px;
+    }
+    .two-col .col {
+      flex: 1;
+    }
+    .col-header {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #0A2540;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #E5E7EB;
+      margin-bottom: 8px;
+    }
+
+    .notes {
+      font-size: 0.85rem;
+      color: #333;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      padding: 10px 14px;
+      background: #FAFAFA;
+      border-left: 3px solid #0A2540;
+      margin-top: 8px;
+    }
+
+    /* Madde (article) text */
+    .madde-text {
+      font-size: 0.85rem;
+      color: #333;
+      line-height: 1.7;
+      text-align: justify;
+      margin-top: 8px;
+    }
+
+    /* Signature area */
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 48px;
+      gap: 40px;
+    }
+    .sig-block {
+      flex: 1;
+      text-align: center;
+    }
+    .sig-line {
+      border-top: 1px solid #333;
+      margin-top: 60px;
+      padding-top: 8px;
+    }
+    .sig-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #1A1A2E;
+    }
+    .sig-role {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    /* Confirmed stamp */
+    .stamp {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-25deg);
+      border: 4px solid #059669;
+      border-radius: 12px;
+      padding: 12px 32px;
+      color: #059669;
+      font-size: 1.4rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      opacity: 0.18;
+      pointer-events: none;
+      display: none;
+      white-space: nowrap;
+    }
+    .stamp.visible { display: block; }
+
+    /* Footer */
+    .contract-footer {
+      text-align: center;
+      font-size: 0.7rem;
+      color: #BBB;
+      margin-top: 32px;
+      padding-top: 12px;
+      border-top: 1px solid #E5E7EB;
+    }
+
+    /* ─── Print styles ─── */
+    @media print {
+      body { background: #fff; }
+
+      .action-bar,
+      .action-note,
+      .confirmed-badge-screen,
+      #confirm-area { display: none !important; }
+
+      .page-wrapper { padding: 0; margin: 0; max-width: none; }
+
+      .contract {
+        box-shadow: none;
+        padding: 20px 28px;
+        min-height: auto;
+      }
+
+      .contract-border { top: 6px; left: 6px; right: 6px; bottom: 6px; }
+      .contract-border-inner { top: 9px; left: 9px; right: 9px; bottom: 9px; }
+
+      .contract-header { padding-bottom: 12px; margin-bottom: 14px; }
+      .contract-header h1 { font-size: 1.2rem; letter-spacing: 2px; margin-bottom: 2px; }
+      .contract-header .subtitle { font-size: 0.75rem; }
+      .contract-ref { font-size: 0.65rem; margin-top: 4px; }
+
+      .section { margin-bottom: 10px; }
+      .section-title { font-size: 0.7rem; padding-bottom: 3px; margin-bottom: 6px; letter-spacing: 1px; }
+      .row { padding: 2px 0; font-size: 0.8rem; }
+      .label { min-width: 120px; }
+      .notes { font-size: 0.75rem; padding: 6px 10px; line-height: 1.4; }
+      .madde-text { font-size: 0.72rem; line-height: 1.5; margin-top: 4px; }
+
+      .two-col { gap: 16px; }
+      .col-header { font-size: 0.65rem; }
+
+      .signatures { margin-top: 20px; gap: 24px; }
+      .sig-line { margin-top: 30px; padding-top: 4px; }
+      .sig-name { font-size: 0.75rem; }
+      .sig-role { font-size: 0.65rem; }
+
+      .contract-footer { margin-top: 12px; padding-top: 6px; font-size: 0.6rem; }
+      #contract-footer-confirmed { font-size: 0.65rem !important; }
+
+      .stamp { opacity: 0.15; font-size: 1.1rem; padding: 8px 24px; }
+
+      @page {
+        size: A4;
+        margin: 10mm;
+      }
+    }
+
+    /* ─── Mobile ─── */
+    @media screen and (max-width: 600px) {
+      .contract { padding: 28px 24px; }
+      .contract-border { top: 8px; left: 8px; right: 8px; bottom: 8px; }
+      .contract-border-inner { top: 12px; left: 12px; right: 12px; bottom: 12px; }
+      .contract-header h1 { font-size: 1.2rem; letter-spacing: 2px; }
+      .row { flex-direction: column; gap: 2px; }
+      .value { text-align: left; }
+      .two-col { flex-direction: column; gap: 16px; }
+      .signatures { flex-direction: column; gap: 24px; }
+      .sig-line { margin-top: 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-wrapper">
+
+    <!-- Loading -->
+    <div id="state-loading" class="state active">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Sözleşme yükleniyor...</p>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div id="state-error" class="state">
+      <div class="error">
+        <div class="error-icon">&#10060;</div>
+        <h2>Sözleşme Bulunamadı</h2>
+        <p>Bu link geçersiz veya sözleşme silinmiş olabilir.<br>Lütfen emlak danışmanınızla iletişime geçin.</p>
+      </div>
+    </div>
+
+    <!-- Contract -->
+    <div id="state-contract" class="state">
+
+      <!-- Screen-only confirmed badge -->
+      <div id="confirmed-badge-screen" class="confirmed-badge-screen" style="display:none;">
+        &#10004; Bu sözleşme taraflarca onaylanmıştır
+      </div>
+
+      <!-- Screen-only actions (top) -->
+      <div class="action-bar" id="action-bar-top">
+        <button class="action-btn secondary" onclick="window.print()">
+          &#128438; PDF Olarak İndir
+        </button>
+      </div>
+      <p class="action-note" id="pdf-note">Açılan pencerede "PDF olarak kaydet" seçeneğini kullanın</p>
+
+      <!-- The contract document -->
+      <div class="contract" id="contract-doc">
+        <div class="contract-border"></div>
+        <div class="contract-border-inner"></div>
+
+        <!-- Stamp (shown when confirmed) -->
+        <div class="stamp" id="contract-stamp">ONAYLANDI</div>
+
+        <div class="contract-header">
+          <h1>Kira Sözleşmesi</h1>
+          <div class="subtitle">Konut / İşyeri Kira Kontratı</div>
+          <div class="contract-ref" id="contract-ref"></div>
+        </div>
+
+        <!-- Danışman -->
+        <div class="section" id="agent-section">
+          <div class="section-title">Aracı Emlak Danışmanı</div>
+          <div class="row">
+            <span class="label">Ad Soyad</span>
+            <span class="value" id="agent-name">—</span>
+          </div>
+          <div class="row" id="agent-company-row">
+            <span class="label">Firma / Ofis</span>
+            <span class="value" id="agent-company">—</span>
+          </div>
+          <div class="row" id="agent-phone-row">
+            <span class="label">Telefon</span>
+            <span class="value" id="agent-phone">—</span>
+          </div>
+        </div>
+
+        <!-- Madde 1 — Taraflar -->
+        <div class="section">
+          <div class="section-title">Madde 1 — Taraflar</div>
+          <div class="two-col">
+            <div class="col">
+              <div class="col-header">Kiraya Veren</div>
+              <div class="row">
+                <span class="label">Ad Soyad</span>
+                <span class="value" id="landlord-name">—</span>
+              </div>
+              <div class="row">
+                <span class="label">TC Kimlik No</span>
+                <span class="value" id="landlord-tc">—</span>
+              </div>
+              <div class="row" id="landlord-address-row" style="display:none;">
+                <span class="label">Adres</span>
+                <span class="value" id="landlord-address">—</span>
+              </div>
+              <div class="row" id="landlord-phone-row" style="display:none;">
+                <span class="label">Telefon</span>
+                <span class="value" id="landlord-phone">—</span>
+              </div>
+            </div>
+            <div class="col">
+              <div class="col-header">Kiracı</div>
+              <div class="row">
+                <span class="label">Ad Soyad</span>
+                <span class="value" id="tenant-name">—</span>
+              </div>
+              <div class="row">
+                <span class="label">TC Kimlik No</span>
+                <span class="value" id="tenant-tc">—</span>
+              </div>
+              <div class="row" id="tenant-address-row" style="display:none;">
+                <span class="label">Adres</span>
+                <span class="value" id="tenant-address">—</span>
+              </div>
+              <div class="row" id="tenant-phone-row" style="display:none;">
+                <span class="label">Telefon</span>
+                <span class="value" id="tenant-phone">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Madde 2 — Taşınmaz -->
+        <div class="section">
+          <div class="section-title">Madde 2 — Kiralanan Taşınmaz</div>
+          <div class="row">
+            <span class="label">Adres</span>
+            <span class="value" id="property-address">—</span>
+          </div>
+          <div class="row" id="property-type-row" style="display:none;">
+            <span class="label">Türü</span>
+            <span class="value" id="property-type">—</span>
+          </div>
+          <div class="row" id="room-count-row" style="display:none;">
+            <span class="label">Oda Sayısı</span>
+            <span class="value" id="room-count">—</span>
+          </div>
+          <div class="row" id="square-meters-row" style="display:none;">
+            <span class="label">Yüzölçümü</span>
+            <span class="value" id="square-meters">—</span>
+          </div>
+        </div>
+
+        <!-- Madde 3 — Kira Süresi -->
+        <div class="section">
+          <div class="section-title">Madde 3 — Kira Süresi</div>
+          <div class="row">
+            <span class="label">Başlangıç</span>
+            <span class="value" id="start-date">—</span>
+          </div>
+          <div class="row">
+            <span class="label">Bitiş</span>
+            <span class="value" id="end-date">—</span>
+          </div>
+          <p class="madde-text">Sözleşme süresi sonunda kiracı tahliye etmediği ve kiraya veren yazılı ihtarda bulunmadığı takdirde, sözleşme aynı koşullarla 1 (bir) yıl uzatılmış sayılır.</p>
+        </div>
+
+        <!-- Madde 4 — Kira Bedeli -->
+        <div class="section">
+          <div class="section-title">Madde 4 — Kira Bedeli ve Ödeme</div>
+          <div class="row">
+            <span class="label">Aylık Kira</span>
+            <span class="value" id="rent-amount">—</span>
+          </div>
+          <div class="row">
+            <span class="label">Ödeme Günü</span>
+            <span class="value" id="payment-day">—</span>
+          </div>
+          <div class="row">
+            <span class="label">Ödeme Şekli</span>
+            <span class="value">Banka hesabına havale/EFT</span>
+          </div>
+          <p class="madde-text">Kiracı, kira bedelini zamanında ödemekle yükümlüdür. Gecikme halinde yasal faiz uygulanır.</p>
+        </div>
+
+        <!-- Madde 5 — Artış -->
+        <div class="section">
+          <div class="section-title">Madde 5 — Kira Artış Oranı</div>
+          <p class="madde-text">Yıllık kira artış oranı: <strong id="increase-rate">TÜFE (Tüketici Fiyat Endeksi) 12 aylık ortalaması oranında</strong></p>
+          <p class="madde-text">Kira artışı, 6098 sayılı Türk Borçlar Kanunu'nun ilgili hükümleri ve yürürlükteki mevzuat çerçevesinde uygulanır.</p>
+        </div>
+
+        <!-- Madde 6 — Depozito -->
+        <div class="section">
+          <div class="section-title">Madde 6 — Depozito (Güvenlik Teminatı)</div>
+          <p class="madde-text" id="deposit-text">Depozito alınmamıştır.</p>
+          <p class="madde-text">Depozito, kira sözleşmesinin sona ermesi ve taşınmazın eksiksiz teslimi halinde kiracıya iade edilir. Taşınmazda oluşan hasar ve ödenmeyen borçlar depozito tutarından mahsup edilebilir.</p>
+        </div>
+
+        <!-- Madde 7 — Aidat -->
+        <div class="section">
+          <div class="section-title">Madde 7 — Aidat ve Giderler</div>
+          <p class="madde-text" id="aidat-text"></p>
+          <p class="madde-text">Elektrik, su, doğalgaz ve internet gibi kullanıma bağlı giderler kiracıya aittir. Çatı, dış cephe, tesisat gibi yapısal onarımlar kiraya verene aittir.</p>
+        </div>
+
+        <!-- Madde 8 — Kullanım -->
+        <div class="section">
+          <div class="section-title">Madde 8 — Kullanım Koşulları</div>
+          <p class="madde-text">Kiracı, kiralananı özenle kullanmak ve komşulara saygı göstermekle yükümlüdür. Kiracı, kiraya verenin yazılı onayı olmadan taşınmazda tadilat yapamaz. Kiracı, kiralananı kiraya verenin yazılı onayı olmadan üçüncü kişilere devredemez veya alt kiraya veremez.</p>
+        </div>
+
+        <!-- Madde 9 — Tahliye -->
+        <div class="section">
+          <div class="section-title">Madde 9 — Tahliye</div>
+          <p class="madde-text">Kiracı, sözleşme bitiminden en az 15 gün önce yazılı bildirimde bulunarak tahliye edebilir. Tahliye sırasında taşınmaz, teslim alındığı durumda (olağan kullanımdan kaynaklanan yıpranma hariç) kiraya verene teslim edilir. Anahtar teslimi tutanak ile yapılır.</p>
+        </div>
+
+        <!-- Madde 10 — Kefil (opsiyonel) -->
+        <div class="section" id="guarantor-section" style="display:none;">
+          <div class="section-title" id="guarantor-title">Madde 10 — Kefil</div>
+          <div class="row">
+            <span class="label">Ad Soyad</span>
+            <span class="value" id="guarantor-name">—</span>
+          </div>
+          <div class="row" id="guarantor-tc-row" style="display:none;">
+            <span class="label">TC Kimlik No</span>
+            <span class="value" id="guarantor-tc">—</span>
+          </div>
+          <div class="row" id="guarantor-phone-row" style="display:none;">
+            <span class="label">Telefon</span>
+            <span class="value" id="guarantor-phone">—</span>
+          </div>
+          <p class="madde-text">Kefil, kiracının işbu kira sözleşmesinden doğan tüm borçlarını müteselsil kefil sıfatıyla üstlenir.</p>
+        </div>
+
+        <!-- Özel Şartlar (opsiyonel) -->
+        <div class="section" id="special-terms-section" style="display:none;">
+          <div class="section-title" id="special-terms-title">Özel Şartlar</div>
+          <div class="notes" id="special-terms"></div>
+        </div>
+
+        <!-- Son Hükümler -->
+        <div class="section">
+          <div class="section-title" id="final-title">Son Hükümler</div>
+          <p class="madde-text">
+            İşbu sözleşme 2 (iki) nüsha olarak düzenlenmiş olup, taraflar sözleşmenin tüm maddelerini okuduklarını ve kabul ettiklerini beyan ederler. Sözleşmede hüküm bulunmayan hallerde 6098 sayılı Türk Borçlar Kanunu hükümleri uygulanır. İhtilaf halinde kiralananın bulunduğu yer mahkemeleri ve icra daireleri yetkilidir.
+          </p>
+          <span id="confirmed-declaration" style="display:none;">
+            <p class="madde-text" style="margin-top:12px;">
+              <strong>Bu sözleşme, kiracı tarafından dijital ortamda onaylanmış olup;
+              6098 sayılı Türk Borçlar Kanunu ve 6563 sayılı Elektronik Ticaretin Düzenlenmesi
+              Hakkında Kanun kapsamında elektronik onay niteliği taşımaktadır.
+              Taraflar, işbu sözleşmenin içeriğini gayri kabili rücu olarak kabul, beyan ve taahhüt eder.</strong>
+            </p>
+          </span>
+        </div>
+
+        <!-- Signatures -->
+        <div class="signatures" id="main-signatures">
+          <div class="sig-block">
+            <div class="sig-line">
+              <div class="sig-name" id="sig-landlord">—</div>
+              <div class="sig-role">Kiraya Veren</div>
+            </div>
+          </div>
+          <div class="sig-block">
+            <div class="sig-line">
+              <div class="sig-name" id="sig-tenant">—</div>
+              <div class="sig-role">Kiracı</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kefil imza -->
+        <div class="signatures" id="guarantor-sig" style="display:none; justify-content: center; margin-top: 16px;">
+          <div class="sig-block" style="max-width:45%;">
+            <div class="sig-line">
+              <div class="sig-name" id="sig-guarantor">—</div>
+              <div class="sig-role">Kefil</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="contract-footer" id="contract-footer">
+          Bu sözleşme Beraber Satalım uygulaması ile oluşturulmuştur.
+        </div>
+        <div class="contract-footer" id="contract-footer-confirmed" style="display:none; color: #059669; font-weight: 600; font-size: 0.8rem;">
+        </div>
+      </div>
+
+      <!-- Confirm button (screen only, if not confirmed) -->
+      <div id="confirm-area" style="display:none; margin-top: 20px;">
+        <button class="action-btn primary" id="confirm-btn" onclick="confirmContract()" style="width:100%; justify-content:center; padding: 16px; font-size: 1.05rem;">
+          &#10004; Kira Sözleşmesini Onaylıyorum
+        </button>
+        <p class="action-note" style="margin-top: 12px;">
+          Bu butona tıklayarak, yukarıdaki kira sözleşmesinin tüm maddelerini okuduğunuzu ve kabul ettiğinizi onaylamış olursunuz.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    const SUPABASE_URL = 'https://rjhhrcoorayrqwotfqbc.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqaGhyY29vcmF5cnF3b3RmcWJjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MDUxNjgsImV4cCI6MjA5NzM4MTE2OH0.0_2KP2yOhQrIIjTDS2vxvkFKi4Xqdpk8AYCqVsLvQpo';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentToken = null;
+
+    function show(id) {
+      document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
+      document.getElementById('state-' + id).classList.add('active');
+    }
+
+    function formatDateTime(isoStr) {
+      if (!isoStr) return '';
+      const d = new Date(isoStr);
+      return d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function setField(id, value, rowId) {
+      if (value) {
+        document.getElementById(id).textContent = value;
+        if (rowId) document.getElementById(rowId).style.display = '';
+      }
+    }
+
+    async function loadContract() {
+      const params = new URLSearchParams(window.location.search);
+      currentToken = params.get('token');
+
+      if (!currentToken) { show('error'); return; }
+
+      const { data, error } = await supabase.rpc('get_rental_contract_by_token', { p_token: currentToken });
+
+      if (error || !data) { show('error'); return; }
+
+      // Reference number
+      const refId = (data.id || '').substring(0, 8).toUpperCase();
+      const createdDate = data.created_at ? new Date(data.created_at).toLocaleDateString('tr-TR') : '';
+      document.getElementById('contract-ref').textContent = 'Sözleşme No: ' + refId + '  |  Düzenleme Tarihi: ' + createdDate;
+
+      // Agent info
+      setField('agent-name', data.agent_name);
+      if (data.agent_company) {
+        setField('agent-company', data.agent_company);
+      } else {
+        document.getElementById('agent-company-row').style.display = 'none';
+      }
+      if (data.agent_phone) {
+        setField('agent-phone', data.agent_phone);
+      } else {
+        document.getElementById('agent-phone-row').style.display = 'none';
+      }
+
+      // Taraflar
+      setField('landlord-name', data.landlord_name);
+      setField('landlord-tc', data.landlord_tc_masked);
+      setField('sig-landlord', data.landlord_name);
+      setField('landlord-address', data.landlord_address, 'landlord-address-row');
+      setField('landlord-phone', data.landlord_phone, 'landlord-phone-row');
+
+      setField('tenant-name', data.tenant_name);
+      setField('tenant-tc', data.tenant_tc_masked);
+      setField('sig-tenant', data.tenant_name);
+      setField('tenant-address', data.tenant_address, 'tenant-address-row');
+      setField('tenant-phone', data.tenant_phone, 'tenant-phone-row');
+
+      // Taşınmaz
+      setField('property-address', data.property_address);
+      setField('property-type', data.property_type, 'property-type-row');
+      setField('room-count', data.room_count, 'room-count-row');
+      if (data.square_meters) {
+        document.getElementById('square-meters').textContent = data.square_meters + ' m²';
+        document.getElementById('square-meters-row').style.display = '';
+      }
+
+      // Kira süresi
+      setField('start-date', data.start_date);
+      setField('end-date', data.end_date);
+
+      // Kira bedeli
+      document.getElementById('rent-amount').textContent = data.rent_amount + ' TL';
+      document.getElementById('payment-day').textContent = 'Her ayın ' + data.payment_day + '. günü';
+
+      // Artış
+      if (data.increase_rate) {
+        document.getElementById('increase-rate').textContent = data.increase_rate;
+      }
+
+      // Depozito
+      if (data.deposit_amount) {
+        document.getElementById('deposit-text').innerHTML = 'Depozito tutarı: <strong>' + data.deposit_amount + ' TL</strong>';
+      }
+
+      // Aidat
+      if (data.aidat_amount) {
+        const payer = data.aidat_payer === 'kiraya_veren' ? 'Kiraya Veren' : 'Kiracı';
+        document.getElementById('aidat-text').innerHTML = 'Aylık aidat: <strong>' + data.aidat_amount + ' TL</strong> (ödeyen: ' + payer + ')';
+      }
+
+      // Madde numaralandırma
+      let maddeNo = 10;
+
+      // Kefil
+      if (data.guarantor_name) {
+        document.getElementById('guarantor-section').style.display = '';
+        document.getElementById('guarantor-title').textContent = 'Madde ' + maddeNo + ' — Kefil';
+        setField('guarantor-name', data.guarantor_name);
+        setField('sig-guarantor', data.guarantor_name);
+        setField('guarantor-tc', data.guarantor_tc_masked, 'guarantor-tc-row');
+        setField('guarantor-phone', data.guarantor_phone, 'guarantor-phone-row');
+        document.getElementById('guarantor-sig').style.display = '';
+        maddeNo++;
+      }
+
+      // Özel şartlar
+      if (data.special_terms) {
+        document.getElementById('special-terms-section').style.display = '';
+        document.getElementById('special-terms-title').textContent = 'Madde ' + maddeNo + ' — Özel Şartlar';
+        document.getElementById('special-terms').textContent = data.special_terms;
+        maddeNo++;
+      }
+
+      // Son hükümler başlığı
+      document.getElementById('final-title').textContent = 'Madde ' + maddeNo + ' — Son Hükümler';
+
+      // Onay durumu
+      if (data.confirmed_at) {
+        document.getElementById('confirmed-badge-screen').style.display = '';
+        document.getElementById('confirm-area').style.display = 'none';
+        document.getElementById('contract-stamp').classList.add('visible');
+        document.getElementById('confirmed-declaration').style.display = '';
+        document.getElementById('contract-footer').textContent =
+          'Bu sözleşme dijital olarak oluşturulmuş ve ' + formatDateTime(data.confirmed_at) + ' tarihinde kiracı tarafından elektronik ortamda onaylanmıştır.';
+        document.getElementById('contract-footer-confirmed').style.display = '';
+        document.getElementById('contract-footer-confirmed').textContent =
+          'Onay Tarihi: ' + formatDateTime(data.confirmed_at);
+      } else {
+        document.getElementById('confirm-area').style.display = '';
+      }
+
+      show('contract');
+    }
+
+    window.confirmContract = async function() {
+      const btn = document.getElementById('confirm-btn');
+      btn.disabled = true;
+      btn.innerHTML = 'Onaylanıyor...';
+
+      const { data, error } = await supabase.rpc('confirm_rental_contract', { p_token: currentToken });
+
+      if (error || !data) {
+        btn.disabled = false;
+        btn.innerHTML = '&#10004; Kira Sözleşmesini Onaylıyorum';
+        alert('Bir hata oluştu. Lütfen tekrar deneyin.');
+        return;
+      }
+
+      const now = new Date();
+      const confirmedDateStr = now.toLocaleDateString('tr-TR') + ' ' + now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+      document.getElementById('contract-stamp').classList.add('visible');
+      document.getElementById('confirmed-declaration').style.display = '';
+      document.getElementById('confirmed-badge-screen').style.display = '';
+      document.getElementById('confirm-area').style.display = 'none';
+      document.getElementById('contract-footer').textContent =
+        'Bu sözleşme dijital olarak oluşturulmuş ve ' + confirmedDateStr + ' tarihinde kiracı tarafından elektronik ortamda onaylanmıştır.';
+      document.getElementById('contract-footer-confirmed').style.display = '';
+      document.getElementById('contract-footer-confirmed').textContent =
+        'Onay Tarihi: ' + confirmedDateStr;
+    };
+
+    loadContract();
+  </script>
+</body>
+</html>

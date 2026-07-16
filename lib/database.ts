@@ -585,3 +585,34 @@ export async function deleteShowingCertificate(id: string) {
     .eq('id', id);
   return { error: error?.message };
 }
+
+// ─── RENTAL CONTRACTS (Kira Kontratı) ────────────────
+
+export async function createRentalContract(
+  contract: Omit<import('@/types').RentalContract, 'id' | 'confirmation_token' | 'confirmed_at' | 'created_at' | 'updated_at'>,
+) {
+  const { data, error } = await supabase
+    .from('rental_contracts')
+    .insert(contract)
+    .select()
+    .single();
+  return { data: data as import('@/types').RentalContract | null, error: error?.message };
+}
+
+export async function getMyRentalContracts(agentId: string) {
+  const { data, error } = await supabase
+    .from('rental_contracts')
+    .select('*')
+    .eq('agent_id', agentId)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  return { data: (data as import('@/types').RentalContract[]) ?? [], error: error?.message };
+}
+
+export async function deleteRentalContract(id: string) {
+  const { error } = await supabase
+    .from('rental_contracts')
+    .delete()
+    .eq('id', id);
+  return { error: error?.message };
+}

@@ -161,6 +161,42 @@ export interface ShowingCertificate {
   updated_at: string;
 }
 
+// ─── RENTAL CONTRACT (Kira Kontratı) ─────────────────
+
+export interface RentalContract {
+  id: string;
+  agent_id: string;
+  listing_id: string | null;
+  landlord_name: string;
+  landlord_tc: string;
+  landlord_address: string | null;
+  landlord_phone: string | null;
+  tenant_name: string;
+  tenant_tc: string;
+  tenant_address: string | null;
+  tenant_phone: string | null;
+  property_address: string;
+  property_type: string | null;
+  room_count: string | null;
+  square_meters: string | null;
+  rent_amount: string;
+  deposit_amount: string | null;
+  payment_day: string;
+  start_date: string;
+  end_date: string;
+  increase_rate: string | null;
+  aidat_amount: string | null;
+  aidat_payer: string | null;
+  special_terms: string | null;
+  guarantor_name: string | null;
+  guarantor_tc: string | null;
+  guarantor_phone: string | null;
+  confirmation_token: string;
+  confirmed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ─── DISTRICT ─────────────────────────────────────────
 
 export type District =
