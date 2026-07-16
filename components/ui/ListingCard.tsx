@@ -10,6 +10,7 @@ import {
   TRANSACTION_LABELS,
   PROPERTY_LABELS,
 } from '@/lib/format';
+import type { ComponentProps } from 'react';
 import AgentInfo from '@/components/ui/AgentInfo';
 
 interface ListingCardProps {
@@ -207,6 +208,28 @@ export default function ListingCard({
             <Text style={styles.showingCertButtonText}>Yer Gösterme Belgesi Hazırla</Text>
             <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
           </Pressable>
+          {!isSale && (
+            <Pressable
+              style={({ pressed }) => [
+                styles.rentalContractButton,
+                pressed && { opacity: 0.85 },
+              ]}
+              onPress={() => {
+                const params = new URLSearchParams({
+                  propertyAddress: [listing.district, listing.neighborhood].filter(Boolean).join(', ') + (listing.city ? ` / ${listing.city}` : ''),
+                  propertyType: PROPERTY_LABELS[listing.property_type] ?? '',
+                  roomCount: listing.room_count ?? '',
+                  squareMeters: listing.net_area ? String(listing.net_area) : '',
+                  rentAmount: listing.price > 0 ? String(listing.price) : '',
+                });
+                router.push(`/tools/rental-contract?${params.toString()}` as any);
+              }}
+            >
+              <Ionicons name="document-attach-outline" size={18} color={Colors.rent} />
+              <Text style={styles.rentalContractButtonText}>Kira Kontratı Oluştur</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.text.tertiary} />
+            </Pressable>
+          )}
           <View style={styles.ownerActions}>
             <Pressable
               style={({ pressed }) => [
@@ -452,6 +475,24 @@ const styles = StyleSheet.create({
   showingCertButtonText: {
     ...Typography.subhead,
     color: Colors.accent,
+    fontWeight: '600',
+    flex: 1,
+  },
+  rentalContractButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.rent + '0A',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.rent + '28',
+  },
+  rentalContractButtonText: {
+    ...Typography.subhead,
+    color: Colors.rent,
     fontWeight: '600',
     flex: 1,
   },
