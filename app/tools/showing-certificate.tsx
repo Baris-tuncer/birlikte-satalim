@@ -26,6 +26,7 @@ import {
 import { supabase } from '@/lib/supabase';
 import DropdownPicker from '@/components/ui/DropdownPicker';
 import SegmentControl from '@/components/ui/SegmentControl';
+import { isPdfAvailable, exportShowingCertificatePdf } from '@/lib/pdf-export';
 import type { Listing, ShowingCertificate, PropertyType, TransactionType } from '@/types';
 
 // ─── Helpers ──────────────────────────────────────────
@@ -293,6 +294,35 @@ export default function ShowingCertificateScreen() {
     const message = `Merhaba ${cert.client_name},\n\n${dateFormatted} tarihli yer gösterme belgeniz oluşturulmuştur.\nBelgeyi görüntülemek ve onaylamak için lütfen aşağıdaki linke tıklayın:\n\n${link}`;
 
     Share.share({ message, title: 'Yer Gösterme Belgesi' });
+  };
+
+  // — PDF export
+  const handlePdfExport = (cert: ShowingCertificate) => {
+    const dateFormatted = cert.showing_date
+      ? cert.showing_date.split('-').reverse().join('.')
+      : '';
+
+    exportShowingCertificatePdf({
+      agentName: profile?.name ?? '',
+      agentCompany: profile?.company_name ?? '',
+      agentPhone: profile?.phone ?? undefined,
+      licenseNumber: profile?.license_number ?? undefined,
+      clientName: cert.client_name,
+      clientTcMasked: maskTC(cert.client_tc),
+      clientPhone: cert.client_phone ?? undefined,
+      city: cert.city,
+      district: cert.district,
+      neighborhood: cert.neighborhood ?? undefined,
+      addressDetail: cert.address_detail ?? undefined,
+      propertyType: PROPERTY_LABELS[cert.property_type] ?? cert.property_type,
+      transactionType: TRANSACTION_LABELS[cert.transaction_type] ?? cert.transaction_type,
+      ada: cert.ada ?? undefined,
+      parsel: cert.parsel ?? undefined,
+      showingDate: dateFormatted,
+      showingTime: cert.showing_time ?? undefined,
+      notes: cert.notes ?? undefined,
+      confirmedAt: cert.confirmed_at ?? undefined,
+    });
   };
 
   // — Delete certificate
@@ -780,6 +810,19 @@ export default function ShowingCertificateScreen() {
                         <Text style={styles.historyShareText}>Linki Gönder</Text>
                       </Pressable>
 
+                      {isPdfAvailable() && (
+                        <Pressable
+                          style={({ pressed }) => [
+                            styles.historyPdfButton,
+                            pressed && { opacity: 0.85 },
+                          ]}
+                          onPress={() => handlePdfExport(item)}
+                        >
+                          <Ionicons name="document-outline" size={16} color={Colors.accent} />
+                          <Text style={styles.historyPdfText}>PDF</Text>
+                        </Pressable>
+                      )}
+
                       <Pressable
                         style={({ pressed }) => [
                           styles.historyDeleteButton,
@@ -1065,6 +1108,21 @@ const styles = StyleSheet.create({
   historyShareText: {
     ...Typography.caption1,
     color: Colors.primary,
+    fontWeight: '600',
+  },
+  historyPdfButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.accent + '0A',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  historyPdfText: {
+    ...Typography.caption1,
+    color: Colors.accent,
     fontWeight: '600',
   },
   historyDeleteButton: {

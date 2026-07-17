@@ -23,6 +23,7 @@ import {
   deleteRentalContract,
 } from '@/lib/database';
 import SegmentControl from '@/components/ui/SegmentControl';
+import { isPdfAvailable, exportRentalContractPdf } from '@/lib/pdf-export';
 import type { RentalContract } from '@/types';
 
 // ─── Yardımcılar ──────────────────────────────────────────────────
@@ -235,6 +236,41 @@ export default function RentalContractScreen() {
     const message = `Merhaba ${contract.tenant_name},\n\nKira sözleşmeniz oluşturulmuştur.\nSözleşmeyi görüntülemek ve onaylamak için lütfen aşağıdaki linke tıklayın:\n\n${link}`;
 
     Share.share({ message, title: 'Kira Sözleşmesi' });
+  };
+
+  // ─── PDF export ───────────────────────────────────────────────
+
+  const handlePdfExport = (contract: RentalContract) => {
+    exportRentalContractPdf({
+      agentName: profile?.name ?? '',
+      agentCompany: profile?.company_name ?? '',
+      agentPhone: profile?.phone ?? undefined,
+      landlordName: contract.landlord_name,
+      landlordTcMasked: maskTC(contract.landlord_tc),
+      landlordAddress: contract.landlord_address ?? undefined,
+      landlordPhone: contract.landlord_phone ?? undefined,
+      tenantName: contract.tenant_name,
+      tenantTcMasked: maskTC(contract.tenant_tc),
+      tenantAddress: contract.tenant_address ?? undefined,
+      tenantPhone: contract.tenant_phone ?? undefined,
+      propertyAddress: contract.property_address,
+      propertyType: contract.property_type ?? undefined,
+      roomCount: contract.room_count ?? undefined,
+      squareMeters: contract.square_meters ?? undefined,
+      rentAmount: contract.rent_amount,
+      depositAmount: contract.deposit_amount ?? undefined,
+      paymentDay: contract.payment_day,
+      startDate: contract.start_date,
+      endDate: contract.end_date,
+      increaseRate: contract.increase_rate ?? undefined,
+      aidatAmount: contract.aidat_amount ?? undefined,
+      aidatPayer: contract.aidat_payer ?? undefined,
+      specialTerms: contract.special_terms ?? undefined,
+      guarantorName: contract.guarantor_name ?? undefined,
+      guarantorTcMasked: contract.guarantor_tc ? maskTC(contract.guarantor_tc) : undefined,
+      guarantorPhone: contract.guarantor_phone ?? undefined,
+      confirmedAt: contract.confirmed_at ?? undefined,
+    });
   };
 
   // ─── Delete contract ───────────────────────────────────────────
@@ -779,6 +815,19 @@ export default function RentalContractScreen() {
                       <Text style={styles.historyShareText}>Linki Gönder</Text>
                     </Pressable>
 
+                    {isPdfAvailable() && (
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.historyPdfButton,
+                          pressed && { opacity: 0.85 },
+                        ]}
+                        onPress={() => handlePdfExport(item)}
+                      >
+                        <Ionicons name="document-outline" size={16} color={Colors.accent} />
+                        <Text style={styles.historyPdfText}>PDF</Text>
+                      </Pressable>
+                    )}
+
                     <Pressable
                       style={({ pressed }) => [
                         styles.historyDeleteButton,
@@ -1082,6 +1131,21 @@ const styles = StyleSheet.create({
   historyShareText: {
     ...Typography.caption1,
     color: Colors.primary,
+    fontWeight: '600',
+  },
+  historyPdfButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.accent + '0A',
+    borderRadius: Radius.md,
+    paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  historyPdfText: {
+    ...Typography.caption1,
+    color: Colors.accent,
     fontWeight: '600',
   },
   historyDeleteButton: {
