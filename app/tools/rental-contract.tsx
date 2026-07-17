@@ -221,7 +221,7 @@ export default function RentalContractScreen() {
       return;
     }
 
-    const link = `https://berabersatalim.com/kontrat.html?token=${data.confirmation_token}`;
+    const link = `https://berabersatalim.com/kontrat.html#${data.confirmation_token}`;
     const message = `Merhaba ${tenantName.trim()},\n\nKira sözleşmeniz oluşturulmuştur.\nSözleşmeyi görüntülemek ve onaylamak için lütfen aşağıdaki linke tıklayın:\n\n${link}`;
 
     await Share.share({ message, title: 'Kira Sözleşmesi' });
@@ -231,7 +231,7 @@ export default function RentalContractScreen() {
   // ─── Re-share existing contract link ───────────────────────────
 
   const handleReShare = (contract: RentalContract) => {
-    const link = `https://berabersatalim.com/kontrat.html?token=${contract.confirmation_token}`;
+    const link = `https://berabersatalim.com/kontrat.html#${contract.confirmation_token}`;
     const message = `Merhaba ${contract.tenant_name},\n\nKira sözleşmeniz oluşturulmuştur.\nSözleşmeyi görüntülemek ve onaylamak için lütfen aşağıdaki linke tıklayın:\n\n${link}`;
 
     Share.share({ message, title: 'Kira Sözleşmesi' });

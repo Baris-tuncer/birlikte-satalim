@@ -56,6 +56,44 @@
       margin-bottom: 16px;
     }
 
+    /* ─── TC Verification ─── */
+    .tc-verify-box {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .tc-verify-box label {
+      display: block;
+      font-size: 0.9rem;
+      color: #1A1A2E;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .tc-verify-box input {
+      width: 120px;
+      padding: 12px 16px;
+      font-size: 1.2rem;
+      text-align: center;
+      border: 2px solid #D0D5DD;
+      border-radius: 10px;
+      letter-spacing: 4px;
+      font-family: 'Courier New', monospace;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .tc-verify-box input:focus {
+      border-color: #0A2540;
+    }
+    .tc-verify-error {
+      color: #DC2626;
+      font-size: 0.82rem;
+      margin-top: 8px;
+      display: none;
+    }
+
     /* ─── States (screen only) ─── */
     .state { display: none; }
     .state.active { display: block; }
@@ -624,18 +662,24 @@
         </div>
       </div>
 
-      <!-- Confirm button (screen only, if not confirmed, tenant only) -->
+      <!-- TC verification + Confirm (screen only, if not confirmed) -->
       <div id="confirm-area" style="display:none; margin-top: 20px;">
-        <p class="action-note" style="margin-bottom: 12px; font-size: 0.88rem; color: #0A2540; font-weight: 600;">
-          &#128100; Bu bölüm kiracıya yöneliktir
-        </p>
-        <button class="action-btn primary" id="confirm-btn" onclick="confirmContract()" style="width:100%; justify-content:center; padding: 16px; font-size: 1.05rem;">
-          &#10004; Kiracı Olarak Sözleşmeyi Onaylıyorum
-        </button>
-        <p class="action-note" style="margin-top: 12px;">
-          Kiracı olarak bu butona tıklayarak, yukarıdaki kira sözleşmesinin tüm maddelerini okuduğunuzu ve kabul ettiğinizi onaylamış olursunuz.
-          Kiraya veren veya emlak danışmanıysanız bu butonu kullanmayınız.
-        </p>
+        <!-- Step 1: TC doğrulama -->
+        <div id="tc-verify-step" class="tc-verify-box">
+          <label>Sözleşmeyi onaylamak için TC Kimlik numaranızın son 4 hanesini girin</label>
+          <input type="text" id="tc-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" placeholder="····">
+          <p class="tc-verify-error" id="tc-error">TC son 4 hane eşleşmiyor. Tekrar deneyin.</p>
+        </div>
+
+        <!-- Step 2: Onay butonu (TC doğrulandıktan sonra görünür) -->
+        <div id="confirm-step" style="display:none;">
+          <button class="action-btn primary" id="confirm-btn" onclick="confirmContract()" style="width:100%; justify-content:center; padding: 16px; font-size: 1.05rem;">
+            &#10004; Kira Sözleşmesini Onaylıyorum
+          </button>
+          <p class="action-note" style="margin-top: 12px;">
+            Bu butona tıklayarak, yukarıdaki kira sözleşmesinin tüm maddelerini okuduğunuzu ve kabul ettiğinizi onaylamış olursunuz.
+          </p>
+        </div>
       </div>
     </div>
 
@@ -650,6 +694,7 @@
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentToken = null;
+    let tenantTcLast4 = null;
 
     function show(id) {
       document.querySelectorAll('.state').forEach(el => el.classList.remove('active'));
@@ -670,8 +715,10 @@
     }
 
     async function loadContract() {
+      // Hash'ten oku (#UUID), eski format (?token=UUID) da desteklenir
+      const hash = window.location.hash.replace('#', '').trim();
       const params = new URLSearchParams(window.location.search);
-      currentToken = params.get('token');
+      currentToken = hash || params.get('token');
 
       if (!currentToken) { show('error'); return; }
 
@@ -707,6 +754,8 @@
       setField('tenant-name', data.tenant_name);
       setField('tenant-tc', data.tenant_tc_masked);
       setField('sig-tenant', data.tenant_name);
+      // TC son 4 haneyi sakla (doğrulama için)
+      tenantTcLast4 = data.tenant_tc_masked ? data.tenant_tc_masked.replace(/\*/g, '') : null;
       setField('tenant-address', data.tenant_address, 'tenant-address-row');
       setField('tenant-phone', data.tenant_phone, 'tenant-phone-row');
 
@@ -814,6 +863,24 @@
       document.getElementById('contract-footer-confirmed').textContent =
         'Onay Tarihi: ' + confirmedDateStr;
     };
+
+    // TC son 4 hane doğrulama
+    document.getElementById('tc-input').addEventListener('input', function(e) {
+      const val = e.target.value.replace(/\D/g, '');
+      e.target.value = val;
+      document.getElementById('tc-error').style.display = 'none';
+
+      if (val.length === 4) {
+        if (tenantTcLast4 && val === tenantTcLast4) {
+          // Doğrulandı — onay butonunu göster
+          document.getElementById('tc-verify-step').style.display = 'none';
+          document.getElementById('confirm-step').style.display = '';
+        } else {
+          document.getElementById('tc-error').style.display = '';
+          e.target.value = '';
+        }
+      }
+    });
 
     loadContract();
   </script>

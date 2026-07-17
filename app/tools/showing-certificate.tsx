@@ -276,7 +276,7 @@ export default function ShowingCertificateScreen() {
       return;
     }
 
-    const link = `https://berabersatalim.com/belge.html?token=${data.confirmation_token}`;
+    const link = `https://berabersatalim.com/belge.html#${data.confirmation_token}`;
     const message = `Merhaba ${clientName.trim()},\n\n${showingDate} tarihli yer gösterme belgeniz oluşturulmuştur.\nBelgeyi görüntülemek ve onaylamak için lütfen aşağıdaki linke tıklayın:\n\n${link}`;
 
     await Share.share({ message, title: 'Yer Gösterme Belgesi' });
@@ -289,7 +289,7 @@ export default function ShowingCertificateScreen() {
       ? cert.showing_date.split('-').reverse().join('.')
       : '';
 
-    const link = `https://berabersatalim.com/belge.html?token=${cert.confirmation_token}`;
+    const link = `https://berabersatalim.com/belge.html#${cert.confirmation_token}`;
     const message = `Merhaba ${cert.client_name},\n\n${dateFormatted} tarihli yer gösterme belgeniz oluşturulmuştur.\nBelgeyi görüntülemek ve onaylamak için lütfen aşağıdaki linke tıklayın:\n\n${link}`;
 
     Share.share({ message, title: 'Yer Gösterme Belgesi' });
