@@ -2,7 +2,9 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Linking from 'expo-linking';
+import * as Updates from 'expo-updates';
 import { useEffect, useRef } from 'react';
+import { Alert, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/Theme';
@@ -165,6 +167,30 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  // OTA güncelleme kontrolü — açılışta kontrol et, varsa kullanıcıya sor
+  useEffect(() => {
+    if (__DEV__) return; // Dev modda çalıştırma
+    async function checkForOTAUpdate() {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          Alert.alert(
+            'Güncelleme Hazır',
+            'Yeni bir güncelleme indirildi. Uygulamayı şimdi yenilemek ister misiniz?',
+            [
+              { text: 'Sonra', style: 'cancel' },
+              { text: 'Güncelle', onPress: () => Updates.reloadAsync() },
+            ],
+          );
+        }
+      } catch (_) {
+        // Sessizce devam et
+      }
+    }
+    checkForOTAUpdate();
+  }, []);
 
   if (!loaded) {
     return null;
