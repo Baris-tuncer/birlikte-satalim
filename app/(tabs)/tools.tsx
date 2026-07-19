@@ -30,6 +30,13 @@ const TOOLS: ToolItem[] = [
     icon: 'shield-checkmark-outline',
     route: '/tools/valuation',
   },
+  {
+    id: 'drone-view',
+    title: '3D Drone Görünümü',
+    description: 'Binaların 3D drone çekimi görünümünü oluşturun',
+    icon: 'videocam-outline',
+    route: '/tools/drone-view',
+  },
 ];
 
 export default function ToolsScreen() {

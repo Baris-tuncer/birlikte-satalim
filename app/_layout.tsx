@@ -93,6 +93,7 @@ function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inLegalGroup = segments[0] === 'legal';
+    const seg = segments[1] as string | undefined;
 
     // Legal ve reset-password sayfalarina her zaman izin ver
     if (inLegalGroup) return;
@@ -103,10 +104,10 @@ function RootLayoutNav() {
 
     if (!isLoggedIn) {
       // Giriş yapılmamış — auth akışı dışındaysa welcome'a yönlendir
-      if (segments[1] !== 'welcome' && segments[1] !== 'login' && segments[1] !== 'register' && segments[1] !== 'forgot-password' && segments[1] !== 'verify-email') {
-        router.replace('/(auth)/welcome');
+      if (seg !== 'welcome' && seg !== 'login' && seg !== 'register' && seg !== 'forgot-password' && seg !== 'verify-email') {
+        router.replace('/(auth)/welcome' as any);
       }
-    } else if (isLoggedIn && inAuthGroup && (segments[1] === 'welcome' || segments[1] === 'login' || segments[1] === 'register')) {
+    } else if (isLoggedIn && inAuthGroup && (seg === 'welcome' || seg === 'login' || seg === 'register')) {
       // Login/register sayfasında ama giriş yapılmış — doğru adıma yönlendir
       if (!emailVerified) {
         router.replace('/(auth)/verify-email');

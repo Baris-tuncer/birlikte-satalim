@@ -29,6 +29,8 @@ interface AuthContextType extends AuthState {
     name: string;
     companyName: string;
     phone: string;
+    expertiseCity: string;
+    expertiseDistricts: string[];
   }) => Promise<{ error: string | null }>;
   signIn: (
     email: string,
